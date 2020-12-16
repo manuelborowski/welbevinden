@@ -1,0 +1,18 @@
+
+{% macro select_multiple(field, grid_class = 'col-sm-3', size=6) %}
+     <div class="{{grid_class}}">
+      <label for="{{field.id|safe}}" class="less-padding">{{field.label.text|safe}}</label>
+      <select multiple class="form-control less-padding" id="{{field.id|safe}}" name="{{field.id|safe}}" size="{{size|safe}}">
+    {%- for val, label in field.choices %}
+          {% if val|safe in field.data %}
+            <option value="{{val|safe}}" selected>{{label|safe}}</option>
+          {% else %}
+            <option value="{{val|safe}}">{{label|safe}}</option>
+          {% endif %}
+    {%- endfor %}
+      </select>
+</div>
+{% endmacro %}
+
+</body>
+</html>

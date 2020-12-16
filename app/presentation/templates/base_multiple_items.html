@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+{% if table_config %}
+<div class="content-section">
+    <div class="center">
+        <h2>{{table_config.title}}</h2>
+        <form method="post" id="action_form" enctype=multipart/form-data action="{{url_for(table_config.table_action)}}">
+        {% if filters %}
+            <div class="flex-container">
+                {% for f in filters %}
+                    {% if f.type == "select" %}
+                        <div class="form-group "><label class="control-label" for="{{f.name}}">{{f.label}}</label>
+                            <select class="form-control table-filter" id="{{f.name}}" name="{{f.name}}">
+                                {% for o in f.choices %}
+                                <option value="{{o[0]}}" {% if o[0] == f.default %}selected{% endif %}>{{o[1]}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {%  endif %}
+                    {% if f.type == "datepicker" %}
+                        <div class="form-group "><label class="control-label" for="{{f.name}}">{{f.label}}</label>
+                            <br><input id="{{f.name}}" name="{{f.name}}" class="table-filter">
+                        </div>
+                    {%  endif %}
+                {% endfor %}
+                <a class="btn btn-default hidden" id="filter">Filter</a>
+                <a class="btn btn-default" id="clear">Herstel</a>
+            </div>
+            <hr class="nice-green-line">
+        {% endif %}
+        {% if table_config.buttons %}
+            <input type="hidden" id="button-pressed" name="button-pressed">
+            {% if 'view' in table_config.buttons %}
+            <button class="btn btn-default" type="button" onclick="view_item()">Bekijk</button>
+            {% endif %}
+            {% if 'edit' in table_config.buttons %}
+            <button class="btn btn-default" type="button" onclick="edit_item()">Wijzig</button>
+            {% endif %}
+            {% if 'add' in table_config.buttons %}
+            <button class="btn btn-default" type="button" onclick="add_item()">Nieuw</button>
+            {% endif %}
+            {% if 'delete' in table_config.buttons %}
+            <button class="btn btn-default" type="button" onclick="delete_item()">Verwijder</button>
+            {% endif %}
+        {% endif %}
+        {% if table_config.legend %}
+            <br>
+            <br>
+            Legende : {{table_config.legend|safe}}
+        {% endif %}
+
+            <table cellspacing="0" class="table table-striped table-bordered wrap" id="datatable" width="100%">
+                <thead>
+                <tr>
+                    {% if 'row_detail' in config %}
+                    <th></th>
+                    {% endif %}
+                    {% for h in table_config.template %}
+                    {% if h.name=='row_action' %}
+                    <th><input type='checkbox' id="select_all"></th>
+                    {% elif h.name=='reviewed' %}
+                    <th><img src="static/img/reviewed.png" style="width:20px;height:20px;" title="Reeds gecontroleerd?"></th>
+                    {% else %}
+                    <th>{{h.name}}</th>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                </thead>
+            </table>
+            {% if table_config.buttons %}
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {% if table_config %}
+        <script>
+            var filters = {{ (filters or []) | tojson }}
+            var config_columns = {{table_config.template | tojson}}
+
+        </script>
+        <script type="text/javascript"> {% include "base_multiple_items.js" %}</script>
+    {% endif %}
+{% endblock %}

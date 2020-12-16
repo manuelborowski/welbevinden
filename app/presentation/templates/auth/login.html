@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="content-section  background-image">
+    <br>
+    <br>
+    <br>
+    <br>
+    <div class="center">
+        <div class="container">
+            <div class="col-sm-4 thick-green-border" >
+                <div class="row">
+                    <h1>Inloggen aub </h1>
+                </div>
+                <div class="row thick-green-border" >
+                    <form method="post" action="{{url_for('auth.login')}}">
+                        {{ form.csrf_token }}
+                        <div>{{ form.username.label }} {{ form.username() }}</div>
+                        <div>{{ form.password.label }} {{ form.password() }}</div>
+                    <br>
+                    <button class="btn btn-default" type="submit" >Aanmelden</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+</div>
+
+{% endblock %}

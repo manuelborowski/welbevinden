@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block body %}
+    {{ super() }}
+    <div class="container">
+        <div class="center">
+            <h1>{{ common_details.title }}</h1>
+            <form action="{{ url_for(common_details.item_action, action=common_details.action) }}" method="post"
+                  class="form" role="form"
+                  enctype=multipart/form-data onkeypress="return event.keyCode !== 13;">
+                <input hidden name="item-id" value="{{ common_details.item_id }}">
+                {{ form_details.csrf_token }}
+                {% block body_single_item %}
+                {% endblock %}
+                <br>
+                {% if common_details.buttons is defined %}
+                    {% if "back" in common_details.buttons %}
+                        <button class="btn btn-default" name="button-pressed" value="back">Terug</button>
+                    {% endif %}
+
+                    {% if 'edit' in common_details.buttons %}
+                        <button class="btn btn-default" name="button-pressed" value="edit">Wijzig</button>
+                    {% endif %}
+                    {% if 'save' in common_details.buttons %}
+                        <button class="btn btn-default" name="button-pressed" value="save">Bewaar</button>
+                    {% endif %}
+                    {% if 'cancel' in common_details.buttons %}
+                        <button class="btn btn-default" name="button-pressed" value="cancel" formnovalidate>Annuleer</button>
+                    {% endif %}
+                {% endif %}
+            </form>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript"> {% include "base_single_item.js" %}</script>
+{% endblock %}

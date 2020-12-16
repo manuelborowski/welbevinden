@@ -1,0 +1,25 @@
+{% extends "base_single_item.html" %}
+
+{% block body_single_item %}
+    {{ super() }}
+    <div class="row"><div class="col-sm-2">{{ form_details.username.label}}</div><div class="col-sm-3"> {{ form_details.username() }}</div></div>
+    <div class="row"><div class="col-sm-2">{{ form_details.first_name.label}}</div><div class="col-sm-3"> {{ form_details.first_name() }}</div></div>
+    <div class="row"><div class="col-sm-2">{{ form_details.last_name.label}}</div><div class="col-sm-3"> {{ form_details.last_name() }}</div></div>
+    <div class="row"><div class="col-sm-2">{{ form_details.email.label}}</div><div class="col-sm-3"> {{ form_details.email() }}</div></div>
+    <div class="row"><div class="col-sm-2">{{ form_details.level.label}}</div><div class="col-sm-3"> {{ form_details.level() }}</div></div>
+    <div class="row"><div class="col-sm-2">{{ form_details.user_type.label}}</div><div class="col-sm-3"> {{ form_details.user_type() }}</div></div>
+    {% if common_details.action != 'view' %}
+        <div id="change_password_div">
+            <div class="row"><div class="col-sm-2">{{ form_details.change_password.label}}</div><div class="col-sm-3"> {{ form_details.change_password() }}</div></div>
+        </div>
+        <div id="passwords_div">
+            <div class="row"><div class="col-sm-2">{{ form_details.password.label}}</div><div class="col-sm-3"> {{ form_details.password() }}</div></div>
+            <div class="row"><div class="col-sm-2">{{ form_details.confirm_password.label}}</div><div class="col-sm-3"> {{ form_details.confirm_password() }}</div></div>
+        </div>
+    {%  endif %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript"> {% include "user/user.js" %}</script>
+{% endblock %}

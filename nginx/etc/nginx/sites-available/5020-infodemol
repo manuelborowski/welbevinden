@@ -1,0 +1,12 @@
+#original server-block.  When installing a certificate for this site, the server-block
+#is completely changed by certbot
+server {
+    listen 5001;
+    listen 80;
+    server_name sb.exelbo.dynu.net;
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass unix:/home/aboro/projects/student-booklet/student-booklet.sock;
+    }
+}

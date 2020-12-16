@@ -38,6 +38,7 @@
     </div>
     <a href="{{ url_for('auth.logout') }}">
         <button class="btn btn-success navbar-btn">Logout</button>
+        <a class="navbar-brand"></i> Hi, {{ current_user.username }}!</a>
     </a>
 </nav>
 {% block body %}

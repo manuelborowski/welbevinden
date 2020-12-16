@@ -121,7 +121,7 @@ def item_view(done=False, id=-1):
         common_details = tables.prepare_item_config_for_view(configuration, 'view')
         if done:
             pass
-            # nothing to do
+            # nothing to do)
         else:
             chbx_id_list = request.form.getlist('chbx')
             if chbx_id_list:
@@ -183,5 +183,8 @@ configuration = {
     'pre_filter': data.user.pre_filter,
     'format_data': data.user.format_data,
     'search_data': data.user.search_data,
-    'default_order': (1, 'asc')
+    'default_order': (1, 'asc'),
+    # 'cell_color': {'supress_cell_content': True, 'color_keys': {'X': 'red', 'O': 'green'}}, #TEST
+    # 'suppress_dom': True,
+
 }

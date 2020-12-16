@@ -77,6 +77,8 @@ def prepare_config_table_for_view(table):
             del out['pre_filter']
         if 'post_processing' in out:
             del out['post_processing']
+        if 'search_data' in out:
+            del out['search_data']
         out['table_action'] = f'{out["view"]}.table_action'
         out['table_ajax'] = f'{out["view"]}.table_ajax'
     except Exception as e:

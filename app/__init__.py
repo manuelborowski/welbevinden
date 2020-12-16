@@ -115,9 +115,10 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user
+    from app.presentation.view import auth, user, guest
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
+    flask_app.register_blueprint(guest.guest)
 
     @flask_app.errorhandler(403)
     def forbidden(error):

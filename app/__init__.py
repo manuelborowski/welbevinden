@@ -6,6 +6,7 @@ from flask_jsglue import JSGlue
 from werkzeug.routing import IntegerConverter as OrigIntegerConvertor
 import logging.handlers, os, sys
 from functools import wraps
+from flask_socketio import SocketIO
 
 
 flask_app = Flask(__name__, instance_relative_config=True, template_folder='presentation/templates/')
@@ -63,6 +64,7 @@ jsglue = JSGlue(flask_app)
 db.app=flask_app  # hack :-(
 db.init_app(flask_app)
 
+socketio = SocketIO(flask_app, async_mode=None)
 
 def create_admin():
     from app.data.models import User
@@ -115,10 +117,11 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, guest
+    from app.presentation.view import auth, user
+    from app.presentation.view.guest import enter
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
-    flask_app.register_blueprint(guest.guest)
+    flask_app.register_blueprint(enter.enter)
 
     @flask_app.errorhandler(403)
     def forbidden(error):

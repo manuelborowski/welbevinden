@@ -3,7 +3,7 @@
 
 import os
 
-from app import flask_app
+from app import flask_app, socketio
 
 if __name__ == '__main__':
     import argparse
@@ -21,4 +21,5 @@ if __name__ == '__main__':
         app_options["use_reloader"] = False
         app_options["host"] = '0.0.0.0'
 
-    flask_app.run(**app_options)
+    # flask_app.run(**app_options)
+    socketio.run(**app_options)

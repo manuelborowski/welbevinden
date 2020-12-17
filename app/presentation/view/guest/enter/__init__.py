@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-guest = Blueprint('guest', __name__)
+enter = Blueprint('guest.enter', __name__)
 
 from . import views
 

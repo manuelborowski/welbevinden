@@ -118,3 +118,23 @@ class Settings(db.Model):
         return '<Setting: {}/{}/{}/{}>'.format(self.id, self.name, self.value, self.type)
 
 
+class EndUser(db.Model):
+    __tablename__ = 'end_users'
+
+    class Profile:
+        E_CLB = 'CLB'
+        E_SCHOLENGEMEENSCHAP = 'Scholengemeenschap'
+        E_INTERNAAT = 'Internaat'
+        E_SCHOOL = 'School'
+        E_GAST = 'Gast'
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(256))
+    first_name = db.Column(db.String(256))
+    last_name = db.Column(db.String(256))
+    code = db.Column(db.String(256))
+    timeslot = db.Column(db.DateTime())
+    last_login = db.Column(db.DateTime())
+    profile = db.Column(db.String(256))
+
+

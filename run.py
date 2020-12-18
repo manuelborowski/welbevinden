@@ -22,4 +22,4 @@ if __name__ == '__main__':
         app_options["host"] = '0.0.0.0'
 
     # flask_app.run(**app_options)
-    socketio.run(**app_options)
+    socketio.run(host='0.0.0.0', **app_options)

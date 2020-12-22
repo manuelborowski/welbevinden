@@ -2,7 +2,7 @@ from app import log, db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import UniqueConstraint
-
+import inspect
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -136,5 +136,59 @@ class EndUser(db.Model):
     timeslot = db.Column(db.DateTime())
     last_login = db.Column(db.DateTime())
     profile = db.Column(db.String(256))
+    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), default=None)
+
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'
+
+    def __repr__(self):
+        return f'{self.email}/{self.full_name()}/{self.code}/{self.profile}'
+
+class Room(db.Model):
+    __tablename__ = 'rooms'
+
+    class State:
+        E_NEW = 'nieuw'
+        E_OPEN = 'open'
+        E_CLOSING = 'afsluiten'
+        E_CLOSED = 'gesloten'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(256), default='')
+    info = db.Column(db.String(256), default='')
+    state = db.Column(db.String(256), default=State.E_NEW)
+    code = db.Column(db.String(256))
+    guests = db.relationship('EndUser', cascade='all, delete', backref='room', lazy='dynamic')
+    floor_id = db.Column(db.Integer, db.ForeignKey('floors.id'))
+
+    def __repr__(self):
+        return f'{self.code}/{self.name}'
+
+class Floor(db.Model):
+    __tablename__ = 'floors'
+
+    class Level:
+        E_CLB = EndUser.Profile.E_CLB
+        E_INTERNAAT = EndUser.Profile.E_INTERNAAT
+        E_SCHOLENGEMEENSCHAP = EndUser.Profile.E_SCHOLENGEMEENSCHAP
+
+        @staticmethod
+        def get_enum_list():
+            attributes = inspect.getmembers(Floor.Level, lambda a: not (inspect.isroutine(a)))
+            enums = [a for a in attributes if not (a[0].startswith('__') and a[0].endswith('__'))]
+            return enums
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(256), default='')
+    info = db.Column(db.String(256), default='')
+    level = db.Column(db.String(256))
+    rooms = db.relationship('Room', cascade='all, delete', backref='floor', lazy='dynamic')
+
+    def __repr__(self):
+        return f'{self.level}'
 
 
+def get_columns(sqlalchemy_object):
+    columns = sqlalchemy_object.__dict__
+    del columns['_sa_instance_state']
+    return columns

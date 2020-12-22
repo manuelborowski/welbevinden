@@ -1,4 +1,6 @@
+var socket;
 var Message;
+var rooms = {}
 Message = function (arg) {
     this.text = arg.text, this.message_side = arg.message_side;
     this.draw = function (_this) {
@@ -16,6 +18,11 @@ Message = function (arg) {
 };
 
 $(function () { // same as $(document).ready()
+    // Connect to the Socket.IO server.
+    // The connection URL has the following format, relative to the current page:
+    //     http[s]://<domain>:<port>[/<namespace>]
+    socket = io();
+
     var get_message_text, message_side, send_message;
     message_side = 'right';
     get_message_text = function () {
@@ -55,15 +62,11 @@ $(function () { // same as $(document).ready()
     // }, 2000);
 
 
-    // Connect to the Socket.IO server.
-    // The connection URL has the following format, relative to the current page:
-    //     http[s]://<domain>:<port>[/<namespace>]
-    var socket = io();
-
     // Event handler for new connections.
     // The callback function is invoked when a connection with the
     // server is established.
     socket.on('connect', function () {
+        console.log('chat is connected');
         socket.emit('my_event', {data: 'I\'m connected!'});
     });
 
@@ -71,9 +74,13 @@ $(function () { // same as $(document).ready()
     // The callback function is invoked whenever the server emits data
     // to the client. The data is then displayed in the "Received"
     // section of the page.
-    socket.on('my_response', function (msg, cb) {
+    socket.on('send_to_client', function (msg, cb) {
         // $('#log').append('<br>' + $('<div/>').text('Received #' + msg.count + ': ' + msg.data).html());
-        send_message(msg.count + ': ' + msg.data);
+        // send_message(msg.count + ': ' + msg.data);
+        var room_code = msg.room;
+        var message = msg.message;
+        var sender_code = msg.sender
+        rooms[room_code](room_code, sender_code, message);
         if (cb)
             cb();
     });
@@ -81,12 +88,12 @@ $(function () { // same as $(document).ready()
     // Interval function that tests message latency by sending a "ping"
     // message. The server then responds with a "pong" message and the
     // round trip time is measured.
-    var ping_pong_times = [];
-    var start_time;
-    window.setInterval(function () {
-        start_time = (new Date).getTime();
-        socket.emit('my_ping');
-    }, 1000);
+    // var ping_pong_times = [];
+    // var start_time;
+    // window.setInterval(function () {
+    //     start_time = (new Date).getTime();
+    //     socket.emit('my_ping');
+    // }, 1000);
 
     // Handler for the "pong" message. When the pong is received, the
     // time from the ping is stored, and the average of the last 30
@@ -134,3 +141,16 @@ $(function () { // same as $(document).ready()
     });
 
 });
+
+
+
+function subscribe_to_room(room_name, cb) {
+    socket.emit('subscribe_to_room', {room: room_name});
+    rooms[room_name] = cb;
+}
+
+function send_to_server(room_code, sender_code, message) {
+    socket.emit('send_to_server', {room: room_code, sender: sender_code, message: message});
+    return false;
+
+}

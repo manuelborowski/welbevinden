@@ -21,12 +21,12 @@ def my_broadcast_event(message):
 
 
 @socketio.event
-def join(message):
+def subscribe_to_room(message):
     join_room(message['room'])
     session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': 'In rooms: ' + ', '.join(rooms()),
-          'count': session['receive_count']})
+    # emit('send_to_client',
+    #      {'data': 'In rooms: ' + ', '.join(rooms()),
+    #       'count': session['receive_count']})
 
 
 @socketio.event
@@ -47,12 +47,17 @@ def on_close_room(message):
     close_room(message['room'])
 
 
+# @socketio.event
+# def send_to_server(message):
+#     session['receive_count'] = session.get('receive_count', 0) + 1
+#     emit('send_to_client',
+#          {'data': message['data'], 'count': session['receive_count']},
+#          room=message['room'])
+
 @socketio.event
-def my_room_event(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']},
-         room=message['room'])
+def send_to_server(msg):
+    print(msg)
+    emit('send_to_client', msg, room=msg['room'])
 
 
 @socketio.event
@@ -77,6 +82,7 @@ def my_ping():
 
 @socketio.event
 def connect():
+    print('chat is connected...')
     emit('my_response', {'data': 'Connected', 'count': 0})
 
 

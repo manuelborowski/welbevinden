@@ -11,7 +11,7 @@ def show():
     try:
         code = request.args['code']
         user = menduser.get_end_user(code)
-        if user.profile == menduser.Profile.E_GAST:
+        if user.profile in [menduser.Profile.E_GAST, menduser.Profile.E_SCHOOL]:
             return redirect(url_for('guest.enter.show', code=code))
         else:
             return redirect(url_for('coworker.enter.show', code=code))

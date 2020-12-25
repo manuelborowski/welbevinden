@@ -1,8 +1,9 @@
-from app.data.models import Room, Floor, EndUser, get_columns
+from app.data.models import Room, Floor, EndUser, get_columns, ChatLine
 from app.data import utils as mutils
 from app import db, log
+import datetime
 
-def get_room(owner, extract_columns=False):
+def get_room(owner):
     try:
         room = Room.query.filter(Room.code == owner.code).first()
         if room:
@@ -11,8 +12,7 @@ def get_room(owner, extract_columns=False):
             return room
         else:
             room = add_room(owner)
-            if extract_columns:
-                return get_columns(room)
+            room.history = []
             return room
     except Exception as e:
         mutils.raise_error(f'could not find room for code {owner.full_name()}', e)
@@ -30,3 +30,15 @@ def add_room(owner):
         mutils.raise_error(f'could not add room: ', e)
     return room
 
+def add_chat_line(room_code, sender_code, text):
+    try:
+        room = Room.query.filter(Room.code == room_code).first()
+        if room:
+            chat_line = ChatLine(owner_code=sender_code, text=text, timestamp=datetime.datetime.now(), room=room)
+            db.session.add(chat_line)
+            db.session.commit()
+        else:
+            log.error(f'add_chat_line: room with wode {room_code} not found')
+    except Exception as e:
+        mutils.raise_error(f'could not add chat line', e)
+    return None

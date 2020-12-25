@@ -15,7 +15,7 @@ def add_floor(level, name='', info=''):
         mutils.raise_error(f'could not add floor {level}', e)
     return True
 
-for k, v in Floor.Level.get_enum_list():
-    add_floor(v)
+for l in Floor.Level.get_enum_list():
+    add_floor(l)
 
 

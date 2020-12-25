@@ -190,6 +190,6 @@ body {
   line-height: 48px;
 }
 
-.message_template {
+.hidden-template {
   display: none;
 }

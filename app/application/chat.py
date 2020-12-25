@@ -3,89 +3,42 @@ from flask import Flask, render_template, session, request, \
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
     close_room, rooms, disconnect
 from app import flask_app, socketio
-
-
-@socketio.event
-def my_event(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']})
-
-
-@socketio.event
-def my_broadcast_event(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']},
-         broadcast=True)
-
+from app.application import room as mroom, enduser as menduser
+import datetime
 
 @socketio.event
 def subscribe_to_room(message):
     join_room(message['room'])
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    # emit('send_to_client',
-    #      {'data': 'In rooms: ' + ', '.join(rooms()),
-    #       'count': session['receive_count']})
 
 
 @socketio.event
-def leave(message):
+def leave_room(message):
     leave_room(message['room'])
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response',
-         {'data': 'In rooms: ' + ', '.join(rooms()),
-          'count': session['receive_count']})
 
 
-@socketio.on('close_room')
-def on_close_room(message):
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    emit('my_response', {'data': 'Room ' + message['room'] + ' is closing.',
-                         'count': session['receive_count']},
-         to=message['room'])
+@socketio.on
+def close_room(message):
     close_room(message['room'])
 
 
-# @socketio.event
-# def send_to_server(message):
-#     session['receive_count'] = session.get('receive_count', 0) + 1
-#     emit('send_to_client',
-#          {'data': message['data'], 'count': session['receive_count']},
-#          room=message['room'])
-
 @socketio.event
 def send_to_server(msg):
-    print(msg)
-    emit('send_to_client', msg, room=msg['room'])
+    if msg['type'] == 'chat-line':
+        mroom.add_chat_line(msg['data']['room'], msg['data']['sender'], msg['data']['text'])
+        emit('send_to_client', msg, room=msg['data']['room'])
 
 
-@socketio.event
-def disconnect_request():
-    @copy_current_request_context
-    def can_disconnect():
-        disconnect()
-
-    session['receive_count'] = session.get('receive_count', 0) + 1
-    # for this emit we use a callback function
-    # when the callback function is invoked we know that the message has been
-    # received and it is safe to disconnect
-    emit('my_response',
-         {'data': 'Disconnected!', 'count': session['receive_count']},
-         callback=can_disconnect)
-
-
-@socketio.event
-def my_ping():
-    emit('my_pong')
+@socketio.on('disconnect')
+def disconnect_socket():
+    menduser.remove_socketio_sid(request.sid)
 
 
 @socketio.event
 def connect():
-    print('chat is connected...')
-    emit('my_response', {'data': 'Connected', 'count': 0})
+    pass
 
 
-@socketio.on('disconnect')
-def test_disconnect():
-    print('Client disconnected', request.sid)
+@socketio.event
+def its_me(data):
+    menduser.set_socketio_sid(data['code'], request.sid)
+    emit('send_to_client', {'type' : 'its-me-received', 'data' : True}, room=request.sid)

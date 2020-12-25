@@ -136,6 +136,7 @@ class EndUser(db.Model):
     timeslot = db.Column(db.DateTime())
     last_login = db.Column(db.DateTime())
     profile = db.Column(db.String(256))
+    socketio_sid = db.Column(db.String(256))
     room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), default=None)
 
     def full_name(self):
@@ -143,6 +144,18 @@ class EndUser(db.Model):
 
     def __repr__(self):
         return f'{self.email}/{self.full_name()}/{self.code}/{self.profile}'
+
+    def flat(self):
+        return {
+            'id': self.id,
+            'email': self.email,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'code': self.code,
+            'timeslot': self.timeslot,
+            'last_login': self.last_login,
+            'profile': self.profile,
+        }
 
 class Room(db.Model):
     __tablename__ = 'rooms'
@@ -158,11 +171,23 @@ class Room(db.Model):
     info = db.Column(db.String(256), default='')
     state = db.Column(db.String(256), default=State.E_NEW)
     code = db.Column(db.String(256))
-    guests = db.relationship('EndUser', cascade='all, delete', backref='room', lazy='dynamic')
+    guests = db.relationship('EndUser', cascade='all, delete', backref='room')
     floor_id = db.Column(db.Integer, db.ForeignKey('floors.id'))
+    history = db.relationship('ChatLine', cascade='all, delete', backref='room')
 
     def __repr__(self):
         return f'{self.code}/{self.name}'
+    
+    def flat(self):
+        return {'id': self.id,
+            'name': self.name,
+            'info': self.info,
+            'state': self.state,
+            'code': self.code,
+            'guests': [g.flat() for g in EndUser.query.filter(EndUser.room_id == self.id).all()],
+            'floor': self.floor.level,
+            'history': [h.flat() for h in ChatLine.query.filter(ChatLine.room_id == self.id).order_by(ChatLine.timestamp).all()],
+        }
 
 class Floor(db.Model):
     __tablename__ = 'floors'
@@ -175,17 +200,42 @@ class Floor(db.Model):
         @staticmethod
         def get_enum_list():
             attributes = inspect.getmembers(Floor.Level, lambda a: not (inspect.isroutine(a)))
-            enums = [a for a in attributes if not (a[0].startswith('__') and a[0].endswith('__'))]
+            enums = [a[1] for a in attributes if not (a[0].startswith('__') and a[0].endswith('__'))]
             return enums
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), default='')
     info = db.Column(db.String(256), default='')
     level = db.Column(db.String(256))
-    rooms = db.relationship('Room', cascade='all, delete', backref='floor', lazy='dynamic')
+    rooms = db.relationship('Room', cascade='all, delete', backref='floor')
 
     def __repr__(self):
         return f'{self.level}'
+    
+    def flat(self):
+        return {
+           'id': self.id,
+           'name': self.name,
+           'info': self.info,
+           'level': self.level,
+        }
+
+class ChatLine(db.Model):
+    __tablename__ = 'chat_lines'
+
+    id = db.Column(db.Integer, primary_key=True)
+    owner_code = db.Column(db.String(256))
+    text = db.Column(db.String(256), default='')
+    timestamp = db.Column(db.DateTime())
+    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'))
+
+    def flat(self):
+        return {
+            'id': self.id,
+            'owner_code': self.owner_code,
+            'text': self.text,
+            'timestamp': self.timestamp,
+        }
 
 
 def get_columns(sqlalchemy_object):

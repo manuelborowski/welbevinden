@@ -1,4 +1,4 @@
-from app.data.models import EndUser, Room, get_columns
+from app.data.models import EndUser, Room, get_columns, Floor
 from app.data import utils as mutils
 import random, string
 from app import log, db
@@ -26,32 +26,53 @@ def add_end_user(first_name, last_name, email, profile, timeslot=None, code=None
                        timeslot=timeslot)
         db.session.add(user)
         db.session.commit()
+        log.info(f'Enduser {user.full_name()} added')
     except Exception as e:
         mutils.raise_error('could not add end user', e)
     return True
 
 
-def get_end_user(code, extract_columns=False):
+def get_end_user(code):
     try:
         user = EndUser.query.filter(EndUser.code == code).first()
-        if extract_columns:
-            return get_columns(user)
         return user
     except Exception as e:
         mutils.raise_error('could not find end user', e)
     return None
 
 
-def get_guests(room, extract_columns=False):
+def get_guests(room):
     try:
         guests = EndUser.query.filter(EndUser.room == room).all()
-        if not extract_columns: return guests
         return [get_columns(g) for g in guests]
     except Exception as e:
         mutils.raise_error(f'could not get users in room {room}', e)
     return None
 
 
+def set_socketio_sid(user_code, sid):
+    try:
+        user = EndUser.query.filter(EndUser.code == user_code).first()
+        user.socketio_sid = sid
+        db.session.commit()
+        log.info(f'Enduser {user.full_name()} logged in')
+    except Exception as e:
+        mutils.raise_error(f'could not set socketio_sid {user_code} {sid}', e)
+
+
+def remove_socketio_sid(sid):
+    try:
+        user = EndUser.query.filter(EndUser.socketio_sid == sid).first()
+        if user:
+            user.socketio_sid = None
+            db.session.commit()
+            log.info(f'Enduser {user.full_name()} logged out')
+        else:
+            log.warning(f'Enduser with sid {sid} not found (enduser probably refreshed page)')
+    except Exception as e:
+        mutils.raise_error(f'could not remove socketio_sid {sid}', e)
+
 
 add_end_user('manuel', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_CLB, code='manuel-clb')
+add_end_user('manuel-internaat', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_INTERNAAT, code='manuel-internaat')
 add_end_user('testvoornaam', 'testachternaam', 'test@gmail.com', Profile.E_GAST, code='testvoornaam-gast')

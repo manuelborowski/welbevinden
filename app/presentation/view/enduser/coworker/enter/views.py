@@ -27,26 +27,8 @@ def show():
     except Exception as e:
         log.error(f'coworker with args {request.args} could not enter: {e}')
         return render_template('enduser/error.html', error='could_not_enter')
-    return render_template('enduser/coworker/enter/enter.html', coworker=mutils.flatten(coworker),
-                           own_room=mutils.flatten(room), config=config, async_mode=socketio.async_mode)
-
-    try:
-
-        print(request.args)
-
-        config = {
-            'check_server_endpoint': 'coworker.enter.server_ajax_endpoint',
-            'intro_video': "https://www.youtube.com/embed/YrLk4vdY28Q",
-            'code': 'abcde',
-            'first_name': 'manuel',
-            'last_name': 'borowski',
-            'email': 'emmanuel.borowski@gmail.com'
-        }
-        return render_template('coworker/enter/enter.html', config=config, async_mode=socketio.async_mode)
-    except Exception as e:
-        log.error(f'coworker with args {request.args} could not enter: {e}')
-
-
+    return render_template('enduser/coworker/enter/enter.html', coworker=coworker.flat(),
+                           own_room=room.flat(), config=config, async_mode=socketio.async_mode)
 
 
 @enter.route('/coworker/enter/action/<string:jds>', methods=['GET', 'POST'])

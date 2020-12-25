@@ -1,9 +1,5 @@
 $(function () {
-    subscribe_to_room(coworker.code, receive_message);
-
-    send_to_server(coworker.code, coworker.code, "test message");
+    var $content = add_tab(coworker.profile + "-medewerker");
+    add_chat_room($content, coworker.code);
+    subscribe_to_room(coworker.profile, coworker.code, coworker.code, own_room.history);
 });
-
-function receive_message(room_code, sender_code, message) {
-    console.log(room_code, sender_code, message);
-}

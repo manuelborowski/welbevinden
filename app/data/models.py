@@ -151,6 +151,7 @@ class EndUser(db.Model):
             'email': self.email,
             'first_name': self.first_name,
             'last_name': self.last_name,
+            'full_name': f'{self.first_name} {self.last_name}',
             'code': self.code,
             'timeslot': self.timeslot,
             'last_login': self.last_login,
@@ -186,7 +187,7 @@ class Room(db.Model):
             'code': self.code,
             'guests': [g.flat() for g in EndUser.query.filter(EndUser.room_id == self.id).all()],
             'floor': self.floor.level,
-            'history': [h.flat() for h in ChatLine.query.filter(ChatLine.room_id == self.id).order_by(ChatLine.timestamp).all()],
+            # 'history': [h.flat() for h in ChatLine.query.filter(ChatLine.room_id == self.id).order_by(ChatLine.timestamp).all()],
         }
 
 class Floor(db.Model):

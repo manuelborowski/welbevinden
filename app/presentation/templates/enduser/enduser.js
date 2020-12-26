@@ -56,9 +56,10 @@ function add_tab(name) {
     return $nav_div.children(".row")
 }
 
-function add_chat_room(where, name) {
+function add_chat_room(where, room_id, room_title) {
     var $chat_room = $($('.chat_window_template').clone().html());
     where.append($chat_room);
-    $chat_room.attr("id", name)
-    $chat_room.attr("id", name)
+    $chat_room.attr("id", room_id)
+    $chat_room.attr("id", room_id)
+    $chat_room.children().children(".top_menu").children(".title").text(room_title)
 }

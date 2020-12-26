@@ -41,8 +41,9 @@ def connect():
 
 @socketio.event
 def its_me(data):
-    menduser.set_socketio_sid(data['code'], request.sid)
+    user = menduser.set_socketio_sid(data['code'], request.sid)
     emit('send_to_client', {'type' : 'its-me-received', 'data' : True}, room=request.sid)
+    emit('send_to_client', {'type' : 'add-chat-room', 'data' : {'code' : user.code, 'title' : user.full_name()}})
     history = mroom.get_history(data['code'])
     for chat_line in history:
         msg = {

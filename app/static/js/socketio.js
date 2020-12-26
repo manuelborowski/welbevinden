@@ -4,10 +4,10 @@ class Socketio {
         this.socket = io();
         this.socket._this = this;
 
-        this.socket.on('connect', function () {
-            this.emit('its_me', {code: coworker.code});
-        });
+        this.subscribe_on_receive("its-me-received", this.handle_its_me_received)
 
+    }
+    start() {
         this.socket.on('send_to_client', function (msg, cb) {
             if (msg.type in this._this.receive_cbs) {
                 this._this.receive_cbs[msg.type](msg.type, msg.data);
@@ -15,7 +15,10 @@ class Socketio {
             if (cb)
                 cb();
         });
-        this.subscribe_on_receive("its-me-received", this.handle_its_me_received)
+        this.socket.on('connect', function () {
+            this.emit('its_me', {code: coworker.code});
+        });
+
     }
 
     send_to_server(type, data) {

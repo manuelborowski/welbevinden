@@ -1,7 +1,8 @@
 from app.data.models import EndUser
 from app.data import utils as mutils
-import random, string
+import random, string, datetime
 from app import log, db
+
 
 allowed_chars = string.ascii_letters + string.digits
 
@@ -32,9 +33,11 @@ def add_end_user(first_name, last_name, email, profile, timeslot=None, code=None
     return True
 
 
-def get_end_user(code):
+def get_end_user(code, set_timestamp=False):
     try:
         user = EndUser.query.filter(EndUser.code == code).first()
+        if set_timestamp:
+            user.last_login = datetime.datetime.now()
         return user
     except Exception as e:
         mutils.raise_error('could not find end user', e)
@@ -47,6 +50,7 @@ def set_socketio_sid(user_code, sid):
         user.socketio_sid = sid
         db.session.commit()
         log.info(f'Enduser {user.full_name()} logged in')
+        return user
     except Exception as e:
         mutils.raise_error(f'could not set socketio_sid {user_code} {sid}', e)
 
@@ -66,4 +70,6 @@ def remove_socketio_sid(sid):
 
 add_end_user('manuel', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_CLB, code='manuel-clb')
 add_end_user('manuel-internaat', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_INTERNAAT, code='manuel-internaat')
-add_end_user('testvoornaam', 'testachternaam', 'test@gmail.com', Profile.E_GAST, code='testvoornaam-gast')
+add_end_user('gast1', 'testachternaam', 'test@gmail.com', Profile.E_GAST, code='gast1')
+add_end_user('gast2', 'testachternaam', 'test@gmail.com', Profile.E_GAST, code='gast2')
+add_end_user('gast3', 'testachternaam', 'test@gmail.com', Profile.E_GAST, code='gast3')

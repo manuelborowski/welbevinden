@@ -13,7 +13,7 @@ from app.application import enduser as menduser, room as mroom, utils as mutils
 def show():
     try:
         code = request.args['code']
-        coworker = menduser.get_end_user(code)
+        coworker = menduser.get_end_user(code, set_timestamp=True)
         room = mroom.get_room(coworker)
         config = {
             'check_server_endpoint': 'coworker.enter.server_ajax_endpoint',

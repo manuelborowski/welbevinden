@@ -1,7 +1,18 @@
 var rooms = {}
+var add_chat_room_cb
+var delete_chat_room_cb
+
 $(function () { // same as $(document).ready()
     socketio.subscribe_on_receive("chat-line", receive_chat_line_from_server);
+    socketio.subscribe_on_receive("add-chat-room", add_chat_room_from_server);
 });
+
+
+function start_chat(add_room_cb, delete_room_cb) {
+    add_chat_room_cb = add_room_cb;
+    delete_chat_room_cb = delete_room_cb;
+    socketio.start();
+}
 
 
 function Message(arg) {
@@ -23,7 +34,7 @@ function Message(arg) {
 }
 
 
-function subscribe_to_room(floor_level, room_code, sender_code, room_history) {
+function subscribe_to_room(floor_level, room_code, sender_code) {
     socketio.subscribe_to_room(room_code);
     rooms[room_code] = {
         floor_level: floor_level,
@@ -34,14 +45,14 @@ function subscribe_to_room(floor_level, room_code, sender_code, room_history) {
     };
 
     rooms[room_code].jq_send_button.on("click", {value: room_code}, function (e) {
-        var room = e.data.value;
-        return send_chat_line_to_server(room, rooms[room].sender_code, rooms[room].jq_input_text);
+        var room_code = e.data.value;
+        return send_chat_line_to_server(room_code, rooms[room_code].sender_code, rooms[room_code].jq_input_text);
     });
 
     rooms[room_code].jq_input_text.on("keyup", {value: room_code}, function (e) {
         if (e.which === 13) {
-            var room = e.data.value;
-            return send_chat_line_to_server(room, rooms[room].sender_code, rooms[room].jq_input_text);
+            var room_code = e.data.value;
+            return send_chat_line_to_server(room_code, rooms[room_code].sender_code, rooms[room_code].jq_input_text);
         }
     });
 }
@@ -63,4 +74,8 @@ function receive_chat_line_from_server(type, data) {
         messages: rooms[data.room].jq_output_messages
     });
     message.draw();
+}
+
+function add_chat_room_from_server(type, data) {
+    add_chat_room_cb(data.code, data.title);
 }

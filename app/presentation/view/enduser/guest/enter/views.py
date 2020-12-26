@@ -3,11 +3,15 @@ import json
 from . import enter
 from app import log, socketio
 from flask_socketio import emit, join_room, leave_room, close_room, rooms, disconnect
+from app.application import enduser as menduser
 
 # @guest.route('/guest/<string:code>/<string:name>/<string:time>', methods=['POST', 'GET'])
 @enter.route('/guest/enter', methods=['POST', 'GET'])
 def show():
     print(request.args)
+    code = request.args['code']
+    guest = menduser.get_end_user(code, set_timestamp=True)
+
     config = {
         'check_server_endpoint': 'guest.enter.server_ajax_endpoint',
         'intro_video': "https://www.youtube.com/embed/YrLk4vdY28Q",

@@ -1,5 +1,14 @@
+var $div_content
+
 $(function () {
-    var $content = add_tab(coworker.profile + "-medewerker");
-    add_chat_room($content, coworker.code);
-    subscribe_to_room(coworker.profile, coworker.code, coworker.code, own_room.history);
+    $div_content = add_tab(coworker.profile + "-medewerker");
+    start_chat(add_chat_room_cb, delete_chat_room_cb);
 });
+
+function add_chat_room_cb(code, title) {
+    console.log("add chatroom " + code + " " + title)
+    add_chat_room($div_content, code, title);
+    subscribe_to_room(coworker.profile, code, coworker.code);
+}
+
+function delete_chat_room_cb(room_code) {}

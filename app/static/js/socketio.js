@@ -2,22 +2,19 @@ class Socketio {
     receive_cbs = {}
     constructor() {
         this.socket = io();
-        this.socket._this = this;
-
         this.subscribe_on_receive("its-me-received", this.handle_its_me_received)
-
     }
     start() {
         this.socket.on('send_to_client', function (msg, cb) {
-            if (msg.type in this._this.receive_cbs) {
-                this._this.receive_cbs[msg.type](msg.type, msg.data);
+            if (msg.type in this.receive_cbs) {
+                this.receive_cbs[msg.type](msg.type, msg.data);
             }
             if (cb)
                 cb();
-        });
+        }.bind(this));
         this.socket.on('connect', function () {
-            this.emit('its_me', {code: coworker.code});
-        });
+            this.socket.emit('its_me', {code: coworker.code});
+        }.bind(this));
 
     }
 

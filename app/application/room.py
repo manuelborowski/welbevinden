@@ -1,4 +1,4 @@
-from app.data.models import Room, Floor, EndUser, get_columns, ChatLine
+from app.data.models import Room, Floor, EndUser, ChatLine
 from app.data import utils as mutils
 from app import db, log
 import datetime
@@ -24,6 +24,7 @@ def add_room(owner):
     try:
         floor = Floor.query.filter(Floor.level == owner.profile).first()
         room = Room(code=owner.code, floor=floor, name=owner.full_name())
+        room.guests.append(owner)
         db.session.add(room)
         db.session.commit()
     except Exception as e:
@@ -42,3 +43,17 @@ def add_chat_line(room_code, sender_code, text):
     except Exception as e:
         mutils.raise_error(f'could not add chat line', e)
     return None
+
+
+def get_history(user_code):
+    history = []
+    try:
+        user = EndUser.query.join(Room, ChatLine).filter(EndUser.code == user_code).order_by(ChatLine.timestamp).first()
+        if user:
+            history = [{'room': user.room.code, 'sender': l.owner_code, 'text': l.text} for l in  user.room.history]
+        return history
+    except Exception as e:
+        mutils.raise_error(f'could not get history for for usercode {user_code}', e)
+    return history
+
+

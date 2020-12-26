@@ -15,7 +15,6 @@ def show():
         code = request.args['code']
         coworker = menduser.get_end_user(code)
         room = mroom.get_room(coworker)
-        guests = menduser.get_guests(room)
         config = {
             'check_server_endpoint': 'coworker.enter.server_ajax_endpoint',
             'intro_video': "https://www.youtube.com/embed/YrLk4vdY28Q",

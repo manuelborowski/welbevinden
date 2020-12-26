@@ -35,6 +35,7 @@ def disconnect_socket():
 
 @socketio.event
 def connect():
+
     pass
 
 
@@ -42,3 +43,10 @@ def connect():
 def its_me(data):
     menduser.set_socketio_sid(data['code'], request.sid)
     emit('send_to_client', {'type' : 'its-me-received', 'data' : True}, room=request.sid)
+    history = mroom.get_history(data['code'])
+    for chat_line in history:
+        msg = {
+            'type': 'chat-line',
+            'data' : chat_line
+        }
+        emit('send_to_client', msg, room=request.sid)

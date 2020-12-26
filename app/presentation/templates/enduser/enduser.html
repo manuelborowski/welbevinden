@@ -102,7 +102,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
             integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
             crossorigin="anonymous"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/socketio.js') }}"></script>
+    <script type="text/javascript"> {% include "enduser/chat.js" %}</script>
     <script type="text/javascript"> {% include "enduser/enduser.js" %}</script>
 {% endblock %}
 </html>

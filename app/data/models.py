@@ -236,9 +236,3 @@ class ChatLine(db.Model):
             'text': self.text,
             'timestamp': self.timestamp,
         }
-
-
-def get_columns(sqlalchemy_object):
-    columns = sqlalchemy_object.__dict__
-    del columns['_sa_instance_state']
-    return columns

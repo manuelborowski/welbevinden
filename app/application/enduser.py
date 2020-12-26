@@ -1,4 +1,4 @@
-from app.data.models import EndUser, Room, get_columns, Floor
+from app.data.models import EndUser
 from app.data import utils as mutils
 import random, string
 from app import log, db
@@ -38,15 +38,6 @@ def get_end_user(code):
         return user
     except Exception as e:
         mutils.raise_error('could not find end user', e)
-    return None
-
-
-def get_guests(room):
-    try:
-        guests = EndUser.query.filter(EndUser.room == room).all()
-        return [get_columns(g) for g in guests]
-    except Exception as e:
-        mutils.raise_error(f'could not get users in room {room}', e)
     return None
 
 

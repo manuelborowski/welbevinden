@@ -1,24 +1,6 @@
-var socket;
 var rooms = {}
 $(function () { // same as $(document).ready()
-    socket = io();
-
-    socket.on('connect', function () {
-        socket.emit('its_me', {code: coworker.code});
-    });
-
-    socket.on('send_to_client', function (msg, cb) {
-        if (msg.type === "chat-line") {
-            var room_code = msg.data.room;
-            var text = msg.data.text;
-            var sender_code = msg.data.sender
-            receive_chat_line_from_server(room_code, sender_code, text);
-        } else if (msg.type === "its-me-received") {
-            console.log("its-me-received: " + msg.data);
-        }
-        if (cb)
-            cb();
-    });
+    socketio.subscribe_on_receive("chat-line", receive_chat_line_from_server);
 });
 
 
@@ -42,7 +24,7 @@ function Message(arg) {
 
 
 function subscribe_to_room(floor_level, room_code, sender_code, room_history) {
-    socket.emit('subscribe_to_room', {room: room_code});
+    socketio.subscribe_to_room(room_code);
     rooms[room_code] = {
         floor_level: floor_level,
         sender_code: sender_code,
@@ -62,10 +44,6 @@ function subscribe_to_room(floor_level, room_code, sender_code, room_history) {
             return send_chat_line_to_server(room, rooms[room].sender_code, rooms[room].jq_input_text);
         }
     });
-
-    $.each(room_history, function(i, v) {
-        receive_chat_line_from_server(room_code, v.owner_code, v.text);
-    });
 }
 
 function send_chat_line_to_server(room_code, sender_code, $jq_input_element=null, text=null) {
@@ -74,15 +52,15 @@ function send_chat_line_to_server(room_code, sender_code, $jq_input_element=null
         $jq_input_element.val("");
     }
     if (text.trim() === "") return;
-    socket.emit('send_to_server', {type: "chat-line", data: {room: room_code, sender: sender_code, text: text}});
+    socketio.send_to_server('chat-line',{room: room_code, sender: sender_code, text: text});
     return false;
 }
 
-function receive_chat_line_from_server(room_code, sender_code, text) {
+function receive_chat_line_from_server(type, data) {
     var message = new Message({
-        text: text,
-        message_side: room_code == sender_code ? 'left' : 'right',
-        messages: rooms[room_code].jq_output_messages
+        text: data.text,
+        message_side: data.room == data.sender ? 'left' : 'right',
+        messages: rooms[data.room].jq_output_messages
     });
     message.draw();
 }

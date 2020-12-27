@@ -7,7 +7,7 @@ User=aboro
 Group=www-data
 WorkingDirectory=/home/aboro/projects/infodemol
 Environment="PATH=/home/aboro/projects/infodemol/venv/bin"
-ExecStart=/home/aboro/projects/infodemol/venv/bin/uwsgi --ini infodemol.ini
+ExecStart=/home/aboro/projects/infodemol/venv/bin/python run.py
 
 [Install]
 WantedBy=multi-user.target

@@ -45,15 +45,17 @@ def add_chat_line(room_code, sender_code, text):
     return None
 
 
-def get_history(user_code):
+def get_history(room_code):
     history = []
     try:
-        user = EndUser.query.join(Room, ChatLine).filter(EndUser.code == user_code).order_by(ChatLine.timestamp).first()
-        if user:
-            history = [{'room': user.room.code, 'sender': l.owner_code, 'text': l.text} for l in  user.room.history]
+        room = Room.query.join(ChatLine).filter(Room.code == room_code).order_by(ChatLine.timestamp).first()
+        if room:
+            history = [{'room': room.code, 'sender': l.owner_code, 'text': l.text} for l in  room.history]
         return history
     except Exception as e:
-        mutils.raise_error(f'could not get history for for usercode {user_code}', e)
+        mutils.raise_error(f'could not get history for for room code {room_code}', e)
     return history
+
+
 
 

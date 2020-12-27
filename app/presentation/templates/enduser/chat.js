@@ -76,7 +76,7 @@ class Chat {
     }
 
     socketio_add_chat_room_cb(type, data) {
-        this.add_chat_room_cb(data.code, data.title);
+        this.add_chat_room_cb(data.room_code, data.title);
     }
 }
 

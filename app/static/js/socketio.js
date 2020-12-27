@@ -14,7 +14,8 @@ class Socketio {
                 cb();
         }.bind(this));
         this.socket.on('connect', function () {
-            this.socket.emit('its_me', {code: coworker.code});
+            this.send_to_server('new-end-user', {user_code: coworker.code});
+            // this.socket.emit('its_me', {user_code: coworker.code});
         }.bind(this));
 
     }

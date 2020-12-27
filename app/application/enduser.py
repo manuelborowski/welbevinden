@@ -2,11 +2,9 @@ from app.data.models import EndUser
 from app.data import utils as mutils
 import random, string, datetime
 from app import log, db
-
+from app.application import socketio as msocketio, room as mroom
 
 allowed_chars = string.ascii_letters + string.digits
-
-
 def create_random_string(len):
     return ''.join(random.choice(allowed_chars) for i in range(len))
 
@@ -55,7 +53,7 @@ def set_socketio_sid(user_code, sid):
         mutils.raise_error(f'could not set socketio_sid {user_code} {sid}', e)
 
 
-def remove_socketio_sid(sid):
+def remove_socketio_sid_cb(msg, sid):
     try:
         user = EndUser.query.filter(EndUser.socketio_sid == sid).first()
         if user:
@@ -67,6 +65,25 @@ def remove_socketio_sid(sid):
     except Exception as e:
         mutils.raise_error(f'could not remove socketio_sid {sid}', e)
 
+
+msocketio.subscribe_on_type('disconnect', remove_socketio_sid_cb)
+
+
+def new_end_user_cb(msg, client_sid):
+    user = set_socketio_sid(msg['data']['user_code'], client_sid)
+    # create a room at the client side
+    msocketio.send_to_room({'type' : 'add-chat-room', 'data' : {'room_code' : user.code, 'title' : user.full_name()}}, client_sid)
+    # transmit all current messages to the client
+    history = mroom.get_history(msg['data']['user_code'])
+    for chat_line in history:
+        msg = {
+            'type': 'chat-line',
+            'data' : chat_line
+        }
+        msocketio.send_to_room(msg, client_sid)
+
+
+msocketio.subscribe_on_type('new-end-user', new_end_user_cb)
 
 add_end_user('manuel', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_CLB, code='manuel-clb')
 add_end_user('manuel-internaat', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_INTERNAAT, code='manuel-internaat')

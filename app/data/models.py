@@ -117,6 +117,11 @@ class Settings(db.Model):
     def log(self):
         return '<Setting: {}/{}/{}/{}>'.format(self.id, self.name, self.value, self.type)
 
+guests = db.Table('guests',
+                  db.Column('end_user_id', db.Integer, db.ForeignKey('end_users.id'), primary_key=True),
+                  db.Column('room_id', db.Integer, db.ForeignKey('rooms.id'), primary_key=True),
+                  )
+
 
 class EndUser(db.Model):
     __tablename__ = 'end_users'
@@ -137,7 +142,7 @@ class EndUser(db.Model):
     last_login = db.Column(db.DateTime())
     profile = db.Column(db.String(256))
     socketio_sid = db.Column(db.String(256))
-    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), default=None)
+    # room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), default=None)
 
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
@@ -172,7 +177,8 @@ class Room(db.Model):
     info = db.Column(db.String(256), default='')
     state = db.Column(db.String(256), default=State.E_NEW)
     code = db.Column(db.String(256))
-    guests = db.relationship('EndUser', cascade='all, delete', backref='room')
+    guests = db.relationship('EndUser', secondary=guests, backref=db.backref('rooms', lazy=True))
+    # guests = db.relationship('EndUser', cascade='all, delete', backref='room')
     floor_id = db.Column(db.Integer, db.ForeignKey('floors.id'))
     history = db.relationship('ChatLine', cascade='all, delete', backref='room')
 
@@ -185,7 +191,7 @@ class Room(db.Model):
             'info': self.info,
             'state': self.state,
             'code': self.code,
-            'guests': [g.flat() for g in EndUser.query.filter(EndUser.room_id == self.id).all()],
+            # 'guests': [g.flat() for g in EndUser.query.filter(EndUser.room_id == self.id).all()],
             'floor': self.floor.level,
             # 'history': [h.flat() for h in ChatLine.query.filter(ChatLine.room_id == self.id).order_by(ChatLine.timestamp).all()],
         }

@@ -23,8 +23,8 @@ class Chat {
     delete_chat_room_cb
 
     constructor() {
-        socketio.subscribe_on_receive("chat-line", this.receive_chat_line_from_server.bind(this));
-        socketio.subscribe_on_receive("add-chat-room", this.add_chat_room_from_server.bind(this));
+        socketio.subscribe_on_receive("chat-line", this.socketio_receive_chat_line_cb.bind(this));
+        socketio.subscribe_on_receive("add-chat-room", this.socketio_add_chat_room_cb.bind(this));
     }
 
     start(add_room_cb, delete_room_cb) {
@@ -45,18 +45,18 @@ class Chat {
 
         this.rooms[room_code].jq_send_button.on("click", {value: room_code}, function (e) {
             var room_code = e.data.value;
-            return this.send_chat_line_to_server(room_code, this.rooms[room_code].sender_code, this.rooms[room_code].jq_input_text);
+            return this.send_chat_line(room_code, this.rooms[room_code].sender_code, this.rooms[room_code].jq_input_text);
         }.bind(this));
 
         this.rooms[room_code].jq_input_text.on("keyup", {value: room_code}, function (e) {
             if (e.which === 13) {
                 var room_code = e.data.value;
-                return this.send_chat_line_to_server(room_code, this.rooms[room_code].sender_code, this.rooms[room_code].jq_input_text);
+                return this.send_chat_line(room_code, this.rooms[room_code].sender_code, this.rooms[room_code].jq_input_text);
             }
         }.bind(this));
     }
 
-    send_chat_line_to_server(room_code, sender_code, $jq_input_element = null, text = null) {
+    send_chat_line(room_code, sender_code, $jq_input_element = null, text = null) {
         if ($jq_input_element) {
             text = $jq_input_element.val();
             $jq_input_element.val("");
@@ -66,7 +66,7 @@ class Chat {
         return false;
     }
 
-    receive_chat_line_from_server(type, data) {
+    socketio_receive_chat_line_cb(type, data) {
         var message = new Message({
             text: data.text,
             message_side: data.room == data.sender ? 'left' : 'right',
@@ -75,8 +75,8 @@ class Chat {
         message.draw();
     }
 
-    add_chat_room_from_server(type, data) {
-        add_chat_room_cb(data.code, data.title);
+    socketio_add_chat_room_cb(type, data) {
+        this.add_chat_room_cb(data.code, data.title);
     }
 }
 

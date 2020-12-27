@@ -4,6 +4,7 @@ class Socketio {
         this.socket = io();
         this.subscribe_on_receive("its-me-received", this.handle_its_me_received)
     }
+
     start() {
         this.socket.on('send_to_client', function (msg, cb) {
             if (msg.type in this.receive_cbs) {
@@ -34,7 +35,6 @@ class Socketio {
     subscribe_to_room(room_code) {
         this.socket.emit('subscribe_to_room', {room: room_code});
     }
-
 }
 
 var socketio

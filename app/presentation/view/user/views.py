@@ -73,7 +73,7 @@ def item_add(done=False):
                             password=password,level=form.level.data,user_type=form.user_type.data)
                 db.session.add(user)
                 db.session.commit()
-                log.info('add : {}'.format(user.log()))
+                log.info('add: {}'.format(user.log()))
                 return redirect(url_for('user.show'))
             else:
                 return render_template('user/user.html', form_details=form, common_details=common_details)
@@ -154,7 +154,7 @@ def item_delete():
             db.session.delete(user)
         db.session.commit()
     except Exception as e:
-        log.error(u'Could not delete user : {}'.format(e))
+        log.error(u'Could not delete user: {}'.format(e))
         utils.flash_plus(u'Kan de gebruikers niet verwijderen', e)
     return redirect(url_for('user.show'))
 
@@ -174,7 +174,7 @@ configuration = {
         {'name': 'Login', 'data': 'last_login', 'order_by': User.last_login, 'orderable': True},
         {'name': 'Niveau', 'data': 'level', 'order_by': User.level, 'orderable': True}, ],
     'filter': [],
-    'item' : {
+    'item': {
         'edit': {'title': 'Wijzig een gebruiker', 'buttons': ['save', 'cancel']},
         'view': {'title': 'Bekijk een gebruiker', 'buttons': ['edit', 'cancel']},
         'add': {'title': 'Voeg een gebruiker toe', 'buttons': ['save', 'cancel']},

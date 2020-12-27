@@ -20,7 +20,7 @@ configuration = {
         # 'table_action': 'user.table_action',
         # 'table_ajax': 'user.table_ajax',
         # 'item_action': 'user.item_action',
-        'item' : {
+        'item': {
             'edit': {'title': 'Wijzig een gebruiker', 'role': 'edit'},
             'add': {'title': 'Voeg een gebruiker toe', 'role': 'add'},
         },

@@ -23,8 +23,8 @@
     this.$container = $('<div/>', { 'class': "ms-container" });
     this.$selectableContainer = $('<div/>', { 'class': 'ms-selectable' });
     this.$selectionContainer = $('<div/>', { 'class': 'ms-selection' });
-    this.$selectableUl = $('<ul/>', { 'class': "ms-list", 'tabindex' : '-1' });
-    this.$selectionUl = $('<ul/>', { 'class': "ms-list", 'tabindex' : '-1' });
+    this.$selectableUl = $('<ul/>', { 'class': "ms-list", 'tabindex': '-1' });
+    this.$selectionUl = $('<ul/>', { 'class': "ms-list", 'tabindex': '-1' });
     this.scrollTo = 0;
     this.elemsSelector = 'li:visible:not(.ms-optgroup-label,.ms-optgroup-container,.'+options.disabledClass+')';
   };
@@ -38,7 +38,7 @@
 
       if (ms.next('.ms-container').length === 0){
         ms.css({ position: 'absolute', left: '-9999px' });
-        ms.attr('id', ms.attr('id') ? ms.attr('id') : Math.ceil(Math.random()*1000)+'multiselect');
+        ms.attr('id', ms.attr('id') ? ms.attr('id'): Math.ceil(Math.random()*1000)+'multiselect');
         this.$container.attr('id', 'ms-'+ms.attr('id'));
         this.$container.addClass(that.options.cssClass);
         ms.find('option').each(function(){
@@ -70,7 +70,7 @@
         that.activeMouse(that.$selectableUl);
         that.activeKeyboard(that.$selectableUl);
 
-        var action = that.options.dblClick ? 'dblclick' : 'click';
+        var action = that.options.dblClick ? 'dblclick': 'click';
 
         that.$selectableUl.on(action, '.ms-elem-selectable', function(){
           that.select($(this).data('ms-value'));
@@ -95,7 +95,7 @@
       }
     },
 
-    'generateLisFromOption' : function(option, index, $container){
+    'generateLisFromOption': function(option, index, $container){
       var that = this,
           ms = that.$element,
           attributes = "",
@@ -149,7 +149,7 @@
           $selectionOptgroup.append($(optgroupTpl));
           if (that.options.selectableOptgroup){
             $selectableOptgroup.find('.ms-optgroup-label').on('click', function(){
-              var values = $optgroup.children(':not(:selected, :disabled)').map(function(){ return $(this).val();}).get();
+              var values = $optgroup.children(':not(:selected,:disabled)').map(function(){ return $(this).val();}).get();
               that.select(values);
             });
             $selectionOptgroup.find('.ms-optgroup-label').on('click', function(){
@@ -160,18 +160,18 @@
           that.$selectableUl.append($selectableOptgroup);
           that.$selectionUl.append($selectionOptgroup);
         }
-        index = index === undefined ? $selectableOptgroup.find('ul').children().length : index + 1;
+        index = index === undefined ? $selectableOptgroup.find('ul').children().length: index + 1;
         selectableLi.insertAt(index, $selectableOptgroup.children());
         selectedLi.insertAt(index, $selectionOptgroup.children());
       } else {
-        index = index === undefined ? that.$selectableUl.children().length : index;
+        index = index === undefined ? that.$selectableUl.children().length: index;
 
         selectableLi.insertAt(index, that.$selectableUl);
         selectedLi.insertAt(index, that.$selectionUl);
       }
     },
 
-    'addOption' : function(options){
+    'addOption': function(options){
       var that = this;
 
       if (options.value !== undefined && options.value !== null){
@@ -181,8 +181,8 @@
         if (option.value !== undefined && option.value !== null &&
             that.$element.find("option[value='"+option.value+"']").length === 0){
           var $option = $('<option value="'+option.value+'">'+option.text+'</option>'),
-              $container = option.nested === undefined ? that.$element : $("optgroup[label='"+option.nested+"']"),
-              index = parseInt((typeof option.index === 'undefined' ? $container.children().length : option.index));
+              $container = option.nested === undefined ? that.$element: $("optgroup[label='"+option.nested+"']"),
+              index = parseInt((typeof option.index === 'undefined' ? $container.children().length: option.index));
 
           if (option.optionClass) {
             $option.addClass(option.optionClass);
@@ -198,11 +198,11 @@
       });
     },
 
-    'escapeHTML' : function(text){
+    'escapeHTML': function(text){
       return $("<div>").text(text).html();
     },
 
-    'activeKeyboard' : function($list){
+    'activeKeyboard': function($list){
       var that = this;
 
       $list.on('focus', function(){
@@ -217,7 +217,7 @@
           case 38:
             e.preventDefault();
             e.stopPropagation();
-            that.moveHighlight($(this), (e.which === 38) ? -1 : 1);
+            that.moveHighlight($(this), (e.which === 38) ? -1: 1);
             return;
           case 37:
           case 39:
@@ -229,7 +229,7 @@
             if(that.$element.is('[tabindex]')){
               e.preventDefault();
               var tabindex = parseInt(that.$element.attr('tabindex'), 10);
-              tabindex = (e.shiftKey) ? tabindex-1 : tabindex+1;
+              tabindex = (e.shiftKey) ? tabindex-1: tabindex+1;
               $('[tabindex="'+(tabindex)+'"]').focus();
               return;
             }else{
@@ -304,7 +304,7 @@
       }
     },
 
-    'selectHighlighted' : function($list){
+    'selectHighlighted': function($list){
       var $elems = $list.find(this.elemsSelector),
           $highlightedElem = $elems.filter('.ms-hover').first();
 
@@ -318,7 +318,7 @@
       }
     },
 
-    'switchList' : function($list){
+    'switchList': function($list){
       $list.blur();
       this.$container.find(this.elemsSelector).removeClass('ms-hover');
       if ($list.parent().hasClass('ms-selectable')){
@@ -328,7 +328,7 @@
       }
     },
 
-    'activeMouse' : function($list){
+    'activeMouse': function($list){
       var that = this;
 
       this.$container.on('mouseenter', that.elemsSelector, function(){
@@ -341,19 +341,19 @@
       });
     },
 
-    'refresh' : function() {
+    'refresh': function() {
       this.destroy();
       this.$element.multiSelect(this.options);
     },
 
-    'destroy' : function(){
+    'destroy': function(){
       $("#ms-"+this.$element.attr("id")).remove();
       this.$element.off('focus');
       this.$element.css('position', '').css('left', '');
       this.$element.removeData('multiselect');
     },
 
-    'select' : function(value, method){
+    'select': function(value, method){
       if (typeof value === 'string'){ value = [value]; }
 
       var that = this,
@@ -409,7 +409,7 @@
       }
     },
 
-    'deselect' : function(value){
+    'deselect': function(value){
       if (typeof value === 'string'){ value = [value]; }
 
       var that = this,
@@ -450,7 +450,7 @@
       }
     },
 
-    'select_all' : function(){
+    'select_all': function(){
       var ms = this.$element,
           values = ms.val();
 
@@ -469,7 +469,7 @@
       }
     },
 
-    'deselect_all' : function(){
+    'deselect_all': function(){
       var ms = this.$element,
           values = ms.val();
 
@@ -523,8 +523,8 @@
   $.fn.multiSelect.defaults = {
     keySelect: [32],
     selectableOptgroup: false,
-    disabledClass : 'disabled',
-    dblClick : false,
+    disabledClass: 'disabled',
+    dblClick: false,
     keepOrder: false,
     cssClass: ''
   };

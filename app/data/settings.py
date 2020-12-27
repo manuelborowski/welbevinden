@@ -5,8 +5,8 @@ from app import db
 import json
 
 
-# return : found, value
-# found : if True, setting was found else not
+# return: found, value
+# found: if True, setting was found else not
 # value ; if setting was found, returns the value
 def get_setting(name, id=-1):
     try:
@@ -28,7 +28,7 @@ def add_setting(name, value, type, id=-1):
     setting = Settings(name=name, value=str(value), type=type, user_id=id if id > -1 else current_user.id)
     db.session.add(setting)
     db.session.commit()
-    log.info('add : {}'.format(setting.log()))
+    log.info('add: {}'.format(setting.log()))
     return True
 
 

@@ -69,7 +69,7 @@ class Chat {
     socketio_receive_chat_line_cb(type, data) {
         var message = new Message({
             text: data.text,
-            message_side: data.room == data.sender ? 'left' : 'right',
+            message_side: data.room == data.sender ? 'left': 'right',
             messages: this.rooms[data.room].jq_output_messages
         });
         message.draw();

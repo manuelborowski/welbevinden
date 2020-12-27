@@ -13,6 +13,7 @@ class Socketio {
             if (cb)
                 cb();
         }.bind(this));
+
         this.socket.on('connect', function () {
             this.send_to_server('new-end-user', {user_code: user_code});
             // this.socket.emit('its_me', {user_code: coworker.code});

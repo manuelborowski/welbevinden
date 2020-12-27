@@ -39,7 +39,7 @@ def connect():
 
 @socketio.event
 def its_me(data):
-    emit('send_to_client', {'type' : 'its-me-received', 'data' : True}, room=request.sid)
+    emit('send_to_client', {'type': 'its-me-received', 'data': True}, room=request.sid)
 
 
 def subscribe_on_type(type, cb):

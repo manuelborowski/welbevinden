@@ -23,7 +23,7 @@ def login():
             try:
                 db.session.commit()
             except Exception as e:
-                log.error(u'Could not save timestamp : {}'.format(e))
+                log.error(u'Could not save timestamp: {}'.format(e))
                 utils.flash_plus(u'Fout in database', e)
                 return redirect(url_for('auth.login'))
             # Ok, continue

@@ -15,7 +15,7 @@ def raise_error(message, details=None):
     raise error
 
 
-# standardized way to make a key from strings : sort alphabetically and concatenate
+# standardized way to make a key from strings: sort alphabetically and concatenate
 def make_key(item_list):
     return make_list(item_list, seperator=',')
 
@@ -25,7 +25,7 @@ def extend_key(item1, item2=None):
     return ','.join([item1, item2])
 
 
-# standardized way to concatenate strings : sort alphabetically and concatenate; seperated by comma
+# standardized way to concatenate strings: sort alphabetically and concatenate; seperated by comma
 def make_list(item_list, seperator=', '):
     return seperator.join(sorted(item_list))
 

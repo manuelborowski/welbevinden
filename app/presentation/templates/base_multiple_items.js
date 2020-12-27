@@ -100,14 +100,14 @@ $(document).ready(function() {
         ajax: {
            url: Flask.url_for(table_config.table_ajax),
            type: 'POST',
-           data : function (d) {
+           data: function (d) {
                return $.extend({}, d, filter_settings);
            }
         },
         pagingType: "full_numbers",
         columns: config_columns,
-        language : {
-            url : "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Dutch.json"
+        language: {
+            url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Dutch.json"
         },
         initComplete: function(settings, json) { //intercept flash messages when the table is loaded
             if ('flash' in json) {
@@ -179,11 +179,11 @@ $(document).ready(function() {
     //     console.log("Cell info " + cell.index().column + ", " + row.data().DT_RowId + ", " + cell.data());
     //
     //     data = {
-    //         'id' : row.data().DT_RowId,
-    //         'column' : cell.index().column,
-    //         'value' : cell.data()
+    //         'id': row.data().DT_RowId,
+    //         'column': cell.index().column,
+    //         'value': cell.data()
     //     }
-    //     $.getJSON(Flask.url_for("{{table_config.cell_endpoint}}", {'jds' : JSON.stringify(data)}),
+    //     $.getJSON(Flask.url_for("{{table_config.cell_endpoint}}", {'jds': JSON.stringify(data)}),
     //         function(data) {
     //             if(data.status) {
     //                 table.ajax.reload();
@@ -211,7 +211,7 @@ $(document).ready(function() {
             entry["type"] = "list";
             entry["options"] = [];
             for(j = 0; j < config_columns[i]["celledit_options"].length; j++) {
-                opt = {"value" : config_columns[i]["celledit_options"][j][0], "display" : config_columns[i]["celledit_options"][j][1]};
+                opt = {"value": config_columns[i]["celledit_options"][j][0], "display": config_columns[i]["celledit_options"][j][1]};
                 entry["options"].push(opt);
             }
             celledit_inputtypes.push(entry);
@@ -228,10 +228,10 @@ $(document).ready(function() {
     if(celledit_inputtypes.length > 0) {
         table.MakeCellsEditable("destroy");
         table.MakeCellsEditable({
-            onUpdate : cell_changed,
+            onUpdate: cell_changed,
             confirmationButton: {listenToKeys: true},
-            columns : celledit_columns,
-            inputTypes : celledit_inputtypes,
+            columns: celledit_columns,
+            inputTypes: celledit_inputtypes,
         });
     }
 

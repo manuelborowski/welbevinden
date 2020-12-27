@@ -29,7 +29,7 @@
     </style>
 </head>
 <body>
-<div class="container" style="height:90%;">
+<div class="container-fluid" style="height:90%;">
     <ul class="nav nav-tabs" id="nav-bar" style="height:5%;">
         <li class="nav-item">
             <a class="nav-link active" id="Inleiding-tab">Inleiding</a>
@@ -48,7 +48,7 @@
             <a class="nav-link" id="Wonder-tab">Wonder</a>
         </li>
     </ul>
-    <div class="nav-divs" id="Inleiding-div">
+    <div class="nav-divs" id="Inleiding-div" style="margin-left:20%;margin-right:20%;">
         Hallo {{ config.first_name }} {{ config.last_name }},<br>
         Welkom op de virtuele infoavond van De Mol.<br>
         Hieronder ziet u een filmpje met een introductie van onze directeur, Veerle Bernaerts.<br>
@@ -74,7 +74,7 @@
     {% block body %}{% endblock %}
 
     <div class="nav-item-template hidden-template">
-        <li class="nav-item stage-2" style="display:none;">
+        <li class="nav-item">
             <a class="nav-link"></a>
         </li>
     </div>

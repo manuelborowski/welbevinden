@@ -11,7 +11,7 @@ from flask_socketio import SocketIO
 
 flask_app = Flask(__name__, instance_relative_config=True, template_folder='presentation/templates/')
 
-#V1.0 : base version : only login and users.  Can be used to start other projects
+#V1.0: base version: only login and users.  Can be used to start other projects
 
 @flask_app.context_processor
 def inject_version():
@@ -61,7 +61,7 @@ flask_app.config.from_object(app_config[config_name])
 flask_app.config.from_pyfile('config.py')
 
 jsglue = JSGlue(flask_app)
-db.app=flask_app  # hack :-(
+db.app=flask_app  # hack:-(
 db.init_app(flask_app)
 
 socketio = SocketIO(flask_app, async_mode=None, ping_timeout=10, ping_interval=5)

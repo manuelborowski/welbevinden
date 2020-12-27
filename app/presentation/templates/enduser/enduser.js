@@ -11,8 +11,20 @@ $(document).ready(function () {
     });
 
     // debug
-    stage_2_div.show();
+    // stage_2_div.show();
+    socketio.subscribe_on_receive('stage-2-visible', control_stage_visibility_cb)
 });
+
+function control_stage_visibility_cb(type, data) {
+    if(type === 'stage-2-visible') {
+        if(data.show) {
+                stage_2_div.show();
+        } else {
+                stage_2_div.hide();
+        }
+    }
+}
+
 
 function check_server() {
     var jd = {

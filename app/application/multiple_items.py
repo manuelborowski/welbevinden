@@ -18,7 +18,7 @@ def check_date_in_form(date_key, form):
             time.strptime(form[date_key].strip(), '%d-%M-%Y')
             return form[date_key].strip()
         except Exception as e:
-            data.utils.raise_error('Verkeerd datumformaat, moet in de vorm zijn : d-m-y', e)
+            data.utils.raise_error('Verkeerd datumformaat, moet in de vorm zijn: d-m-y', e)
     return ''
 
 
@@ -127,7 +127,7 @@ def prepare_data_for_ajax(table_configuration, paginate=True):
                 formatted_list = formatted_list[paginate_start:paginate_start + paginate_length]
 
     except Exception as e:
-        log.error(f'could not prepare data for ajax : {e}')
+        log.error(f'could not prepare data for ajax: {e}')
         data.utils.raise_error('prepare_data_for_ajax', e)
 
     return formatted_list, total_count, filtered_count

@@ -88,7 +88,7 @@ figure.imagecaption {
     margin: 1px;
     float: left;
     border: 1px solid black;
-    display : inline;
+    display: inline;
 }
 
 figure.selected {

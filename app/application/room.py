@@ -57,5 +57,16 @@ def get_history(room_code):
     return history
 
 
+def select_least_occupied_room(floor_level):
+    try:
+        rooms = Room.query.join(Floor).filter(Floor.level == floor_level).all()
+        if rooms:
+            room = rooms[0]
+        return room
+    except Exception as e:
+        mutils.raise_error(f'could not get room with least number of guests for {floor_level}', e)
+    return None
+
+
 
 

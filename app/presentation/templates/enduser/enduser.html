@@ -32,22 +32,45 @@
 <div class="container" style="height:90%;">
     <ul class="nav nav-tabs" id="nav-bar" style="height:5%;">
         <li class="nav-item">
-            <a class="nav-link active" id="inleiding-tab">Inleiding</a>
+            <a class="nav-link active" id="Inleiding-tab">Inleiding</a>
         </li>
 
         <li class="nav-item stage-2" style="display:none;">
-            <a class="nav-link" id="clb-tab">CLB</a>
+            <a class="nav-link" id="CLB-tab">CLB</a>
         </li>
         <li class="nav-item stage-2" style="display:none;">
-            <a class="nav-link" id="scholengemeenschap-tab">Scholengemeenschap</a>
+            <a class="nav-link" id="Scholengemeenschap-tab">Scholengemeenschap</a>
         </li>
         <li class="nav-item stage-2" style="display:none;">
-            <a class="nav-link" id="internaat-tab">Internaat</a>
+            <a class="nav-link" id="Internaat-tab">Internaat</a>
         </li>
         <li class="nav-item stage-3" style="display:none;">
-            <a class="nav-link" id="internaat-tab">Wonder</a>
+            <a class="nav-link" id="Wonder-tab">Wonder</a>
         </li>
     </ul>
+    <div class="nav-divs" id="Inleiding-div">
+        Hallo {{ config.first_name }} {{ config.last_name }},<br>
+        Welkom op de virtuele infoavond van De Mol.<br>
+        Hieronder ziet u een filmpje met een introductie van onze directeur, Veerle Bernaerts.<br>
+        Dit duurt 4 minuten en wij zouden graag hebben dat u dit filmpje helemaal bekijkt.<br>
+        Na het filmpje zullen er enkele extra tabbladen te voorschijn komen waar u kan rondkijken en eventueel chatten
+        met één van onze medewerkers.<br>
+        Nog veel plezier gewenst.<br>
+        <div class="embed-responsive embed-responsive-16by9">
+            <iframe class="embed-responsive-item" src="{{ config.intro_video }}" allowfullscreen></iframe>
+        </div>
+    </div>
+    <div class="nav-divs" id="CLB-div" style="display:none;height:95%">
+        <div class="row"  style="height:100%;">
+            <div class="col-sm-6">
+                Hier kan u informatie vinden over het  CLB.<br>
+                Hieronder staan filmpjes die u kan bekijken en documenten die u kan downloaden en lezen.<br>
+                Rechts is een chatbox waar u met onze medewerkers kan praten.<br>
+                Om xx.xx uur komt er hierboven een tabblad bij, zodat u naar de school van uw keuze kan navigeren en daar kan chatten met de medewerkers.<br>
+                Veel plezier.<br>
+            </div>
+        </div>
+    </div>
     {% block body %}{% endblock %}
 
     <div class="nav-item-template hidden-template">

@@ -8,19 +8,22 @@ from app.application import enduser as menduser
 # @guest.route('/guest/<string:code>/<string:name>/<string:time>', methods=['POST', 'GET'])
 @enter.route('/guest/enter', methods=['POST', 'GET'])
 def show():
-    print(request.args)
-    code = request.args['code']
-    guest = menduser.get_end_user(code, set_timestamp=True)
-
-    config = {
-        'check_server_endpoint': 'guest.enter.server_ajax_endpoint',
-        'intro_video': "https://www.youtube.com/embed/YrLk4vdY28Q",
-        'code': 'abcde',
-        'first_name': 'manuel',
-        'last_name': 'borowski',
-        'email': 'emmanuel.borowski@gmail.com'
-    }
-    return render_template('guest/enter/enter.html', config=config, async_mode=socketio.async_mode)
+    try:
+        code = request.args['code']
+        guest = menduser.get_end_user(code, set_timestamp=True)
+        config = {
+            'check_server_endpoint': 'coworker.enter.server_ajax_endpoint',
+            'intro_video': "https://www.youtube.com/embed/YrLk4vdY28Q",
+            'code': 'abcde',
+            'first_name': 'manuel',
+            'last_name': 'borowski',
+            'email': 'emmanuel.borowski@gmail.com'
+        }
+    except Exception as e:
+        log.error(f'guest with args {request.args} could not enter: {e}')
+        return render_template('enduser/error.html', error='could_not_enter')
+    return render_template('enduser/guest/enter/enter.html', guest=guest.flat(),
+                           config=config, async_mode=socketio.async_mode)
 
 
 

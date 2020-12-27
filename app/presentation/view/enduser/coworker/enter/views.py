@@ -14,7 +14,6 @@ def show():
     try:
         code = request.args['code']
         coworker = menduser.get_end_user(code, set_timestamp=True)
-        room = mroom.get_room(coworker)
         config = {
             'check_server_endpoint': 'coworker.enter.server_ajax_endpoint',
             'intro_video': "https://www.youtube.com/embed/YrLk4vdY28Q",
@@ -27,7 +26,7 @@ def show():
         log.error(f'coworker with args {request.args} could not enter: {e}')
         return render_template('enduser/error.html', error='could_not_enter')
     return render_template('enduser/coworker/enter/enter.html', coworker=coworker.flat(),
-                           own_room=room.flat(), config=config, async_mode=socketio.async_mode)
+                           config=config, async_mode=socketio.async_mode)
 
 
 @enter.route('/coworker/enter/action/<string:jds>', methods=['GET', 'POST'])

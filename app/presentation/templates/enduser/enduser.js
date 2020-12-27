@@ -2,9 +2,9 @@ var stage_2_div = $(".stage-2")
 var all_tabs = []
 $(document).ready(function () {
 
-    setInterval(function () {
-        check_server();
-    }, 5000);
+    // setInterval(function () {
+    //     check_server();
+    // }, 5000);
 
     $(".nav-link").on("click", function () {
         switch_to_tab($(this))

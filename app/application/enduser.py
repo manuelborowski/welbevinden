@@ -71,16 +71,31 @@ msocketio.subscribe_on_type('disconnect', remove_socketio_sid_cb)
 
 def new_end_user_cb(msg, client_sid):
     user = set_socketio_sid(msg['data']['user_code'], client_sid)
-    # create a room at the client side
-    msocketio.send_to_room({'type' : 'add-chat-room', 'data' : {'room_code' : user.code, 'title' : user.full_name()}}, client_sid)
-    # transmit all current messages to the client
-    history = mroom.get_history(msg['data']['user_code'])
-    for chat_line in history:
-        msg = {
-            'type': 'chat-line',
-            'data' : chat_line
-        }
-        msocketio.send_to_room(msg, client_sid)
+    if user.profile == EndUser.Profile.E_SCHOOL:
+        pass
+    elif user.profile == EndUser.Profile.E_GAST:
+        room = mroom.select_least_occupied_room(EndUser.Profile.E_CLB)
+        room_owner = get_end_user(room.code)
+        msocketio.send_to_room({'type' : 'add-chat-room', 'data' : {'floor': EndUser.Profile.E_CLB, 'room_code' : room.code, 'title' : room_owner.full_name()}}, client_sid)
+        # transmit all current messages to the client
+        history = mroom.get_history(room.code)
+        for chat_line in history:
+            msg = {
+                'type': 'chat-line',
+                'data': chat_line
+            }
+            msocketio.send_to_room(msg, client_sid)
+    else:
+        # create a room at the client side
+        msocketio.send_to_room({'type' : 'add-chat-room', 'data' : {'floor': user.profile, 'room_code' : user.code, 'title' : user.full_name()}}, client_sid)
+        # transmit all current messages to the client
+        history = mroom.get_history(msg['data']['user_code'])
+        for chat_line in history:
+            msg = {
+                'type': 'chat-line',
+                'data' : chat_line
+            }
+            msocketio.send_to_room(msg, client_sid)
 
 
 msocketio.subscribe_on_type('new-end-user', new_end_user_cb)

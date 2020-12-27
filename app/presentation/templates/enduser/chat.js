@@ -27,10 +27,10 @@ class Chat {
         socketio.subscribe_on_receive("add-chat-room", this.socketio_add_chat_room_cb.bind(this));
     }
 
-    start(add_room_cb, delete_room_cb) {
+    start(user_code, add_room_cb, delete_room_cb) {
         this.add_chat_room_cb = add_room_cb;
         this.delete_chat_room_cb = delete_room_cb;
-        socketio.start();
+        socketio.start(user_code);
     }
 
     subscribe_to_room(floor_level, room_code, sender_code) {
@@ -76,7 +76,7 @@ class Chat {
     }
 
     socketio_add_chat_room_cb(type, data) {
-        this.add_chat_room_cb(data.room_code, data.title);
+        this.add_chat_room_cb(data.floor, data.room_code, data.title);
     }
 }
 

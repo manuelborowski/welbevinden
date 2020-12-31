@@ -1,6 +1,6 @@
 server {
     listen 5020;
-    server_name aboro-legion;
+    server_name www.infodemol.be;
 
     location / {
         include proxy_params;
@@ -20,4 +20,10 @@ server {
         proxy_set_header Connection "Upgrade";
         proxy_pass http://127.0.0.1:5120/socket.io;
     }
+}
+
+server {
+    listen 80;
+    server_name www.infodemol.be;
+    return 301 https://www.infodemol.be$request_uri;
 }

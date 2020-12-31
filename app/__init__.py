@@ -64,7 +64,7 @@ jsglue = JSGlue(flask_app)
 db.app=flask_app  # hack:-(
 db.init_app(flask_app)
 
-socketio = SocketIO(flask_app, async_mode='gevent', ping_timeout=10, ping_interval=5, cors_allowed_origins=flask_app.config.SOCKETIO_CORS_ALLOWED_ORIGIN)
+socketio = SocketIO(flask_app, async_mode='gevent', ping_timeout=10, ping_interval=5, cors_allowed_origins=flask_app.config['SOCKETIO_CORS_ALLOWED_ORIGIN'])
 
 def create_admin():
     from app.data.models import User

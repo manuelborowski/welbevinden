@@ -12,9 +12,13 @@ def show():
         code = request.args['code']
         user = menduser.get_end_user(code)
         if user.profile in [menduser.Profile.E_GAST, menduser.Profile.E_SCHOOL]:
-            return redirect(url_for('guest.enter.show', code=code))
+            u = redirect(url_for('guest.enter.show', code=code))
+            log.info(u.data)
+            return u
         else:
-            return redirect(url_for('coworker.enter.show', code=code))
+            u = redirect(url_for('coworker.enter.show', code=code))
+            log.info(u.data)
+            return u
     except Exception as e:
         log.error(f'coworker with args {request.args} could not enter: {e}')
     return render_template('enduser/error.html', error='could_not_enter')

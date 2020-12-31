@@ -11,7 +11,6 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     LOG_LEVEL = "INFO"
     PRESERVE_CONTEXT_ON_EXCEPTION = True
-    SOCKETIO_CORS_ALLOWED_ORIGIN = ['https://www.infodemol.exelbo.dynu.net']
 
 class DevelopmentConfig(Config):
     """

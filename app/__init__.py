@@ -117,9 +117,10 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user
+    from app.presentation.view import auth, user, settings
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
+    flask_app.register_blueprint(settings.settings)
     from app.presentation.view import enduser
     flask_app.register_blueprint(enduser.enduser)
     from app.presentation.view.enduser.guest import enter

@@ -40,132 +40,133 @@ def update_settings_cb(msg, client_sid=None):
 msocketio.subscribe_on_type('settings', update_settings_cb)
 
 
-stage_settings_formio = {
-    "display": "form",
-    "components": [
-        {
-            "title": "Stage 2 configuratie",
-            "theme": "primary",
-            "collapsible": false,
-            "key": "stage2Configuratie",
-            "type": "panel",
-            "label": "Panel",
-            "input": false,
-            "tableView": false,
-            "components": [
-                {
-                    "label": "Wanneer wordt stage 2 actief?",
-                    "optionsLabelPosition": "right",
-                    "inline": false,
-                    "tableView": false,
-                    "defaultValue": "start-timeslot",
-                    "values": [
-                        {
-                            "label": "Na start tijdslot",
-                            "value": "start-timeslot",
-                            "shortcut": ""
-                        },
-                        {
-                            "label": "Na aanmelden",
-                            "value": "logon",
-                            "shortcut": ""
-                        }
-                    ],
-                    "persistent": false,
-                    "key": "stage-2-start-timer-at",
-                    "type": "radio",
-                    "input": true
-                },
-                {
-                    "label": "Tijd begint te lopen na de start van het tijdslot",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "persistent": false,
-                    "key": "stage-2-delay-start-timer-until-start-timeslot",
-                    "conditional": {
-                        "show": true,
-                        "when": "stage-2-start-timer-at",
-                        "eq": "start-timeslot"
+stage_settings_formio = \
+    {
+        "display": "form",
+        "components": [
+            {
+                "title": "Stage 2 configuratie",
+                "theme": "primary",
+                "collapsible": false,
+                "key": "stage2Configuratie",
+                "type": "panel",
+                "label": "Panel",
+                "input": false,
+                "tableView": false,
+                "components": [
+                    {
+                        "label": "Wanneer wordt stage 2 actief?",
+                        "optionsLabelPosition": "right",
+                        "inline": false,
+                        "tableView": false,
+                        "defaultValue": "logon",
+                        "values": [
+                            {
+                                "label": "Na start tijdslot",
+                                "value": "start-timeslot",
+                                "shortcut": ""
+                            },
+                            {
+                                "label": "Na aanmelden",
+                                "value": "logon",
+                                "shortcut": ""
+                            }
+                        ],
+                        "persistent": false,
+                        "key": "stage-2-start-timer-at",
+                        "type": "radio",
+                        "input": true
                     },
-                    "type": "checkbox",
-                    "input": true
-                },
-                {
-                    "label": "Tijd vooraleer stage 2 zichtbaar wordt (seconden)",
-                    "mask": false,
-                    "spellcheck": false,
-                    "tableView": false,
-                    "defaultValue": 0,
-                    "delimiter": false,
-                    "requireDecimal": false,
-                    "inputFormat": "plain",
-                    "key": "stage-2-delay",
-                    "type": "number",
-                    "input": true
-                }
-            ]
-        },
-        {
-            "title": "Stage 3 configuratie",
-            "theme": "primary",
-            "collapsible": false,
-            "key": "stage3Configuratie1",
-            "type": "panel",
-            "label": "Stage 2 configuratie",
-            "input": false,
-            "tableView": false,
-            "components": [
-                {
-                    "label": "Wanneer wordt stage 3 actief?",
-                    "optionsLabelPosition": "right",
-                    "inline": false,
-                    "tableView": false,
-                    "defaultValue": "start-timeslot",
-                    "values": [
-                        {
-                            "label": "Na start tijdslot",
-                            "value": "start-timeslot",
-                            "shortcut": ""
+                    {
+                        "label": "Tijd begint te lopen na de start van het tijdslot",
+                        "tableView": false,
+                        "defaultValue": false,
+                        "persistent": false,
+                        "key": "stage-2-delay-start-timer-until-start-timeslot",
+                        "conditional": {
+                            "show": true,
+                            "when": "stage-2-start-timer-at",
+                            "eq": "logon"
                         },
-                        {
-                            "label": "Na aanmelden",
-                            "value": "logon",
-                            "shortcut": ""
-                        }
-                    ],
-                    "persistent": false,
-                    "key": "stage-3-start-timer-at",
-                    "type": "radio",
-                    "input": true
-                },
-                {
-                    "label": "Tijd begint te lopen na de start van het tijdslot",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "persistent": false,
-                    "key": "stage-3-delay-start-timer-until-start-timeslot",
-                    "conditional": {
-                        "show": true,
-                        "when": "stage-3-start-timer-at",
-                        "eq": "start-timeslot"
+                        "type": "checkbox",
+                        "input": true
                     },
-                    "type": "checkbox",
-                    "input": true
-                },
-                {
-                    "label": "Tijd vooraleer stage 3 zichtbaar wordt (seconden)",
-                    "mask": false,
-                    "spellcheck": false,
-                    "tableView": false,
-                    "defaultValue": 0,
-                    "delimiter": false,
-                    "requireDecimal": false,
-                    "inputFormat": "plain",
-                    "key": "stage-3-delay",
-                    "type": "number",
-                    "input": true
-                }
-            ]
-        }
-    ]
-}
+                    {
+                        "label": "Tijd vooraleer stage 2 zichtbaar wordt (seconden)",
+                        "mask": false,
+                        "spellcheck": false,
+                        "tableView": false,
+                        "defaultValue": 0,
+                        "delimiter": false,
+                        "requireDecimal": false,
+                        "inputFormat": "plain",
+                        "key": "stage-2-delay",
+                        "type": "number",
+                        "input": true
+                    }
+                ]
+            },
+            {
+                "title": "Stage 3 configuratie",
+                "theme": "primary",
+                "collapsible": false,
+                "key": "stage3Configuratie1",
+                "type": "panel",
+                "label": "Stage 2 configuratie",
+                "input": false,
+                "tableView": false,
+                "components": [
+                    {
+                        "label": "Wanneer wordt stage 3 actief?",
+                        "optionsLabelPosition": "right",
+                        "inline": false,
+                        "tableView": false,
+                        "defaultValue": "logon",
+                        "values": [
+                            {
+                                "label": "Na start tijdslot",
+                                "value": "start-timeslot",
+                                "shortcut": ""
+                            },
+                            {
+                                "label": "Na aanmelden",
+                                "value": "logon",
+                                "shortcut": ""
+                            }
+                        ],
+                        "persistent": false,
+                        "key": "stage-3-start-timer-at",
+                        "type": "radio",
+                        "input": true
+                    },
+                    {
+                        "label": "Tijd begint te lopen na de start van het tijdslot",
+                        "tableView": false,
+                        "defaultValue": false,
+                        "persistent": false,
+                        "key": "stage-3-delay-start-timer-until-start-timeslot",
+                        "conditional": {
+                            "show": true,
+                            "when": "stage-3-start-timer-at",
+                            "eq": "logon"
+                        },
+                        "type": "checkbox",
+                        "input": true
+                    },
+                    {
+                        "label": "Tijd vooraleer stage 3 zichtbaar wordt (seconden)",
+                        "mask": false,
+                        "spellcheck": false,
+                        "tableView": false,
+                        "defaultValue": 0,
+                        "delimiter": false,
+                        "requireDecimal": false,
+                        "inputFormat": "plain",
+                        "key": "stage-3-delay",
+                        "type": "number",
+                        "input": true
+                    }
+                ]
+            }
+        ]
+    }

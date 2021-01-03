@@ -4,6 +4,9 @@ $(document).ready(function () {
         $.each(default_stage_settings, function (k, v){
             form.getComponent(k).setValue(v);
         });
+        $.each(default_stage_settings, function (k, v){
+            form.getComponent(k).setValue(v);
+        });
         form.on('change', function (changed) {
             socketio_transmit_setting(changed.changed.component.key ,changed.changed.value)
         });

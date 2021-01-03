@@ -79,3 +79,6 @@ def get_stage_settings():
                 add_setting(setting_name, setting[1], setting[2], 1)
                 stage_settings[setting_name] = setting[1]
     return stage_settings
+
+def set_stage_setting(setting, value):
+    return set_setting(setting, value, 1)

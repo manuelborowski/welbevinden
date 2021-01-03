@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 
 from .forms import AddForm, EditForm, ViewForm
 from app import db, log, admin_required, data
+from app.application import socketio as msocketio
 from . import settings
 from app.data.models import User
 
@@ -32,6 +33,11 @@ def show():
 
     return render_template('/settings/settings.html', stage_settings_form=stage_settings_formio,
                            default_stage_settings=stage_settings)
+
+def update_settings_cb(msg, client_sid=None):
+    msettings.set_stage_setting(msg['data']['setting'], msg['data']['value'])
+
+msocketio.subscribe_on_type('settings', update_settings_cb)
 
 
 stage_settings_formio = {

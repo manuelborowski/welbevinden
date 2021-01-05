@@ -11,6 +11,7 @@ def show():
     try:
         code = request.args['code']
         guest = menduser.get_end_user(code, set_timestamp=True)
+        guest.initials = ''.join([n[0] for n in guest.full_name().split(' ')])
         config = {
             'intro_video': "https://www.youtube.com/embed/YrLk4vdY28Q",
         }

@@ -161,6 +161,7 @@ class EndUser(db.Model):
             'timeslot': self.timeslot,
             'last_login': self.last_login,
             'profile': self.profile,
+            'initials': ''.join([n[0] for n in self.full_name().split(' ')][:2])
         }
 
 class Room(db.Model):
@@ -232,6 +233,7 @@ class ChatLine(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     owner_code = db.Column(db.String(256))
+    initials = db.Column(db.String(256))
     text = db.Column(db.String(256), default='')
     timestamp = db.Column(db.DateTime())
     room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'))

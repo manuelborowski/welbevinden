@@ -10,7 +10,7 @@ function add_chat_room_cb(floor, code, title) {
     console.log("add chatroom " + floor + " " + code + " " + title)
     $chat_room_location = $("#" + floor + "-div").children(".row")
     add_chat_room($chat_room_location, code, title);
-    chat.subscribe_to_room(guest.profile, code, guest.code);
+    chat.subscribe_to_room(guest.profile, code, guest.code, guest.initials);
 }
 
 function delete_chat_room_cb(room_code) {}

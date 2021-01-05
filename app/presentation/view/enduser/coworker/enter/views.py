@@ -14,6 +14,7 @@ def show():
     try:
         code = request.args['code']
         coworker = menduser.get_end_user(code, set_timestamp=True)
+        coworker.initials = ''.join([n[0] for n in coworker.full_name().split(' ')])
         config = {
             'check_server_endpoint': 'coworker.enter.server_ajax_endpoint',
             'intro_video': "https://www.youtube.com/embed/YrLk4vdY28Q",

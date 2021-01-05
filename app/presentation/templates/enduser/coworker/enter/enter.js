@@ -8,7 +8,7 @@ $(function () {
 function add_chat_room_cb(floor, code, title) {
     console.log("add chatroom " + floor + " " + code + " " + title)
     add_chat_room($div_content, code, title);
-    chat.subscribe_to_room(coworker.profile, code, coworker.code);
+    chat.subscribe_to_room(coworker.profile, code, coworker.code, coworker.initials);
 }
 
 function delete_chat_room_cb(room_code) {}

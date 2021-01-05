@@ -31,11 +31,11 @@ def add_room(owner):
         mutils.raise_error(f'could not add room: ', e)
     return room
 
-def add_chat_line(room_code, sender_code, text):
+def add_chat_line(room_code, sender_code, initials, text):
     try:
         room = Room.query.filter(Room.code == room_code).first()
         if room:
-            chat_line = ChatLine(owner_code=sender_code, text=text, timestamp=datetime.datetime.now(), room=room)
+            chat_line = ChatLine(owner_code=sender_code, initials=initials, text=text, timestamp=datetime.datetime.now(), room=room)
             db.session.add(chat_line)
             db.session.commit()
         else:
@@ -50,7 +50,7 @@ def get_history(room_code):
     try:
         room = Room.query.join(ChatLine).filter(Room.code == room_code).order_by(ChatLine.timestamp).first()
         if room:
-            history = [{'room': room.code, 'sender': l.owner_code, 'text': l.text} for l in  room.history]
+            history = [{'room': room.code, 'sender': l.owner_code, 'initials': l.initials, 'text': l.text} for l in  room.history]
         return history
     except Exception as e:
         mutils.raise_error(f'could not get history for for room code {room_code}', e)

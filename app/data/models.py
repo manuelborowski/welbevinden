@@ -216,6 +216,7 @@ class Floor(db.Model):
     info = db.Column(db.String(256), default='')
     level = db.Column(db.String(256))
     rooms = db.relationship('Room', cascade='all, delete', backref='floor')
+    items = db.relationship('InfoItem', cascade='all, delete', backref='floor')
 
     def __repr__(self):
         return f'{self.level}'
@@ -245,3 +246,31 @@ class ChatLine(db.Model):
             'text': self.text,
             'timestamp': self.timestamp,
         }
+
+
+class InfoItem(db.Model):
+    __tablename__ = 'info_items'
+
+    class Type:
+        E_TEXT = 'text'
+        E_PDF = 'pdf'
+        E_MP4 = 'mp4'
+
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(256), default=Type.E_TEXT)
+    item = db.Column(db.String(256))
+    thumbnail = db.Column(db.String(256))
+    text = db.Column(db.String(256), default='')
+    active = db.Column(db.Boolean, default=True)
+    floor_id = db.Column(db.Integer, db.ForeignKey('floors.id'))
+
+
+    def flat(self):
+        return {
+            'id': self.id,
+            'owner_code': self.owner_code,
+            'text': self.text,
+            'timestamp': self.timestamp,
+        }
+
+

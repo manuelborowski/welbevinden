@@ -1,6 +1,7 @@
 var stage_2_div = $(".stage-2")
 var all_tabs = []
 $(document).ready(function () {
+    add_info_item();
 
     // setInterval(function () {
     //     check_server();
@@ -74,4 +75,10 @@ function add_chat_room(where, room_id, room_title) {
     $chat_room.attr("id", room_id)
     $chat_room.attr("id", room_id)
     $chat_room.children().children(".top_menu").children(".title").text(room_title)
+}
+
+function add_info_item(where, room_id, room_title) {
+    var $item = $($(".info-item-template").clone().html());
+    var $div_item = $("#CLB-div").find(".info-items-content");
+    $div_item.append($item);
 }

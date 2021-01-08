@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import UniqueConstraint
 import inspect
+from flask import url_for
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -255,6 +256,7 @@ class InfoItem(db.Model):
         E_TEXT = 'text'
         E_PDF = 'pdf'
         E_MP4 = 'mp4'
+        E_YOUTUBE = 'youtube'
 
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(256), default=Type.E_TEXT)
@@ -268,9 +270,9 @@ class InfoItem(db.Model):
     def flat(self):
         return {
             'id': self.id,
-            'owner_code': self.owner_code,
             'text': self.text,
-            'timestamp': self.timestamp,
+            'type': self.type,
+            'item': self.item
         }
 
 

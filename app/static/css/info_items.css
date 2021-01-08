@@ -13,6 +13,8 @@
   margin:0 auto;
 }
 
+/*show mp4 video's in popup */
+
 #fade {
   display: none;
   position: fixed;
@@ -69,4 +71,28 @@
 
 .test:hover ~ .test2 {
   display: none;
+}
+
+/*show youtube video's in popup */
+
+.videomodal .modal-dialog {
+      max-width: 800px;
+      margin: 30px auto;
+  }
+.videomodal .modal-body {
+  position:relative;
+  padding:0px;
+}
+.videomodal .close {
+  position:absolute;
+  right:-30px;
+  top:0;
+  z-index:999;
+  font-size:2rem;
+  font-weight: normal;
+  color:#fff;
+  opacity:1;
+}
+.cursor-pointer{
+    cursor: pointer;
 }

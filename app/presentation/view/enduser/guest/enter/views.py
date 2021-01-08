@@ -12,6 +12,7 @@ def show():
         code = request.args['code']
         guest = menduser.get_end_user(code, set_timestamp=True)
         clb_items = minfo_items.get_info_items('clb')
+        flat_clb_items = [i.flat() for i in clb_items]
         config = {
             'intro_video': "https://www.youtube.com/embed/YrLk4vdY28Q",
         }
@@ -19,7 +20,7 @@ def show():
         log.error(f'guest with args {request.args} could not enter: {e}')
         return render_template('enduser/error.html', error='could_not_enter')
     return render_template('enduser/guest/enter/enter.html', guest=guest.flat(),
-                           config=config, async_mode=socketio.async_mode, items=clb_items)
+                           config=config, async_mode=socketio.async_mode, items=flat_clb_items)
 
 
 

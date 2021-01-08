@@ -1,7 +1,7 @@
 var stage_2_div = $(".stage-2")
 var all_tabs = []
 $(document).ready(function () {
-    add_info_item();
+    add_info_items($(".info-items-content"), items);
 
     // setInterval(function () {
     //     check_server();
@@ -82,3 +82,5 @@ function add_info_item(where, room_id, room_title) {
     var $div_item = $("#CLB-div").find(".info-items-content");
     $div_item.append($item);
 }
+
+

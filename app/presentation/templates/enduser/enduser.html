@@ -122,20 +122,52 @@
         </li>
     </div>
 
-    <div class="info-item-template hidden-template">
+    <div class="iiiinfo-item-template hidden-template">
         <div class="card item-info" style="width: 30%;">
             <img class="card-img-top" src="{{ url_for('static', filename = 'infoitems/horse-thumb-1.jpg') }}"
-                 alt="Hop paardje hop" onclick="lightbox_open();">
+                 alt="Hop paardje hop" onclick="info_item_clicked();">
             <div class="card-body">
                 <p class="card-text">Paardje hop.</p>
             </div>
         </div>
     </div>
+
+    <div class="info-item-template hidden-template">
+        <div class="thin-green-border">
+            <a onclick="info_item_clicked();">Paarjes</a>
+        </div>
+    </div>
+
+
     <div id="light">
         <a class="boxclose" id="boxclose" onclick="lightbox_close();"></a>
         <video id="VisaChipCardVideo" width="1200" controls>
             <!--Browser does not support <video> tag -->
         </video>
+    </div>
+
+
+{#    <img src="{{ url_for('static', filename = 'infoitems/horse-thumb-1.jpg') }}"#}
+{#         class="video-btn img-fluid cursor-pointer" data-toggle="modal" data-src="https://youtube.com/embed/1xeYl-Ak3qQ"#}
+{#         data-target="#myModal">#}
+
+
+    <!-- Modal -->
+    <div class="modal videomodal fade " id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <!-- 16:9 aspect ratio -->
+                    <div class="embed-responsive embed-responsive-16by9">
+                        <iframe class="embed-responsive-item" src="" id="video" allowscriptaccess="always">></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 </body>

@@ -25,7 +25,8 @@ def get_info_items(floor_level):
 
 
 # floor = Floor.query.filter(Floor.level == Floor.Level.E_CLB).first()
-# add_info_item(floor, InfoItem.Type.E_MP4, 'horses-item-1.mp4', 'horse-thumb-1.jpg', 'paarden in de natuur')
+# add_info_item(floor, InfoItem.Type.E_MP4, '/static/infoitems/horses-item-1.mp4', 'horse-thumb-1.jpg', 'paarden in de natuur')
+# add_info_item(floor, InfoItem.Type.E_YOUTUBE, 'https://youtube.com/embed/1xeYl-Ak3qQ', 'horse-thumb-1.jpg', 'interne begeleiding en CLB')
 
 
 

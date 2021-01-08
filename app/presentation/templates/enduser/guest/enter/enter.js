@@ -28,5 +28,3 @@ function set_stage_show_time_cb(type, data) {
 function stage_show_time_cb(stage) {
     socketio.send_to_server('stage-show-time', {stage: stage});
 }
-
-

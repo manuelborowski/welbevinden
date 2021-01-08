@@ -27,9 +27,9 @@ window.document.onkeydown = function (e) {
 
 function info_item_clicked(e) {
     var item = items_cache[e.currentTarget.id];
-    if (item.type == "mp4") {
+    if (item.type === "mp4") {
         show_mp4_video(item);
-    } else if (item.type == "youtube") {
+    } else if (item.type === "youtube") {
         show_youtube_video(item);
     }
 }
@@ -58,10 +58,8 @@ function lightbox_close() {
 
 
 function show_youtube_video(item) {
-        var $videoSrc;
-    $('.video-btn').click(function () {
-        $videoSrc = $(this).data("src");
-    });
+    var $videoSrc = item.item;
+    // $videoSrc = $(this).data("src");
     console.log($videoSrc);
     $('#myModal').on('shown.bs.modal', function (e) {
         $("#video").attr('src', $videoSrc + "?rel=0&amp;showinfo=0&amp;modestbranding=1&amp;autoplay=1");
@@ -78,9 +76,19 @@ function add_info_items(where, items) {
     $.each(items, function (i, v) {
         var id = "info-item-" + i;
         items_cache[id] = v;
-        where.append("<div class='thin-green-border'>" +
-            "<a class='info-item-text' id='" + id + "'>" + v.text + "</a>" +
-            "</div>");
+        var div_string = "<div class='thin-green-border'>";
+        
+        if(v.type === "mp4") {
+            div_string += "<a class='info-item-text' id='" + id + "'>" + v.text + "</a>";
+        } else if (v.type === "youtube") {
+            div_string += "<a class='info-item-text video-btn img-fluid cursor-pointer' data-toggle='modal' data-src='" + v.item + "' data-target='#myModal' id='" + id + "'>" + v.text + "</a>";
+        }
+        div_string += "</div>";
+        where.append(div_string);
+            
+        // where.append("<div class='thin-green-border'>" +
+        //     "<a class='info-item-text' id='" + id + "'>" + v.text + "</a>" +
+        //     "</div>");
 
     });
     $(".info-item-text").on("click", info_item_clicked);

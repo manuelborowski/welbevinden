@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-enter = Blueprint('coworker.enter', __name__)
+register = Blueprint('enduser.register', __name__)
 
 from . import views
 

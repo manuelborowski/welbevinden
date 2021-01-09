@@ -19,3 +19,6 @@ for l in Floor.Level.get_enum_list():
     add_floor(l)
 
 
+def get_floors():
+    return Floor.Level.get_enum_list()
+

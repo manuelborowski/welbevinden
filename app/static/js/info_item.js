@@ -85,11 +85,6 @@ function add_info_items(where, items) {
         }
         div_string += "</div>";
         where.append(div_string);
-            
-        // where.append("<div class='thin-green-border'>" +
-        //     "<a class='info-item-text' id='" + id + "'>" + v.text + "</a>" +
-        //     "</div>");
-
     });
     $(".info-item-text").on("click", info_item_clicked);
 }

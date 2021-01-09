@@ -181,7 +181,13 @@
             crossorigin="anonymous"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/socketio.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/info_item.js') }}"></script>
-    <script type="text/javascript"> {% include "enduser/chat.js" %}</script>
-    <script type="text/javascript"> {% include "enduser/enduser.js" %}</script>
+    <script type="text/javascript"> {% include "end_user/chat.js" %}</script>
+    <script>
+        var config = {{ config | tojson }}
+        var user = {{ user | tojson }}
+        var items = {{ items | tojson }}
+        var floors = {{ floors | tojson }}
+    </script>
+    <script type="text/javascript"> {% include "end_user/end_user.js" %}</script>
 {% endblock %}
 </html>

@@ -4,6 +4,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import UniqueConstraint
 import inspect
 from flask import url_for
+from sqlalchemy.sql import func
+
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -93,9 +95,11 @@ class User(UserMixin, db.Model):
         return '<User: {}/{}>'.format(self.id, self.username)
 
     def ret_dict(self):
-        return {'id': self.id, 'DT_RowId': self.id, 'email': self.email, 'username': self.username, 'first_name': self.first_name,
+        return {'id': self.id, 'DT_RowId': self.id, 'email': self.email, 'username': self.username,
+                'first_name': self.first_name,
                 'last_name': self.last_name,
-                'level': User.LEVEL.i2s(self.level), 'user_type': self.user_type, 'last_login': self.last_login, 'chbx': ''}
+                'level': User.LEVEL.i2s(self.level), 'user_type': self.user_type, 'last_login': self.last_login,
+                'chbx': ''}
 
 
 class Settings(db.Model):
@@ -118,6 +122,7 @@ class Settings(db.Model):
     def log(self):
         return '<Setting: {}/{}/{}/{}>'.format(self.id, self.name, self.value, self.type)
 
+
 guests = db.Table('guests',
                   db.Column('end_user_id', db.Integer, db.ForeignKey('end_users.id'), primary_key=True),
                   db.Column('room_id', db.Integer, db.ForeignKey('rooms.id'), primary_key=True),
@@ -138,18 +143,18 @@ class EndUser(db.Model):
     email = db.Column(db.String(256))
     first_name = db.Column(db.String(256))
     last_name = db.Column(db.String(256))
-    code = db.Column(db.String(256))
-    timeslot = db.Column(db.DateTime())
+    # code = db.Column(db.String(256))
+    # timeslot = db.Column(db.DateTime())
     last_login = db.Column(db.DateTime())
     profile = db.Column(db.String(256))
-    socketio_sid = db.Column(db.String(256))
-    # room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), default=None)
+    # socketio_sid = db.Column(db.String(256))
+    visits = db.relationship('Visit', cascade='all, delete', backref='end_user')
 
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
 
     def __repr__(self):
-        return f'{self.email}/{self.full_name()}/{self.code}/{self.profile}'
+        return f'{self.email}/{self.full_name()}/{self.visits[0].code}/{self.profile}'
 
     def flat(self):
         return {
@@ -158,12 +163,32 @@ class EndUser(db.Model):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'full_name': f'{self.first_name} {self.last_name}',
-            'code': self.code,
-            'timeslot': self.timeslot,
             'last_login': self.last_login,
             'profile': self.profile,
             'initials': ''.join([n[0] for n in self.full_name().split(' ')][:2])
         }
+
+
+class Visit(db.Model):
+    __tablename__ = 'visits'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    timestamp = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    end_user_id = db.Column(db.Integer, db.ForeignKey('end_users.id'))
+    timeslot = db.Column(db.DateTime())
+    email_sent = db.Column(db.Boolean, default=False)
+    socketio_sid = db.Column(db.String(256))
+    code = db.Column(db.String(256))
+
+    def flat(self):
+        visit = {
+            'visit_id': self.id,
+            'code': self.code,
+            'timeslot': self.timeslot
+        }
+        user = self.end_user.flat()
+        visit.update(user)
+        return visit
 
 class Room(db.Model):
     __tablename__ = 'rooms'
@@ -186,17 +211,16 @@ class Room(db.Model):
 
     def __repr__(self):
         return f'{self.code}/{self.name}'
-    
+
     def flat(self):
         return {'id': self.id,
-            'name': self.name,
-            'info': self.info,
-            'state': self.state,
-            'code': self.code,
-            # 'guests': [g.flat() for g in EndUser.query.filter(EndUser.room_id == self.id).all()],
-            'floor': self.floor.level,
-            # 'history': [h.flat() for h in ChatLine.query.filter(ChatLine.room_id == self.id).order_by(ChatLine.timestamp).all()],
-        }
+                'name': self.name,
+                'info': self.info,
+                'state': self.state,
+                'code': self.code,
+                'floor': self.floor.level,
+                }
+
 
 class Floor(db.Model):
     __tablename__ = 'floors'
@@ -221,14 +245,15 @@ class Floor(db.Model):
 
     def __repr__(self):
         return f'{self.level}'
-    
+
     def flat(self):
         return {
-           'id': self.id,
-           'name': self.name,
-           'info': self.info,
-           'level': self.level,
+            'id': self.id,
+            'name': self.name,
+            'info': self.info,
+            'level': self.level,
         }
+
 
 class ChatLine(db.Model):
     __tablename__ = 'chat_lines'
@@ -265,7 +290,6 @@ class InfoItem(db.Model):
     text = db.Column(db.String(256), default='')
     active = db.Column(db.Boolean, default=True)
     floor_id = db.Column(db.Integer, db.ForeignKey('floors.id'))
-
 
     def flat(self):
         return {

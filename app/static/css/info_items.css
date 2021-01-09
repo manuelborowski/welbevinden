@@ -34,7 +34,7 @@
   position: absolute;
   top: calc(50% - 300px);
   left: calc(50% - 600px);
-  max-width: 1200px;
+  max-width: 800px;
   max-height: 720px;
   border: 2px solid #FFF;
   background: #FFF;
@@ -76,8 +76,8 @@
 /*show youtube video's in popup */
 
 .videomodal .modal-dialog {
-      max-width: 1200px;
-      margin: 30px auto;
+      max-width: 800px;
+      /*margin: 30px auto;*/
   }
 .videomodal .modal-body {
   position:relative;

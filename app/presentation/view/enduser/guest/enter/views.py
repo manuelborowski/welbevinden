@@ -10,7 +10,7 @@ from app.application import enduser as menduser, info_items as minfo_items
 def show():
     try:
         code = request.args['code']
-        guest = menduser.get_end_user(code, set_timestamp=True)
+        visit = menduser.get_visit(code, set_timestamp=True)
         clb_items = minfo_items.get_info_items('clb')
         flat_clb_items = [i.flat() for i in clb_items]
         config = {
@@ -19,7 +19,7 @@ def show():
     except Exception as e:
         log.error(f'guest with args {request.args} could not enter: {e}')
         return render_template('enduser/error.html', error='could_not_enter')
-    return render_template('enduser/guest/enter/enter.html', guest=guest.flat(),
+    return render_template('enduser/guest/enter/enter.html', guest=visit.flat(),
                            config=config, async_mode=socketio.async_mode, items=flat_clb_items)
 
 

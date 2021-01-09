@@ -1,4 +1,4 @@
-from app.data.models import EndUser
+from app.data.models import EndUser, Visit
 from app.data import utils as mutils
 import random, string, datetime
 from app import log, db
@@ -12,30 +12,43 @@ def create_random_string(len):
 class Profile(EndUser.Profile):
     pass
 
+
 def add_end_user(first_name, last_name, email, profile, timeslot=None, code=None):
     try:
-        user = EndUser.query.filter(EndUser.first_name == first_name, EndUser.last_name == last_name,
-                                    EndUser.email == email, EndUser.profile == profile).first()
-        if user:
-            log.warning(f'Enduser {user.full_name()} already exists')
-            return False
         if not code:
             code = create_random_string(32)
         if not timeslot:
-            timeslot = datetime.datetime.now()
-        user = EndUser(first_name=first_name, last_name=last_name, email=email, profile=profile, code=code,
-                       timeslot=timeslot)
+            timeslot = datetime.datetime.now().replace(microsecond=0)
+        user = EndUser.query.filter(EndUser.email == email, EndUser.profile == profile).first()
+        if user:
+            if profile != EndUser.Profile.E_GAST:
+                log.warning(f'Enduser {user.full_name()} {profile} already exists')
+                return False
+            visit = Visit.query.filter(Visit.end_user == user, Visit.timeslot == timeslot).first()
+            if visit:
+                log.warning(f'Enduser {user.full_name()} {profile} has already timeslot {timeslot}')
+                return False
+            visit = Visit(code=code, timeslot=timeslot)
+            user.visits.append(visit)
+            db.session.add(visit)
+            db.session.commit()
+            return user
+        user = EndUser(first_name=first_name, last_name=last_name, email=email, profile=profile)
+        visit = Visit(code=code, timeslot=timeslot)
+        user.visits.append(visit)
+        db.session.add(visit)
         db.session.add(user)
         db.session.commit()
         log.info(f'Enduser {user.full_name()} added')
+        return user
     except Exception as e:
         mutils.raise_error('could not add end user', e)
-    return True
+    return None
 
 
 def get_end_user(code, set_timestamp=False):
     try:
-        user = EndUser.query.filter(EndUser.code == code).first()
+        user = EndUser.query.join(Visit).filter(Visit.code == code).first()
         if set_timestamp:
             user.last_login = datetime.datetime.now()
         return user
@@ -44,35 +57,46 @@ def get_end_user(code, set_timestamp=False):
     return None
 
 
-def get_end_user_by_socketio(socketio_sid):
+def get_visit(code, set_timestamp=False):
     try:
-        user = EndUser.query.filter(EndUser.socketio_sid == socketio_sid).first()
-        return user
+        visit = Visit.query.join(EndUser).filter(Visit.code == code).first()
+        if set_timestamp:
+            visit.end_user.last_login = datetime.datetime.now()
+        return visit
     except Exception as e:
-        mutils.raise_error('could not find end user', e)
+        mutils.raise_error('could not find visit', e)
+    return None
+
+
+def get_visit_by_socketio(socketio_sid):
+    try:
+        visit = Visit.query.filter(Visit.socketio_sid == socketio_sid).first()
+        return visit
+    except Exception as e:
+        mutils.raise_error('could not find visit', e)
     return None
 
 
 def set_socketio_sid(user_code, sid):
     try:
-        user = EndUser.query.filter(EndUser.code == user_code).first()
-        sid_valid = user.socketio_sid is not None
-        user.socketio_sid = sid
+        visit = Visit.query.join(EndUser).filter(Visit.code == user_code).first()
+        sid_valid = visit.socketio_sid is not None
+        visit.socketio_sid = sid
         db.session.commit()
-        user.user_already_logged_in = sid_valid
-        log.info(f'Enduser {user.full_name()} logged in')
-        return user
+        visit.user_already_logged_in = sid_valid
+        log.info(f'Enduser {visit.end_user.full_name()} logged in')
+        return visit
     except Exception as e:
         mutils.raise_error(f'could not set socketio_sid {user_code} {sid}', e)
 
 
 def remove_socketio_sid_cb(msg, sid):
     try:
-        user = EndUser.query.filter(EndUser.socketio_sid == sid).first()
-        if user:
-            user.socketio_sid = None
+        visit = Visit.query.join(EndUser).filter(Visit.socketio_sid == sid).first()
+        if visit:
+            visit.socketio_sid = None
             db.session.commit()
-            log.info(f'Enduser {user.full_name()} logged out')
+            log.info(f'Enduser {visit.end_user.full_name()} logged out')
         else:
             log.warning(f'Enduser with sid {sid} not found (enduser probably refreshed page)')
     except Exception as e:
@@ -83,20 +107,20 @@ msocketio.subscribe_on_type('disconnect', remove_socketio_sid_cb)
 
 
 def new_end_user_cb(msg, client_sid):
-    user = set_socketio_sid(msg['data']['user_code'], client_sid)
-    if user.profile == EndUser.Profile.E_SCHOOL:
+    visit = set_socketio_sid(msg['data']['user_code'], client_sid)
+    if visit.end_user.profile == EndUser.Profile.E_SCHOOL:
         show_stage(2, client_sid)
         show_stage(3, client_sid)
-    elif user.profile == EndUser.Profile.E_GAST:
+    elif visit.end_user.profile == EndUser.Profile.E_GAST:
         room = mroom.select_least_occupied_room(EndUser.Profile.E_CLB)
         room_owner = get_end_user(room.code)
         add_chatroom(EndUser.Profile.E_CLB, room.code, room_owner.full_name(), client_sid)
         send_chat_history(room.code, client_sid)
-        send_time_when_to_show_stage(2, user)
+        send_time_when_to_show_stage(2, visit)
     else:
         show_stage(2, client_sid)
         show_stage(3, client_sid)
-        add_chatroom(user.profile, user.code, user.full_name(), client_sid)
+        add_chatroom(visit.end_user.profile, visit.code, visit.end_user.full_name(), client_sid)
         send_chat_history(msg['data']['user_code'], client_sid)
 
 
@@ -118,23 +142,23 @@ def send_chat_history(room_code, client_sid):
         msocketio.send_to_room(msg, client_sid)
 
 
-def send_time_when_to_show_stage(stage, user):
+def send_time_when_to_show_stage(stage, visit):
     settings = msettings.get_stage_settings()
     now = datetime.datetime.now()
     start_delay_at_start_timeslot = settings[f'stage-{stage}-start-timer-at'] == msettings.StageSetting.E_AFTER_START_TIMESLOT
     delay_start_timer_until_start_timeslot = settings[f'stage-{stage}-delay-start-timer-until-start-timeslot']
     delay = settings[f'stage-{stage}-delay']
     if start_delay_at_start_timeslot:
-        show_time = user.timeslot + datetime.timedelta(seconds=delay)
-    elif now > user.timeslot:
+        show_time = visit.timeslot + datetime.timedelta(seconds=delay)
+    elif now > visit.timeslot:
         show_time = now + datetime.timedelta(seconds=delay)
     elif delay_start_timer_until_start_timeslot:
-        show_time = user.timeslot + datetime.timedelta(seconds=delay)
+        show_time = visit.timeslot + datetime.timedelta(seconds=delay)
     else:
         show_time = now + datetime.timedelta(seconds=delay)
-    log.info(f'user {user.full_name()} stage {stage}, show time at {show_time}')
+    log.info(f'user {visit.end_user.full_name()} stage {stage}, show time at {show_time}')
 
-    msocketio.send_to_room({'type': f'stage-show-time', 'data': {'stage': stage, 'show-time': str(show_time)}}, user.socketio_sid)
+    msocketio.send_to_room({'type': f'stage-show-time', 'data': {'stage': stage, 'show-time': str(show_time)}}, visit.socketio_sid)
 
 
 def stage_show_time_cb(msg, client_sid):
@@ -146,8 +170,9 @@ msocketio.subscribe_on_type('new-end-user', new_end_user_cb)
 msocketio.subscribe_on_type('stage-show-time', stage_show_time_cb)
 
 
-add_end_user('manuel', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_CLB, code='manuel-clb')
-add_end_user('manuel-internaat', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_INTERNAAT, code='manuel-internaat')
-add_end_user('gast1', 'testachternaam', 'test@gmail.com', Profile.E_GAST, code='gast1')
-add_end_user('gast2', 'testachternaam', 'test@gmail.com', Profile.E_GAST, code='gast2')
-add_end_user('gast3', 'testachternaam', 'test@gmail.com', Profile.E_GAST, code='gast3')
+add_end_user('manuel', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_CLB, datetime.datetime(2021,1,1,14,0,0) ,'manuel-clb')
+add_end_user('manuel-internaat', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_INTERNAAT, datetime.datetime(2021,1,1,14,0,0), 'manuel-internaat')
+add_end_user('gast1', 'testachternaam', 'gast1@gmail.com', Profile.E_GAST, datetime.datetime(2021,1,1,14,0,0), 'gast1-1')
+add_end_user('gast1', 'testachternaam', 'gast1@gmail.com', Profile.E_GAST, datetime.datetime(2021,1,1,14,30,0), 'gast1-2')
+add_end_user('gast1', 'testachternaam', 'gast1@gmail.com', Profile.E_GAST, datetime.datetime(2021,1,1,14,30,0), 'gast1-3')
+add_end_user('gast3', 'testachternaam', 'gast3@gmail.com', Profile.E_GAST, datetime.datetime(2021,1,1,14,0,0), 'gast3')

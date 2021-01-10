@@ -24,33 +24,34 @@ from app.presentation.view import base_multiple_items
 
 false = False
 true = True
+null = None
 
 @settings.route('/settings', methods=['GET', 'POST'])
 @admin_required
 @login_required
 def show():
-    stage_settings = msettings.get_stage_settings()
-
-    return render_template('/settings/settings.html', stage_settings_form=stage_settings_formio,
-                           default_stage_settings=stage_settings)
+    default_settings = msettings.get_configuration_settings()
+    return render_template('/settings/settings.html',
+                           settings_form=settings_formio, default_settings=default_settings)
 
 def update_settings_cb(msg, client_sid=None):
-    msettings.set_stage_setting(msg['data']['setting'], msg['data']['value'])
+    msettings.set_configuration_setting(msg['data']['setting'], msg['data']['value'])
 
 msocketio.subscribe_on_type('settings', update_settings_cb)
 
 
-stage_settings_formio = \
+# https://formio.github.io/formio.js/app/builder
+settings_formio = \
     {
         "display": "form",
         "components": [
             {
                 "title": "Stage 2 configuratie",
                 "theme": "primary",
-                "collapsible": false,
+                "collapsible": true,
                 "key": "stage2Configuratie",
                 "type": "panel",
-                "label": "Panel",
+                "label": "Stage 2 configuratie",
                 "input": false,
                 "tableView": false,
                 "components": [
@@ -59,7 +60,7 @@ stage_settings_formio = \
                         "optionsLabelPosition": "right",
                         "inline": false,
                         "tableView": false,
-                        "defaultValue": "logon",
+                        "defaultValue": "start-timeslot",
                         "values": [
                             {
                                 "label": "Na start tijdslot",
@@ -93,6 +94,7 @@ stage_settings_formio = \
                     },
                     {
                         "label": "Tijd vooraleer stage 2 zichtbaar wordt (seconden)",
+                        "labelPosition": "left-left",
                         "mask": false,
                         "spellcheck": false,
                         "tableView": false,
@@ -102,17 +104,19 @@ stage_settings_formio = \
                         "inputFormat": "plain",
                         "key": "stage-2-delay",
                         "type": "number",
-                        "input": true
+                        "input": true,
+                        "labelWidth": 50
                     }
-                ]
+                ],
+                "collapsed": true
             },
             {
                 "title": "Stage 3 configuratie",
                 "theme": "primary",
-                "collapsible": false,
+                "collapsible": true,
                 "key": "stage3Configuratie1",
                 "type": "panel",
-                "label": "Stage 2 configuratie",
+                "label": "Stage 3 configuratie",
                 "input": false,
                 "tableView": false,
                 "components": [
@@ -121,7 +125,7 @@ stage_settings_formio = \
                         "optionsLabelPosition": "right",
                         "inline": false,
                         "tableView": false,
-                        "defaultValue": "logon",
+                        "defaultValue": "start-timeslot",
                         "values": [
                             {
                                 "label": "Na start tijdslot",
@@ -155,6 +159,7 @@ stage_settings_formio = \
                     },
                     {
                         "label": "Tijd vooraleer stage 3 zichtbaar wordt (seconden)",
+                        "labelPosition": "left-left",
                         "mask": false,
                         "spellcheck": false,
                         "tableView": false,
@@ -164,9 +169,100 @@ stage_settings_formio = \
                         "inputFormat": "plain",
                         "key": "stage-3-delay",
                         "type": "number",
+                        "input": true,
+                        "labelWidth": 50
+                    }
+                ],
+                "collapsed": true
+            },
+            {
+                "title": "Tijdslot configuratie",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "tijdslotConfiguratie",
+                "type": "panel",
+                "label": "Tijdslot configuratie",
+                "input": false,
+                "tableView": false,
+                "components": [
+                    {
+                        "label": "Eerste tijdslot start om",
+                        "labelPosition": "left-left",
+                        "useLocaleSettings": true,
+                        "format": "yyyy-MM-dd HH:mm",
+                        "tableView": false,
+                        "enableMinDateInput": false,
+                        "datePicker": {
+                            "disableWeekends": false,
+                            "disableWeekdays": false
+                        },
+                        "enableMaxDateInput": false,
+                        "timePicker": {
+                            "showMeridian": false
+                        },
+                        "key": "timeslot-first-start",
+                        "type": "datetime",
+                        "input": true,
+                        "widget": {
+                            "type": "calendar",
+                            "displayInTimezone": "viewer",
+                            "locale": "en",
+                            "useLocaleSettings": true,
+                            "allowInput": true,
+                            "mode": "single",
+                            "enableTime": true,
+                            "noCalendar": false,
+                            "format": "yyyy-MM-dd HH:mm",
+                            "hourIncrement": 1,
+                            "minuteIncrement": 1,
+                            "time_24hr": true,
+                            "minDate": null,
+                            "disableWeekends": false,
+                            "disableWeekdays": false,
+                            "maxDate": null
+                        }
+                    },
+                    {
+                        "label": "Lengte van een tijdslot",
+                        "labelPosition": "left-left",
+                        "mask": false,
+                        "spellcheck": true,
+                        "tableView": false,
+                        "delimiter": false,
+                        "requireDecimal": false,
+                        "inputFormat": "plain",
+                        "key": "timeslot-length",
+                        "type": "number",
+                        "input": true
+                    },
+                    {
+                        "label": "Aantal tijdsloten",
+                        "labelPosition": "left-left",
+                        "mask": false,
+                        "spellcheck": true,
+                        "tableView": false,
+                        "delimiter": false,
+                        "requireDecimal": false,
+                        "inputFormat": "plain",
+                        "key": "timeslot-number",
+                        "type": "number",
+                        "input": true
+                    },
+                    {
+                        "label": "Aantal gasten per tijdslot",
+                        "labelPosition": "left-left",
+                        "mask": false,
+                        "spellcheck": true,
+                        "tableView": false,
+                        "delimiter": false,
+                        "requireDecimal": false,
+                        "inputFormat": "plain",
+                        "key": "timeslot-max-guests",
+                        "type": "number",
                         "input": true
                     }
-                ]
+                ],
+                "collapsed": true
             }
         ]
     }

@@ -1,13 +1,9 @@
 {% extends "base.html" %}
 {% block body %}
 <div class="content-section">
-    <br>
-    <br>
-    <br>
-    <br>
     <div class="center">
         <div class="container">
-                <div id="stage-settings"></div>
+                <div id="configuration-settings"></div>
         </div>
     </div>
     <br>
@@ -21,8 +17,8 @@
 
 {% block scripts %}
     <script>
-        var stage_settings_form = {{ stage_settings_form | tojson }}
-        var default_stage_settings = {{ default_stage_settings | tojson }}
+        var settings_form = {{ settings_form | tojson }}
+        var default_settings = {{ default_settings | tojson }}
     </script>
     <script type="module"> {% include "settings/settings.js" %}</script>
 {% endblock %}

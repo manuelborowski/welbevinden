@@ -1,5 +1,4 @@
 var stage_2_div = $(".stage-2")
-var is_coworker = floors.includes(user.profile);
 var $coworker_content;
 $(document).ready(function () {
     add_info_items($(".info-items-content"), items);
@@ -10,8 +9,8 @@ $(document).ready(function () {
 
     socketio.subscribe_on_receive('stage-2-visible', control_stage_visibility_cb)
 
-    if(is_coworker) {
-        $coworker_content = add_tab(user.profile + "-medewerker");
+    if(user.is_floor_coworker) {
+        $coworker_content = add_tab(user.sub_profile + "-medewerker");
     }
     chat.start(user.code, add_chat_room_cb, delete_chat_room_cb);
     socketio.subscribe_on_receive('stage-show-time', set_stage_show_time_cb)
@@ -26,7 +25,6 @@ function control_stage_visibility_cb(type, data) {
 
 
 function switch_to_tab(tab_this) {
-    console.log(tab_this);
     $(".nav-link").removeClass('active');
     tab_this.addClass('active');
 
@@ -51,7 +49,7 @@ function add_tab(name) {
 }
 
 function add_chat_room(where, room_id, room_title) {
-    var $chat_room = $($('.chat_window_template').clone().html());
+    var $chat_room = $($('.chat-window-template').clone().html());
     where.append($chat_room);
     $chat_room.attr("id", room_id)
     $chat_room.attr("id", room_id)
@@ -59,13 +57,10 @@ function add_chat_room(where, room_id, room_title) {
 }
 
 
-$(function () {
-});
-
 function add_chat_room_cb(floor, code, title) {
-    if (is_coworker) {
+    if (user.is_floor_coworker) {
         add_chat_room($coworker_content, code, title);
-        chat.subscribe_to_room(user.profile, code, user.code, user.initials);
+        chat.subscribe_to_room(user.sub_profile, code, user.code, user.initials);
     }
     $chat_room_location = $("#" + floor + "-div").children(".row")
     add_chat_room($chat_room_location, code, title);

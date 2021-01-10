@@ -6,7 +6,7 @@ from flask_socketio import emit, join_room, leave_room, close_room, rooms, disco
 from app.application import end_user as mend_user, info_items as minfo_items, floor as mfloor
 
 @end_user.route('/enter', methods=['POST', 'GET'])
-def guest_enter():
+def enter():
     try:
         code = request.args['code']
         visit = mend_user.get_visit(code, set_timestamp=True)
@@ -16,7 +16,17 @@ def guest_enter():
             'intro_video': "https://www.youtube.com/embed/YrLk4vdY28Q",
         }
     except Exception as e:
-        log.error(f'guest with args {request.args} could not enter: {e}')
+        log.error(f'end user with args {request.args} could not enter: {e}')
         return render_template('end_user/error.html', error='could_not_enter')
     return render_template('end_user/end_user.html', user=visit.flat(), floors = mfloor.get_floors(),
                            config=config, async_mode=socketio.async_mode, items=flat_clb_items)
+
+
+@end_user.route('/register', methods=['POST', 'GET'])
+def register():
+    try:
+        register_for = request.args['for']
+    except Exception as e:
+        log.error(f'could not register {request.args}: {e}')
+        return render_template('end_user/error.html', error='could_not_register')
+    return render_template('end_user/register.html')

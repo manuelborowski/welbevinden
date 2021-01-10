@@ -1,27 +1,35 @@
-from app.data.models import EndUser, Visit
+from app.data.models import EndUser, Visit, Fair, Floor
 from app.data import utils as mutils
 import random, string, datetime
 from app import log, db
 from app.application import socketio as msocketio, room as mroom, settings as msettings
 
-allowed_chars = string.ascii_letters + string.digits
+
 def create_random_string(len):
-    return ''.join(random.choice(allowed_chars) for i in range(len))
+    return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(len))
 
 
 class Profile(EndUser.Profile):
     pass
 
 
-def add_end_user(first_name, last_name, email, profile, timeslot=None, code=None):
+class School(Fair.School):
+    pass
+
+
+class Level(Floor.Level):
+    pass
+
+
+def add_end_user(first_name, last_name, email, profile, sub_profile, timeslot=None, code=None):
     try:
         if not code:
             code = create_random_string(32)
         if not timeslot:
             timeslot = datetime.datetime.now().replace(microsecond=0)
-        user = EndUser.query.filter(EndUser.email == email, EndUser.profile == profile).first()
+        user = EndUser.query.filter(EndUser.email == email, EndUser.profile == profile, EndUser.sub_profile == sub_profile).first()
         if user:
-            if profile != EndUser.Profile.E_GAST:
+            if profile != EndUser.Profile.E_GUEST:
                 log.warning(f'Enduser {user.full_name()} {profile} already exists')
                 return False
             visit = Visit.query.filter(Visit.end_user == user, Visit.timeslot == timeslot).first()
@@ -33,7 +41,7 @@ def add_end_user(first_name, last_name, email, profile, timeslot=None, code=None
             db.session.add(visit)
             db.session.commit()
             return user
-        user = EndUser(first_name=first_name, last_name=last_name, email=email, profile=profile)
+        user = EndUser(first_name=first_name, last_name=last_name, email=email, profile=profile, sub_profile=sub_profile)
         visit = Visit(code=code, timeslot=timeslot)
         user.visits.append(visit)
         db.session.add(visit)
@@ -108,13 +116,13 @@ msocketio.subscribe_on_type('disconnect', remove_socketio_sid_cb)
 
 def new_end_user_cb(msg, client_sid):
     visit = set_socketio_sid(msg['data']['user_code'], client_sid)
-    if visit.end_user.profile == EndUser.Profile.E_SCHOOL:
+    if visit.end_user.profile == Profile.E_FAIR_COWORKER:
         show_stage(2, client_sid)
         show_stage(3, client_sid)
-    elif visit.end_user.profile == EndUser.Profile.E_GAST:
-        room = mroom.select_least_occupied_room(EndUser.Profile.E_CLB)
+    elif visit.end_user.profile == Profile.E_GUEST:
+        room = mroom.select_least_occupied_room(Level.E_CLB)
         room_owner = get_end_user(room.code)
-        add_chatroom(EndUser.Profile.E_CLB, room.code, room_owner.full_name(), client_sid)
+        add_chatroom(Level.E_CLB, room.code, room_owner.full_name(), client_sid)
         send_chat_history(room.code, client_sid)
         send_time_when_to_show_stage(2, visit)
     else:
@@ -170,9 +178,9 @@ msocketio.subscribe_on_type('new-end-user', new_end_user_cb)
 msocketio.subscribe_on_type('stage-show-time', stage_show_time_cb)
 
 
-add_end_user('manuel', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_CLB, datetime.datetime(2021,1,1,14,0,0) ,'manuel-clb')
-add_end_user('manuel-internaat', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_INTERNAAT, datetime.datetime(2021,1,1,14,0,0), 'manuel-internaat')
-add_end_user('gast1', 'testachternaam', 'gast1@gmail.com', Profile.E_GAST, datetime.datetime(2021,1,1,14,0,0), 'gast1-1')
-add_end_user('gast1', 'testachternaam', 'gast1@gmail.com', Profile.E_GAST, datetime.datetime(2021,1,1,14,30,0), 'gast1-2')
-add_end_user('gast1', 'testachternaam', 'gast1@gmail.com', Profile.E_GAST, datetime.datetime(2021,1,1,14,30,0), 'gast1-3')
-add_end_user('gast3', 'testachternaam', 'gast3@gmail.com', Profile.E_GAST, datetime.datetime(2021,1,1,14,0,0), 'gast3')
+add_end_user('manuel', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_FLOOR_COWORKER, Level.E_CLB, datetime.datetime(2021,1,1,14,0,0) ,'manuel-clb')
+add_end_user('manuel-internaat', 'borowski', 'emmanuel.borowski@gmail.com', Profile.E_FLOOR_COWORKER, Level.E_INTERNAAT, datetime.datetime(2021,1,1,14,0,0), 'manuel-internaat')
+add_end_user('gast1', 'testachternaam', 'gast1@gmail.com', Profile.E_GUEST, None, datetime.datetime(2021, 1, 1, 14, 0, 0), 'gast1-1')
+add_end_user('gast1', 'testachternaam', 'gast1@gmail.com', Profile.E_GUEST, None, datetime.datetime(2021, 1, 1, 14, 30, 0), 'gast1-2')
+add_end_user('gast1', 'testachternaam', 'gast1@gmail.com', Profile.E_GUEST, None, datetime.datetime(2021, 1, 1, 14, 30, 0), 'gast1-3')
+add_end_user('gast3', 'testachternaam', 'gast3@gmail.com', Profile.E_GUEST, None, datetime.datetime(2021, 1, 1, 14, 0, 0), 'gast3')

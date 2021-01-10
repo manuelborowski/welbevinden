@@ -20,14 +20,6 @@
             height: 100%;
             margin: 0;
         }
-
-        .height-90 {
-            height: 90%;
-        }
-
-        .height-100 {
-            height: 100%;
-        }
     </style>
 </head>
 <body>
@@ -91,7 +83,7 @@
         </div>
     </div>
 
-    <div class="chat_window_template hidden-template">
+    <div class="chat-window-template hidden-template">
         <div class="col-sm-6" id="CLB-coworker">
             <div class="chat_window">
                 <div class="top_menu">
@@ -113,23 +105,13 @@
         </div>
     </div>
 
-    <div class="message_template hidden-template">
+    <div class="message-template hidden-template">
         <li class="message">
             <div class="avatar"></div>
             <div class="text_wrapper">
                 <div class="text"></div>
             </div>
         </li>
-    </div>
-
-    <div class="iiiinfo-item-template hidden-template">
-        <div class="card item-info" style="width: 30%;">
-            <img class="card-img-top" src="{{ url_for('static', filename = 'infoitems/horse-thumb-1.jpg') }}"
-                 alt="Hop paardje hop" onclick="info_item_clicked();">
-            <div class="card-body">
-                <p class="card-text">Paardje hop.</p>
-            </div>
-        </div>
     </div>
 
     <div class="info-item-template hidden-template">
@@ -145,12 +127,6 @@
             <!--Browser does not support <video> tag -->
         </video>
     </div>
-
-
-{#    <img src="{{ url_for('static', filename = 'infoitems/horse-thumb-1.jpg') }}"#}
-{#         class="video-btn img-fluid cursor-pointer" data-toggle="modal" data-src="https://youtube.com/embed/1xeYl-Ak3qQ"#}
-{#         data-target="#myModal">#}
-
 
     <!-- Modal -->
     <div class="modal videomodal fade " id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"

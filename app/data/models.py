@@ -133,21 +133,17 @@ class EndUser(db.Model):
     __tablename__ = 'end_users'
 
     class Profile:
-        E_CLB = 'CLB'
-        E_SCHOLENGEMEENSCHAP = 'Scholengemeenschap'
-        E_INTERNAAT = 'Internaat'
-        E_SCHOOL = 'School'
-        E_GAST = 'Gast'
+        E_FLOOR_COWORKER = 'floor-coworker' # CLB, Scholengemeenschap, Internaat
+        E_FAIR_COWORKER = 'fair-coworker'   # VTI, Sint Ursula, SAL, ...'School'
+        E_GUEST = 'guest'
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(256))
     first_name = db.Column(db.String(256))
     last_name = db.Column(db.String(256))
-    # code = db.Column(db.String(256))
-    # timeslot = db.Column(db.DateTime())
     last_login = db.Column(db.DateTime())
     profile = db.Column(db.String(256))
-    # socketio_sid = db.Column(db.String(256))
+    sub_profile = db.Column(db.String(256))
     visits = db.relationship('Visit', cascade='all, delete', backref='end_user')
 
     def full_name(self):
@@ -165,7 +161,11 @@ class EndUser(db.Model):
             'full_name': f'{self.first_name} {self.last_name}',
             'last_login': self.last_login,
             'profile': self.profile,
-            'initials': ''.join([n[0] for n in self.full_name().split(' ')][:2])
+            'sub_profile': self.sub_profile,
+            'initials': ''.join([n[0] for n in self.full_name().split(' ')][:2]),
+            'is_guest': self.profile == EndUser.Profile.E_GUEST,
+            'is_floor_coworker': self.profile == EndUser.Profile.E_FLOOR_COWORKER,
+            'is_fair_coworker': self.profile == EndUser.Profile.E_FAIR_COWORKER,
         }
 
 
@@ -226,9 +226,9 @@ class Floor(db.Model):
     __tablename__ = 'floors'
 
     class Level:
-        E_CLB = EndUser.Profile.E_CLB
-        E_INTERNAAT = EndUser.Profile.E_INTERNAAT
-        E_SCHOLENGEMEENSCHAP = EndUser.Profile.E_SCHOLENGEMEENSCHAP
+        E_CLB = 'CLB'
+        E_SCHOLENGEMEENSCHAP = 'Scholengemeenschap'
+        E_INTERNAAT = 'Internaat'
 
         @staticmethod
         def get_enum_list():
@@ -252,6 +252,37 @@ class Floor(db.Model):
             'name': self.name,
             'info': self.info,
             'level': self.level,
+        }
+
+
+class Fair(db.Model):
+    __tablename__ = 'fairs'
+
+    class School:
+        E_VTI = 'VTI'
+        E_SINT_URSULA = 'Sint Ursula'
+        E_SAL = 'SAL'
+
+        @staticmethod
+        def get_enum_list():
+            attributes = inspect.getmembers(Fair.School, lambda a: not (inspect.isroutine(a)))
+            enums = [a[1] for a in attributes if not (a[0].startswith('__') and a[0].endswith('__'))]
+            return enums
+
+    id = db.Column(db.Integer, primary_key=True)
+    school = db.Column(db.String(256), default='')
+    timeslot = db.Column(db.DateTime())
+    wonder_url = db.Column(db.String(256), default='')
+
+    def __repr__(self):
+        return f'{self.school} {self.timeslot}'
+
+    def flat(self):
+        return {
+            'id': self.id,
+            'name': self.school,
+            'info': self.timeslot,
+            'level': self.wonder_url,
         }
 
 

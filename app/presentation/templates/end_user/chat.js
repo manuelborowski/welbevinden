@@ -5,7 +5,7 @@ function Message(arg) {
     this.messages = arg.messages
     this.draw = function (_this) {
         return function () {
-            var $message = $($('.message_template').clone().html());
+            var $message = $($('.message-template').clone().html());
             $message.addClass(_this.side).find('.text').html(_this.text);
             $message.find('.avatar').html(_this.initials);
             _this.messages.append($message);

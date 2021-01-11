@@ -1,4 +1,5 @@
-__all__ = ['tables', 'utils', 'multiple_items', 'chat', 'end_user', 'floor', 'socketio', 'settings', 'info_items', 'visit']
+__all__ = ['tables', 'utils', 'multiple_items', 'chat', 'end_user', 'floor', 'socketio', 'settings', 'info_items',
+           'visit', 'reservation']
 
 import app.application.socketio
 import app.application.utils
@@ -10,3 +11,4 @@ import app.application.floor
 import app.application.settings
 import app.application.info_items
 import app.application.visit
+import app.application.reservation

@@ -18,7 +18,7 @@ def inject_version():
     return dict(version='V1.0')
 
 #enable logging
-LOG_HANDLE = 'IDM'
+LOG_HANDLE = 'SIAB'
 log = logging.getLogger(LOG_HANDLE)
 
 # local imports
@@ -43,7 +43,7 @@ config_name = os.getenv('FLASK_CONFIG')
 config_name = config_name if config_name else 'production'
 
 #set up logging
-LOG_FILENAME = os.path.join(sys.path[0], app_config[config_name].STATIC_PATH, 'log/idm-log.txt')
+LOG_FILENAME = os.path.join(sys.path[0], app_config[config_name].STATIC_PATH, 'log/siab-log.txt')
 try:
     log_level = getattr(logging, app_config[config_name].LOG_LEVEL)
 except:
@@ -55,7 +55,7 @@ log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(us
 log_handler.setFormatter(log_formatter)
 log.addHandler(log_handler)
 
-log.info('start SAP')
+log.info('start SIAB')
 
 flask_app.config.from_object(app_config[config_name])
 flask_app.config.from_pyfile('config.py')

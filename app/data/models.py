@@ -331,3 +331,33 @@ class InfoItem(db.Model):
         }
 
 
+class AvailablePeriod(db.Model):
+    __tablename__ = 'available_periods'
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.DateTime())
+    length = db.Column(db.Integer, default=5)   #length, in days, of a period
+    max_reservations = db.Column(db.Integer, default=4)
+    active = db.Column(db.Boolean, default=True)
+
+
+class SchoolReservation(db.Model):
+    __tablename__ = 'school_reservations'
+
+    id = db.Column(db.Integer, primary_key=True)
+    city = db.Column(db.String(256))
+    postal_code= db.Column(db.Integer)
+    address = db.Column(db.String(256))
+    first_name = db.Column(db.String(256))
+    last_name = db.Column(db.String(256))
+    phone = db.Column(db.String(256))
+    email = db.Column(db.String(256))
+
+    meeting_email = db.Column(db.String(256))
+    meeting_date = db.Column(db.DateTime())
+
+    reservation_date = db.Column(db.DateTime())
+    reservation_number = db.Column(db.Integer)
+    reservation_code = db.Column(db.String(256))
+
+    number_students = db.Column(db.Integer)

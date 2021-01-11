@@ -3,7 +3,7 @@ import json
 from . import end_user
 from app import log, socketio
 from flask_socketio import emit, join_room, leave_room, close_room, rooms, disconnect
-from app.application import end_user as mend_user, info_items as minfo_items, floor as mfloor
+from app.application import end_user as mend_user, info_items as minfo_items, floor as mfloor, visit as mvisit
 
 @end_user.route('/enter', methods=['POST', 'GET'])
 def enter():
@@ -25,8 +25,15 @@ def enter():
 @end_user.route('/register', methods=['POST', 'GET'])
 def register():
     try:
-        register_for = request.args['for']
+        register_for = request.args['for'] # guest, floor or fair
+        if register_for == mend_user.Profile.E_GUEST:
+            timeslots = mvisit.get_timeslots()
+            return render_template('end_user/register.html', timeslots=timeslots)
     except Exception as e:
         log.error(f'could not register {request.args}: {e}')
         return render_template('end_user/error.html', error='could_not_register')
-    return render_template('end_user/register.html')
+
+
+@end_user.route('/register_save', methods=['POST', 'GET'])
+def register_save():
+    pass

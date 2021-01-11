@@ -69,13 +69,8 @@ default_configuration_settings = {
 
 def get_configuration_settings():
     configuration_settings = {}
-    for k, v in default_configuration_settings.items():
-        found, value = get_setting(k, 1)
-        if found:
-            configuration_settings[k] = value
-        else:
-            add_setting(k, v[0], v[1], 1)
-            configuration_settings[k] = v[0]
+    for k in default_configuration_settings:
+        configuration_settings[k] = get_configuration_setting(k)
     return configuration_settings
 
 
@@ -83,3 +78,13 @@ def set_configuration_setting(setting, value):
     if value == None:
         value = default_configuration_settings[setting][0]
     set_setting(setting, value, 1)
+
+
+def get_configuration_setting(setting):
+    found, value = get_setting(setting, 1)
+    if found:
+        return value
+    else:
+        default_setting = default_configuration_settings[setting]
+        add_setting(setting, default_setting[0], default_setting[1], 1)
+        return default_setting[0]

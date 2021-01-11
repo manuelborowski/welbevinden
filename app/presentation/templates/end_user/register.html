@@ -24,7 +24,7 @@
 <div class="container-fluid" style="height:90%;">
 
 
-        <form id="survey" action="{{ url_for('save_contactmoment') }}" method="post">
+        <form id="survey" action="{{ url_for('end_user.register_save') }}" method="post">
         <div class="container">
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
@@ -34,34 +34,30 @@
                 {% endif %}
             {% endwith %}
 
-            <h1>Contactmoment</h1>
-            <img src="{{ url_for('static', filename='img/LogoCampus.png') }}" width="200" height="200" align="right"></a>
-            U gebruikt e-mail:&nbsp;<b>{{ email }}</b><br>
-            <p>Hier kan u voor één contactmoment inschrijven.<br>
-                Een contactmoment dat volzet is (rood), kan niet meer worden geselecteerd.<br>
-                Eén contactmoment duurt <b>{{ timeslot_length }}</b> minuten.<br>
-                Kies een contactmoment en druk onderaan op <b>Insturen</b>.<br>
+            <h1>Inschrijven op de Heliks Info Sessies</h1>
+
+            <p>Hier kan u voor één infosessie inschrijven.<br>
+                Een sessie die volzet is (rood), kan niet meer worden geselecteerd.<br>
+                Eén sessie duurt <b>blabla</b> minuten.<br>
+                Kies een sessie en druk onderaan op <b>Insturen</b>.<br>
                 <br>
             </p>
         </div>
-        <input type="text" name="email_token" value="{{ email_token }}" hidden>
-        <input type="text" name="organization" value="{{ organization }}" hidden>
-        <input type="text" name="email" value="{{ email }}" hidden>
         <hr class="fat_line">
-        {% if contact_table %}
+        {% if timeslots %}
             <table class="table table-bordered" style="width: 1px;">
                 <tr>
                     <th style="white-space: nowrap;">Datum</th>
-                    {% for s in contact_table[0].slots %}
-                        <th>{{ s.time }}</th>
+                    {% for th in timeslots.header %}
+                        <th>{{ th.time }}</th>
                     {% endfor %}
                 </tr>
-                {% for c in contact_table %}
+                {% for d in timeslots.days %}
                     <tr>
-                        <td  style="white-space: nowrap;">{{ c.date }}</td>
-                        {% for s in c.slots %}
-                            {%  if s.type == 'free' %}
-                                <td><input type="radio"  name="chbx" value="{{ c.date }}-{{ s.time }}" {% if s.type == 'busy' %}disabled{%  endif %}></td>
+                        <td  style="white-space: nowrap;">{{ d.day }}</td>
+                        {% for s in d.slots %}
+                            {%  if s.type == 'free' or s.type == 'taken' %}
+                                <td><input type="radio"  name="chbx" value="{{ d.day }}-{{ s.time }}" {% if s.type == 'taken' %}disabled{%  endif %}></td>
                             {% else %}
                                 <td style="background-color:red;"></td>
                             {%  endif %}

@@ -11,11 +11,11 @@ from flask_socketio import SocketIO
 
 flask_app = Flask(__name__, instance_relative_config=True, template_folder='presentation/templates/')
 
-#V1.0: base version: only login and users.  Can be used to start other projects
+# V0.1 : first trial of registration form
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V1.0')
+    return dict(version='V0.1')
 
 #enable logging
 LOG_HANDLE = 'SIAB'

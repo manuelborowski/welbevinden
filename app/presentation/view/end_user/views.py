@@ -35,9 +35,10 @@ def register():
         # register_for = request.args['for'] # guest, floor or fair
         # if register_for == mend_user.Profile.E_GUEST:
         #     timeslots = mvisit.get_timeslots()
-        update_available_periods(available_periods, register_formio, 'select-period-boxes')
+        new_register_formio = dict(register_formio)
+        update_available_periods(available_periods, new_register_formio, 'select-period-boxes')
         return render_template('end_user/register.html', registration_periods=available_periods,
-                               registration_form=register_formio)
+                               registration_form=new_register_formio)
     except Exception as e:
         log.error(f'could not register {request.args}: {e}')
         return render_template('end_user/error.html', error='could_not_register')
@@ -52,10 +53,19 @@ def update_available_periods(periods, form=register_formio, key='select-period-b
     components = form['components']
     for component in components:
         if 'key' in component and component['key'] == key:
-            template = component['components'][0]
+            select_template = component['components'][0]
+            data_template = component['components'][0]['data']['values'][0]
+            component['components'] = []
             for period in periods:
-                new = dict(template)
+                new = dict(select_template)
+                new['data']['values']  = []
+                for value in range(period['boxes_left'] + 1):
+                    new_data = dict(data_template)
+                    new_data['label'] = str(value)
+                    new_data['value'] = str(value)
+                    new['data']['values'].append(new_data)
                 new['label'] = period['period']
+                new['key'] = f'select-boxes-{period["id"]}'
                 component['components'].append(new)
             return
         if 'components' in component:
@@ -71,7 +81,7 @@ register_formio = \
         "display": "form",
         "components": [
             {
-                "html": "<p>Beste bezoeker,</p><p>hier kan u een reservatie maken voor een SUM-in-a-box.</p><p>Gelieve een tijdslot en een aantal te kiezen (1 box is geschikt voor maximum 25 leerlingen).</p><p>Laat eveneens uw contactgegevens achter, zodat wij de box kunnen leveren of contact kunnen opnemen.</p><p>Heb u nog vragen of wilt u nog meer info, gelieve dan een e-mailadres en een uur op te geven. &nbsp;Dan zullen wij op het geveven e-mailadres een Microsoft Teams-link sturen.</p>",
+                "html": "<p>Beste schoolmedewerker, beste directie,</p><p>hier kan u een reservatie maken voor een SUM-in-a-box.</p><p>Gelieve één tijdslot te kiezen en selecteer het aantal boxen (1 box is geschikt voor maximum 25 leerlingen).</p><p>Laat eveneens uw contactgegevens achter, zodat wij de box kunnen leveren of eventueel contact kunnen opnemen.</p><p>Heb u nog vragen of wilt u nog meer info, gelieve dan een e-mailadres en een uur op te geven. &nbsp;Dan zullen wij op het geveven e-mailadres een Microsoft Teams-link sturen.</p><p>Velden met een rood sterretje zijn verplicht.</p>",
                 "label": "header",
                 "refreshOnChange": false,
                 "key": "header",
@@ -130,19 +140,7 @@ register_formio = \
                         "key": "phone",
                         "type": "textfield",
                         "input": true
-                    }
-                ]
-            },
-            {
-                "title": "Afleveringsadres",
-                "theme": "warning",
-                "collapsible": false,
-                "key": "delivery-address",
-                "type": "panel",
-                "label": "Panel",
-                "input": false,
-                "tableView": false,
-                "components": [
+                    },
                     {
                         "label": "Straat en huisnummer",
                         "labelPosition": "left-left",
@@ -175,60 +173,6 @@ register_formio = \
                         "key": "city",
                         "type": "textfield",
                         "input": true
-                    }
-                ]
-            },
-            {
-                "title": "SUM-in-a-box ",
-                "theme": "warning",
-                "collapsible": false,
-                "key": "sum-in-a-box-reservation",
-                "type": "panel",
-                "label": "Panel",
-                "input": false,
-                "tableView": false,
-                "components": [
-                    {
-                        "title": "Kies één datum en het aantal boxen (rechts)",
-                        "theme": "warning",
-                        "collapsible": false,
-                        "key": "select-period-boxes",
-                        "type": "panel",
-                        "label": "Selecteer de periode en het aantal boxen",
-                        "input": false,
-                        "tableView": false,
-                        "components": [
-                            {
-                                "label": "Datum-1",
-                                "labelPosition": "left-left",
-                                "widget": "choicesjs",
-                                "tableView": true,
-                                "defaultValue": 0,
-                                "data": {
-                                    "values": [
-                                        {
-                                            "label": "0",
-                                            "value": "0"
-                                        },
-                                        {
-                                            "label": "1",
-                                            "value": "1"
-                                        }
-                                    ]
-                                },
-                                "dataType": "number",
-                                "selectThreshold": 0.3,
-                                "validate": {
-                                    "onlyAvailableItems": false
-                                },
-                                "key": "datum1",
-                                "type": "select",
-                                "indexeddb": {
-                                    "filter": {}
-                                },
-                                "input": true
-                            }
-                        ]
                     },
                     {
                         "label": "Aantal leerlingen",
@@ -249,12 +193,58 @@ register_formio = \
                 ]
             },
             {
-                "title": "Info of vragen?",
+                "title": "Kies één datum en selecteer het aantal boxen",
+                "theme": "warning",
+                "collapsible": false,
+                "key": "select-period-boxes",
+                "type": "panel",
+                "label": "Kies één datum en het aantal boxen (rechts)",
+                "input": false,
+                "tableView": false,
+                "components": [
+                    {
+                        "label": "Datum-1",
+                        "labelPosition": "left-left",
+                        "widget": "choicesjs",
+                        "tableView": true,
+                        "defaultValue": "0",
+                        "data": {
+                            "values": [
+                                {
+                                    "label": "0",
+                                    "value": "0"
+                                },
+                                {
+                                    "label": "1",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        "dataType": "string",
+                        "selectThreshold": 0.3,
+                        "persistent": false,
+                        "validate": {
+                            "onlyAvailableItems": false
+                        },
+                        "key": "datum1",
+                        "attributes": {
+                            "class": "test"
+                        },
+                        "type": "select",
+                        "indexeddb": {
+                            "filter": {}
+                        },
+                        "input": true
+                    }
+                ]
+            },
+            {
+                "title": "Info of vragen?  Laat een e-mailadres achter en selecteer een datum en uur wanneer wij u kunnen contacteren",
                 "theme": "warning",
                 "collapsible": false,
                 "key": "info-or-questions",
                 "type": "panel",
-                "label": "Panel",
+                "label": "Info of vragen?",
                 "input": false,
                 "tableView": false,
                 "components": [
@@ -269,7 +259,8 @@ register_formio = \
                     {
                         "label": "Datum en uur",
                         "labelPosition": "left-left",
-                        "format": "yyyy-MM-dd HH:mm",
+                        "allowInput": false,
+                        "format": "dd/MM/yyyy HH:mm",
                         "tableView": false,
                         "enableMinDateInput": false,
                         "datePicker": {
@@ -280,6 +271,7 @@ register_formio = \
                         "timePicker": {
                             "showMeridian": false
                         },
+                        "persistent": false,
                         "key": "meeting-date",
                         "type": "datetime",
                         "input": true,
@@ -288,11 +280,11 @@ register_formio = \
                             "displayInTimezone": "viewer",
                             "locale": "en",
                             "useLocaleSettings": false,
-                            "allowInput": true,
+                            "allowInput": false,
                             "mode": "single",
                             "enableTime": true,
                             "noCalendar": false,
-                            "format": "yyyy-MM-dd HH:mm",
+                            "format": "dd/MM/yyyy HH:mm",
                             "hourIncrement": 1,
                             "minuteIncrement": 1,
                             "time_24hr": true,
@@ -303,6 +295,16 @@ register_formio = \
                         }
                     }
                 ]
+            },
+            {
+                "label": "Inzenden",
+                "showValidations": false,
+                "theme": "success",
+                "size": "lg",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
             }
         ]
     }

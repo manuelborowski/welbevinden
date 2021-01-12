@@ -26,10 +26,12 @@ def get_available_periods():
             start_date = period.date.strftime('%d/%m/%Y')
             end_date = (period.date + datetime.timedelta(days=period.length - 1)).strftime('%d/%m/%Y')
             available_periods.append({
+                'id': period.id,
                 'period': f'{start_date} tem {end_date}',
                 'length': period.length,
                 'max_number': period.max_reservations,
-                'current_number': reservation_count
+                'current_number': reservation_count,
+                'boxes_left': period.max_reservations - reservation_count,
             })
         return available_periods
     except Exception as e:

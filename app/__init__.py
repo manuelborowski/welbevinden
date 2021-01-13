@@ -12,11 +12,12 @@ from flask_socketio import SocketIO
 flask_app = Flask(__name__, instance_relative_config=True, template_folder='presentation/templates/')
 
 # V0.1 : first trial of registration form
-# V0.2 : small bugifx
+# V0.2 : small bugfix
+# V0.3 : registration and error html ok
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.2')
+    return dict(version='V0.3')
 
 #enable logging
 LOG_HANDLE = 'SIAB'

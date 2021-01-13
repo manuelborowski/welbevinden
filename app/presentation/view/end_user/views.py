@@ -5,8 +5,7 @@ from app import log, socketio
 from flask_socketio import emit, join_room, leave_room, close_room, rooms, disconnect
 from app.application import end_user as mend_user, info_items as minfo_items, floor as mfloor, visit as mvisit, \
     reservation as mreservation
-
-register_formio = {}
+import json
 
 
 @end_user.route('/enter', methods=['POST', 'GET'])
@@ -41,15 +40,28 @@ def register():
                                registration_form=new_register_formio)
     except Exception as e:
         log.error(f'could not register {request.args}: {e}')
-        return render_template('end_user/error.html', error='could_not_register')
+        return render_template('end_user/error.html', error='could_not_register', message=e)
 
 
-@end_user.route('/register_save', methods=['POST', 'GET'])
-def register_save():
-    pass
+@end_user.route('/register_save/<string:form_data>', methods=['POST', 'GET'])
+def register_save(form_data):
+    data = json.loads(form_data)
+    periods = mreservation.get_available_periods()
+    period_id = -1
+    nbr_boxes = 0
+    for period in periods:
+        key = f'select-boxes-{period["id"]}'
+        if (int(data[key]) > 0):
+            period_id = period['id']
+            nbr_boxes = int(data[key])
+            break
+    mreservation.add_registration(data['name-school'], data['name-teacher-1'], data['name-teacher-2'],
+                                  data['name-teacher-3'], data['phone'], data['address'],
+                                  data['postal-code'], data['city'], data['number-students'], period_id, nbr_boxes,
+                                  data['meeting-email'], data['meeting-date'])
 
 
-def update_available_periods(periods, form=register_formio, key='select-period-boxes'):
+def update_available_periods(periods, form, key):
     components = form['components']
     for component in components:
         if 'key' in component and component['key'] == key:
@@ -58,7 +70,7 @@ def update_available_periods(periods, form=register_formio, key='select-period-b
             component['components'] = []
             for period in periods:
                 new = dict(select_template)
-                new['data']['values']  = []
+                new['data'] = dict({'values': []})
                 for value in range(period['boxes_left'] + 1):
                     new_data = dict(data_template)
                     new_data['label'] = str(value)
@@ -72,6 +84,7 @@ def update_available_periods(periods, form=register_formio, key='select-period-b
             update_available_periods(periods, component, key)
     return
 
+
 false = False
 true = True
 null = None
@@ -81,7 +94,7 @@ register_formio = \
         "display": "form",
         "components": [
             {
-                "html": "<p>Beste schoolmedewerker, beste directie,</p><p>hier kan u een reservatie maken voor een SUM-in-a-box.</p><p>Gelieve één tijdslot te kiezen en selecteer het aantal boxen (1 box is geschikt voor maximum 25 leerlingen).</p><p>Laat eveneens uw contactgegevens achter, zodat wij de box kunnen leveren of eventueel contact kunnen opnemen.</p><p>Heb u nog vragen of wilt u nog meer info, gelieve dan een e-mailadres en een uur op te geven. &nbsp;Dan zullen wij op het geveven e-mailadres een Microsoft Teams-link sturen.</p><p>Velden met een rood sterretje zijn verplicht.</p>",
+                "html": "<p><i>Beste directie, beste meester/juf</i></p><p><i>Hieronder kan je een reservatie maken voor SUM-in-a-box.</i></p><p><i>Gelieve één tijdslot te kiezen en het aantal boxen te selecteren (1 box is geschikt voor maximum 25 leerlingen).</i></p><p><i>Vul de velden met de contactgegevens in, zodat we de box op het schooladres kunnen leveren en eventueel contact kunnen opnemen. Naar het mailadres zullen we ook een Microsoft Teams-link doorsturen.</i></p><p><i>Velden met een rood sterretje zijn verplicht.</i></p>",
                 "label": "header",
                 "refreshOnChange": false,
                 "key": "header",
@@ -90,47 +103,58 @@ register_formio = \
                 "tableView": false
             },
             {
-                "title": "Contactgevevens",
+                "title": "Contactgegevens",
                 "theme": "warning",
                 "collapsible": false,
                 "key": "contact-info",
                 "type": "panel",
-                "label": "Panel",
+                "label": "Contactgevevens",
                 "input": false,
                 "tableView": false,
                 "components": [
                     {
-                        "label": "Voornaam",
+                        "label": "Naam school",
                         "labelPosition": "left-left",
                         "tableView": true,
+                        "persistent": false,
                         "validate": {
                             "required": true
                         },
-                        "key": "contact-first-name",
-                        "type": "textfield",
-                        "labelWidth": 30,
-                        "input": true
-                    },
-                    {
-                        "label": "Achternaam ",
-                        "labelPosition": "left-left",
-                        "tableView": true,
-                        "validate": {
-                            "required": true
-                        },
-                        "key": "contact-last-name",
+                        "key": "name-school",
                         "type": "textfield",
                         "input": true
                     },
                     {
-                        "label": "e-mailadres",
+                        "label": "Voornaam en familienaam van leerkracht 1",
                         "labelPosition": "left-left",
                         "tableView": true,
                         "validate": {
                             "required": true
                         },
-                        "key": "contact-email",
-                        "type": "email",
+                        "key": "name-teacher-1",
+                        "type": "textfield",
+                        "labelWidth": 40,
+                        "labelMargin": 3,
+                        "input": true
+                    },
+                    {
+                        "label": "Voornaam en familienaam van leerkracht 2",
+                        "labelPosition": "left-left",
+                        "tableView": true,
+                        "persistent": false,
+                        "key": "name-teacher-2",
+                        "type": "textfield",
+                        "labelWidth": 40,
+                        "input": true
+                    },
+                    {
+                        "label": "Voornaam en familienaam van leerkracht 3",
+                        "labelPosition": "left-left",
+                        "tableView": true,
+                        "persistent": false,
+                        "key": "name-teacher-3",
+                        "type": "textfield",
+                        "labelWidth": 40,
                         "input": true
                     },
                     {
@@ -142,7 +166,7 @@ register_formio = \
                         "input": true
                     },
                     {
-                        "label": "Straat en huisnummer",
+                        "label": "Adres school (straat en nummer)",
                         "labelPosition": "left-left",
                         "tableView": true,
                         "validate": {
@@ -175,7 +199,7 @@ register_formio = \
                         "input": true
                     },
                     {
-                        "label": "Aantal leerlingen",
+                        "label": "Totaal aantal leerlingen",
                         "labelPosition": "left-left",
                         "mask": false,
                         "spellcheck": true,
@@ -239,12 +263,12 @@ register_formio = \
                 ]
             },
             {
-                "title": "Info of vragen?  Laat een e-mailadres achter en selecteer een datum en uur wanneer wij u kunnen contacteren",
+                "title": "Op onderstaand mailadres sturen we een Microsoft Teams-link om digitaal vragen met de klasgroep te kunnen beantwoorden. Selecteer een datum en uur wanneer dit kan plaatsvinden:",
                 "theme": "warning",
                 "collapsible": false,
                 "key": "info-or-questions",
                 "type": "panel",
-                "label": "Info of vragen?",
+                "label": "Info of vragen?  Laat een e-mailadres achter en selecteer een datum en uur wanneer wij u kunnen contacteren",
                 "input": false,
                 "tableView": false,
                 "components": [
@@ -257,8 +281,9 @@ register_formio = \
                         "input": true
                     },
                     {
-                        "label": "Datum en uur",
+                        "label": "Datum en uur in die uitgeleende week",
                         "labelPosition": "left-left",
+                        "useLocaleSettings": true,
                         "allowInput": false,
                         "format": "dd/MM/yyyy HH:mm",
                         "tableView": false,
@@ -279,7 +304,7 @@ register_formio = \
                             "type": "calendar",
                             "displayInTimezone": "viewer",
                             "locale": "en",
-                            "useLocaleSettings": false,
+                            "useLocaleSettings": true,
                             "allowInput": false,
                             "mode": "single",
                             "enableTime": true,
@@ -292,7 +317,8 @@ register_formio = \
                             "disableWeekends": false,
                             "disableWeekdays": false,
                             "maxDate": null
-                        }
+                        },
+                        "labelWidth": 40
                     }
                 ]
             },

@@ -337,27 +337,31 @@ class AvailablePeriod(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime())
     length = db.Column(db.Integer, default=5)   #length, in days, of a period
-    max_reservations = db.Column(db.Integer, default=4)
+    max_nbr_boxes = db.Column(db.Integer, default=4)
     active = db.Column(db.Boolean, default=True)
+    reservations = db.relationship('SchoolReservation', cascade='all, delete', backref='period')
 
 
 class SchoolReservation(db.Model):
     __tablename__ = 'school_reservations'
 
     id = db.Column(db.Integer, primary_key=True)
-    city = db.Column(db.String(256))
-    postal_code= db.Column(db.Integer)
-    address = db.Column(db.String(256))
-    first_name = db.Column(db.String(256))
-    last_name = db.Column(db.String(256))
+
+    name_school = db.Column(db.String(256), default='')
+    name_teacher_1 = db.Column(db.String(256), default='')
+    name_teacher_2 = db.Column(db.String(256), default='')
+    name_teacher_3 = db.Column(db.String(256), default='')
     phone = db.Column(db.String(256))
-    email = db.Column(db.String(256))
+    address = db.Column(db.String(256))
+    postal_code= db.Column(db.Integer)
+    city = db.Column(db.String(256))
+    nbr_students = db.Column(db.Integer)
+
+    reservation_period_id = db.Column(db.Integer, db.ForeignKey('available_periods.id'))
+    reservation_nbr_boxes = db.Column(db.Integer)
+    reservation_code = db.Column(db.String(256))
 
     meeting_email = db.Column(db.String(256))
     meeting_date = db.Column(db.DateTime())
 
-    reservation_date = db.Column(db.DateTime())
-    reservation_number = db.Column(db.Integer)
-    reservation_code = db.Column(db.String(256))
-
-    number_students = db.Column(db.Integer)
+    ack_email_send = db.Column(db.Boolean, default=False)

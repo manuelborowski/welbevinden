@@ -7,6 +7,8 @@ from werkzeug.routing import IntegerConverter as OrigIntegerConvertor
 import logging.handlers, os, sys
 from functools import wraps
 from flask_socketio import SocketIO
+from smtplib import SMTP
+from flask_apscheduler import APScheduler
 
 
 flask_app = Flask(__name__, instance_relative_config=True, template_folder='presentation/templates/')
@@ -14,10 +16,11 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 # V0.1 : first trial of registration form
 # V0.2 : small bugfix
 # V0.3 : registration and error html ok
+# V0.4 : first registration ok, e-mail is sent
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.3')
+    return dict(version='V0.4')
 
 #enable logging
 LOG_HANDLE = 'SIAB'
@@ -85,8 +88,18 @@ login_manager.login_view = 'auth.login'
 
 migrate = Migrate(flask_app, db)
 
+#configure e-mailclient
+mail_server = flask_app.config['MAIL_SERVER']
+mail_port = flask_app.config['MAIL_PORT']
+email = SMTP(host=mail_server, port=mail_port)
+email.starttls()
+email.login(flask_app.config['MAIL_USERNAME'], flask_app.config['MAIL_PASSWORD'])
+send_emails = False
 
-
+SCHEDULER_API_ENABLED = True
+email_scheduler = APScheduler()
+email_scheduler.init_app(flask_app)
+email_scheduler.start()
 
 if 'db' in sys.argv:
     from app.data import models

@@ -2,9 +2,10 @@ from app import log, db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import UniqueConstraint
-import inspect
+import inspect, datetime
 from flask import url_for
 from sqlalchemy.sql import func
+from sqlalchemy.orm import column_property
 
 
 class User(UserMixin, db.Model):
@@ -113,7 +114,7 @@ class Settings(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256))
-    value = db.Column(db.String(256))
+    value = db.Column(db.Text)
     type = db.Column(db.String(256))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'))
 
@@ -341,6 +342,13 @@ class AvailablePeriod(db.Model):
     active = db.Column(db.Boolean, default=True)
     reservations = db.relationship('SchoolReservation', cascade='all, delete', backref='period')
 
+    nbr_boxes_taken = column_property(func.nbr_boxes_taken(id))
+
+    def period_string(self):
+        start_date = self.date.strftime('%d/%m/%Y')
+        end_date = (self.date + datetime.timedelta(days=self.length - 1)).strftime('%d/%m/%Y')
+        return f'{start_date} tem {end_date}'
+
 
 class SchoolReservation(db.Model):
     __tablename__ = 'school_reservations'
@@ -351,6 +359,7 @@ class SchoolReservation(db.Model):
     name_teacher_1 = db.Column(db.String(256), default='')
     name_teacher_2 = db.Column(db.String(256), default='')
     name_teacher_3 = db.Column(db.String(256), default='')
+    email = db.Column(db.String(256))
     phone = db.Column(db.String(256))
     address = db.Column(db.String(256))
     postal_code= db.Column(db.Integer)
@@ -364,4 +373,12 @@ class SchoolReservation(db.Model):
     meeting_email = db.Column(db.String(256))
     meeting_date = db.Column(db.DateTime())
 
-    ack_email_send = db.Column(db.Boolean, default=False)
+    ack_email_sent = db.Column(db.Boolean, default=False)
+
+    active = db.Column(db.Boolean, default=True)
+    enabled = db.Column(db.Boolean, default=True)
+
+    def email_is_sent(self, sent=True):
+        self.ack_email_sent = sent
+        db.session.commit()
+

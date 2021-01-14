@@ -263,6 +263,90 @@ settings_formio = \
                     }
                 ],
                 "collapsed": true
+            },
+            {
+                "title": "Registratie template en e-mail",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "RegistratieTemplate",
+                "type": "panel",
+                "label": "Registratie template",
+                "input": false,
+                "tableView": false,
+                "components": [
+                    {
+                        "label": "E-mails mogen worden verzonden",
+                        "tableView": false,
+                        "persistent": false,
+                        "key": "enable-send-email",
+                        "type": "checkbox",
+                        "input": true,
+                        "defaultValue": false
+                    },
+                    {
+                        "label": "Web registratie template",
+                        "autoExpand": false,
+                        "tableView": true,
+                        "key": "register-template",
+                        "type": "textarea",
+                        "input": true
+                    },
+                    {
+                        "label": "Registratie bevestigingse-mail: onderwerp",
+                        "autoExpand": false,
+                        "tableView": true,
+                        "persistent": false,
+                        "key": "register-mail-ack-subject-template",
+                        "type": "textarea",
+                        "input": true
+                    },
+                    {
+                        "label": "Registratie bevestigingse-mail: inhoud",
+                        "autoExpand": false,
+                        "tableView": true,
+                        "persistent": false,
+                        "key": "register-mail-ack-content-template",
+                        "type": "textarea",
+                        "input": true
+                    },
+                    {
+                        "label": "Tijd (seconden) tussen het verzenden van e-mails",
+                        "labelPosition": "left-left",
+                        "mask": false,
+                        "spellcheck": true,
+                        "tableView": false,
+                        "persistent": false,
+                        "delimiter": false,
+                        "requireDecimal": false,
+                        "inputFormat": "plain",
+                        "key": "email-task-interval",
+                        "type": "number",
+                        "input": true
+                    },
+                    {
+                        "label": "Max aantal e-mails per minuut",
+                        "labelPosition": "left-left",
+                        "mask": false,
+                        "spellcheck": true,
+                        "tableView": false,
+                        "persistent": false,
+                        "delimiter": false,
+                        "requireDecimal": false,
+                        "inputFormat": "plain",
+                        "key": "emails-per-minute",
+                        "type": "number",
+                        "input": true
+                    },
+                    {
+                        "label": "Basis URL",
+                        "labelPosition": "left-left",
+                        "tableView": true,
+                        "key": "base-url",
+                        "type": "textfield",
+                        "input": true
+                    }
+                ],
+                "collapsed": false
             }
         ]
     }

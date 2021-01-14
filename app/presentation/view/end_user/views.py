@@ -1,11 +1,11 @@
-from flask import redirect, render_template, request, url_for, jsonify, session, copy_current_request_context
+from flask import redirect, render_template, request, url_for, jsonify, session, copy_current_request_context, request
 import json
 from . import end_user
 from app import log, socketio
 from flask_socketio import emit, join_room, leave_room, close_room, rooms, disconnect
 from app.application import end_user as mend_user, info_items as minfo_items, floor as mfloor, visit as mvisit, \
-    reservation as mreservation
-import json
+    reservation as mreservation, settings as msettings, email as memail
+import json, re
 
 
 @end_user.route('/enter', methods=['POST', 'GET'])
@@ -20,7 +20,7 @@ def enter():
         }
     except Exception as e:
         log.error(f'end user with args {request.args} could not enter: {e}')
-        return render_template('end_user/error.html', error='could_not_enter')
+        return render_template('end_user/messages.html', type='could-not-enter')
     return render_template('end_user/end_user.html', user=visit.flat(), floors=mfloor.get_floors(),
                            config=config, async_mode=socketio.async_mode, items=flat_clb_items)
 
@@ -29,18 +29,23 @@ def enter():
 def register():
     try:
         available_periods = mreservation.get_available_periods()
+        current_url = request.url
+        current_url = re.sub(f'{request.url_rule.rule}.*', '', current_url)
+        memail.set_base_url(current_url)
+
         #
         #
         # register_for = request.args['for'] # guest, floor or fair
         # if register_for == mend_user.Profile.E_GUEST:
         #     timeslots = mvisit.get_timeslots()
-        new_register_formio = dict(register_formio)
+        new_register_formio = json.loads(msettings.get_register_template())
+        # new_register_formio = dict(register_formio)
         update_available_periods(available_periods, new_register_formio, 'select-period-boxes')
         return render_template('end_user/register.html', registration_periods=available_periods,
                                registration_form=new_register_formio)
     except Exception as e:
         log.error(f'could not register {request.args}: {e}')
-        return render_template('end_user/error.html', error='could_not_register', message=e)
+        return render_template('end_user/messages.html', type='could-not-register', message=e)
 
 
 @end_user.route('/register_save/<string:form_data>', methods=['POST', 'GET'])
@@ -51,14 +56,21 @@ def register_save(form_data):
     nbr_boxes = 0
     for period in periods:
         key = f'select-boxes-{period["id"]}'
-        if (int(data[key]) > 0):
+        if key in data and  (int(data[key]) > 0):
             period_id = period['id']
             nbr_boxes = int(data[key])
             break
-    mreservation.add_registration(data['name-school'], data['name-teacher-1'], data['name-teacher-2'],
-                                  data['name-teacher-3'], data['phone'], data['address'],
+    if nbr_boxes == 0:
+        return render_template('end_user/messages.html', type='no-boxes-selected')
+    ret = mreservation.add_registration(data['name-school'], data['name-teacher-1'], data['name-teacher-2'],
+                                  data['name-teacher-3'], data['email'], data['phone'], data['address'],
                                   data['postal-code'], data['city'], data['number-students'], period_id, nbr_boxes,
                                   data['meeting-email'], data['meeting-date'])
+    if ret == 'ok':
+        return render_template('end_user/messages.html', type='register-ok')
+    if ret == 'not-enough-boxes':
+        return render_template('end_user/messages.html', type='not-enough-boxes', message='Er zijn niet genoeg boxen beschikbaar, gelieve nogmaals te proberen')
+    return render_template('end_user/messages.html', type='could-not-register')
 
 
 def update_available_periods(periods, form, key):
@@ -69,9 +81,11 @@ def update_available_periods(periods, form, key):
             data_template = component['components'][0]['data']['values'][0]
             component['components'] = []
             for period in periods:
+                if period['boxes_available'] <= 0:
+                    continue
                 new = dict(select_template)
                 new['data'] = dict({'values': []})
-                for value in range(period['boxes_left'] + 1):
+                for value in range(period['boxes_available'] + 1):
                     new_data = dict(data_template)
                     new_data['label'] = str(value)
                     new_data['value'] = str(value)

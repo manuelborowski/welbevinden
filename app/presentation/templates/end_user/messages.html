@@ -1,0 +1,76 @@
+{% extends "end_user/base.html" %}
+
+{% block body %}
+    <div class="content-section">
+        <div class="center">
+            <div class="container">
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+                {% if type=='could-not-enter' %}
+                    Sorry, er is iets fout gelopen en u kan niet aanmelden.
+                    Gelieve contact...
+                {% endif %}
+                {% if type =='could-not-register' %}
+                    <div class="alert alert-danger" role="alert">
+                        <h4 class="alert-heading">Foutmelding!</h4>
+                        <h5>U kan zich niet registreren</h5>
+                        <hr>
+                        {% if message %}
+                        <h5>Bijkomende informatie: </h5>
+                        {{ message }}
+                        <hr>
+                        {% endif %}
+                        <p>Gelieve een bericht te sturen naar <a href="mailto:manuel.borowski@campussintursula.be">manuel.borowski@campussintursula.be</a>
+                        </p>
+                    </div>
+                {% endif %}
+
+                {% if type =='register-ok' %}
+                    <div class="alert alert-success" role="alert">
+                        <h4 class="alert-heading">Registratie is een success</h4>
+                        <h5>De reservatie voor de boxen is vastgelegd.</h5>
+                        <hr>
+                        <h5>Er wordt u nog een bevestigingse-mail toegestuurd met extra informatie.</h5>
+                        <h5>U mag dit venster sluiten.</h5>
+                        </p>
+                    </div>
+                {% endif %}
+
+                {% if type =='not-enough-boxes' %}
+                    <div class="alert alert-danger" role="alert">
+                        <h4 class="alert-heading">Foutmelding!</h4>
+                        <h5>Er zijn niet genoeg boxen beschikbaar, gelieve nogmaals te proberen.</h5>
+                        <hr>
+                        <a class="btn btn-success btn-lg" type="submit" href="{{ url_for('end_user.register') }}">Registreren</a>
+                        </p>
+                    </div>
+                {% endif %}
+
+                {% if type =='no-boxes-selected' %}
+                    <div class="alert alert-danger" role="alert">
+                        <h4 class="alert-heading">Foutmelding!</h4>
+                        <h5>U hebt geen datum geselecteerd, gelieve nogmaals te proberen.</h5>
+                        <hr>
+                        <a class="btn btn-success btn-lg" type="submit" href="{{ url_for('end_user.register') }}">Registreren</a>
+                        </p>
+                    </div>
+                {% endif %}
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            </div>
+        </div>
+    </div>
+{% endblock %}

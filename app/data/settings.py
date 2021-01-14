@@ -35,6 +35,8 @@ def add_setting(name, value, type, id=-1):
 def set_setting(name, value, id=-1):
     try:
         setting = Settings.query.filter_by(name=name, user_id=id if id > -1 else current_user.id).first()
+        if setting.type == Settings.SETTING_TYPE.E_BOOL:
+            value = 'True' if value else 'False'
         setting.value = value
         db.session.commit()
     except:
@@ -64,6 +66,13 @@ default_configuration_settings = {
     'timeslot-length': (30, Settings.SETTING_TYPE.E_INT),
     'timeslot-number': (10, Settings.SETTING_TYPE.E_INT),
     'timeslot-max-guests': (50, Settings.SETTING_TYPE.E_INT),
+    'register-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'register-mail-ack-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'register-mail-ack-content-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
+    'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),
+    'base-url': ('localhost:5000', Settings.SETTING_TYPE.E_STRING),
+    'enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
 }
 
 
@@ -77,7 +86,7 @@ def get_configuration_settings():
 def set_configuration_setting(setting, value):
     if value == None:
         value = default_configuration_settings[setting][0]
-    set_setting(setting, value, 1)
+    return set_setting(setting, value, 1)
 
 
 def get_configuration_setting(setting):
@@ -88,3 +97,7 @@ def get_configuration_setting(setting):
         default_setting = default_configuration_settings[setting]
         add_setting(setting, default_setting[0], default_setting[1], 1)
         return default_setting[0]
+
+
+# save settings which are not in the database yet
+get_configuration_settings()

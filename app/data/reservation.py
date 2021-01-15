@@ -3,6 +3,7 @@ from app.data import utils as mutils
 from app import log, db
 import datetime, random, string
 
+
 def add_available_period(date, length, max_nbr_boxes):
     try:
         period = AvailablePeriod.query.filter(AvailablePeriod.date == date, AvailablePeriod.active == True).first()
@@ -41,15 +42,18 @@ def create_random_string(len):
     return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(len))
 
 
-def add_registration(name_school, name_teacher_1, name_teacher_2, name_teacher_3, email, phone, address, postal_code, city,
+def add_registration(name_school, name_teacher_1, name_teacher_2, name_teacher_3, email, phone, address, postal_code,
+                     city,
                      nbr_students, available_period_id, nbr_boxes, meeting_email, meeting_date, code):
     try:
         period = AvailablePeriod.query.get(available_period_id)
         reservation = SchoolReservation(name_school=name_school, name_teacher_1=name_teacher_1,
-                                        name_teacher_2=name_teacher_2, name_teacher_3=name_teacher_3, email=email, phone=phone,
+                                        name_teacher_2=name_teacher_2, name_teacher_3=name_teacher_3, email=email,
+                                        phone=phone,
                                         address=address, postal_code=postal_code,
                                         city=city, nbr_students=nbr_students, period=period,
-                                        reservation_nbr_boxes=nbr_boxes, meeting_email=meeting_email, meeting_date=meeting_date,
+                                        reservation_nbr_boxes=nbr_boxes, meeting_email=meeting_email,
+                                        meeting_date=meeting_date,
                                         reservation_code=code)
         db.session.add(reservation)
         db.session.commit()
@@ -60,6 +64,46 @@ def add_registration(name_school, name_teacher_1, name_teacher_2, name_teacher_3
     return False
 
 
-def get_registration(email_sent=True):
-    reservation = SchoolReservation.query.filter(SchoolReservation.active, SchoolReservation.enabled, SchoolReservation.ack_email_sent == email_sent).first()
+def update_registration_by_code(name_school, name_teacher_1, name_teacher_2, name_teacher_3, email, phone, address,
+                                postal_code, city,
+                                nbr_students, available_period_id, nbr_boxes, meeting_email, meeting_date, code):
+    try:
+        period = AvailablePeriod.query.get(available_period_id)
+        reservation = SchoolReservation.query.filter(SchoolReservation.reservation_code == code).first()
+        reservation.name_school = name_school
+        reservation.name_teacher_1 = name_teacher_1
+        reservation.name_teacher_2 = name_teacher_2
+        reservation.name_teacher_3 = name_teacher_3
+        reservation.email = email
+        reservation.phone = phone
+        reservation.address = address
+        reservation.postal_code = postal_code
+        reservation.city = city
+        reservation.nbr_students = nbr_students
+        reservation.period = period
+        reservation.reservation_nbr_boxes = nbr_boxes
+        reservation.meeting_email = meeting_email
+        reservation.meeting_date = meeting_date
+        reservation.ack_email_sent = False
+        db.session.commit()
+        log.info(f'reservation update {code}')
+        return True
+    except Exception as e:
+        mutils.raise_error(f'could not update registration {code}', e)
+    return False
+
+
+def get_registration(email_sent=None, code=None):
+    reservation = SchoolReservation.query.filter(SchoolReservation.active, SchoolReservation.enabled)
+    if email_sent is not None:
+        reservation = reservation.filter(SchoolReservation.ack_email_sent == email_sent)
+    if code:
+        reservation = reservation.filter(SchoolReservation.reservation_code == code)
+    reservation = reservation.first()
     return reservation
+
+
+def set_registration(registration, nbr_boxes=None):
+    if nbr_boxes is not None:
+        registration.reservation_nbr_boxes = nbr_boxes
+    db.session.commit()

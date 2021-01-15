@@ -382,3 +382,6 @@ class SchoolReservation(db.Model):
         self.ack_email_sent = sent
         db.session.commit()
 
+    def meeting_date_string(self):
+        if self.meeting_date is None: return ''
+        return datetime.datetime.strftime(self.meeting_date, '%Y/%m/%d %H:%M')

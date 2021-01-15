@@ -1,9 +1,9 @@
 var formio_form
 $(document).ready(function () {
     Formio.createForm(document.getElementById('register-form'), registration_form).then((form) => {
-        // $.each(default_settings, function (k, v) {
-        //     form.getComponent(k).setValue(v);
-        // });
+        $.each(default_values, function (k, v) {
+            form.getComponent(k).setValue(v);
+        });
         formio_form = form
         form.on('change', form_changed);
         form.on('submit', function(submitted) {

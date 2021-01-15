@@ -28,21 +28,16 @@ def enter():
 @end_user.route('/register', methods=['POST', 'GET'])
 def register():
     try:
+        code = request.args['code'] if 'code' in request.args else None
+        default_registration_values = mreservation.get_default_reservation_values(code, flat=True)
         available_periods = mreservation.get_available_periods()
         current_url = request.url
         current_url = re.sub(f'{request.url_rule.rule}.*', '', current_url)
         memail.set_base_url(current_url)
-
-        #
-        #
-        # register_for = request.args['for'] # guest, floor or fair
-        # if register_for == mend_user.Profile.E_GUEST:
-        #     timeslots = mvisit.get_timeslots()
         new_register_formio = json.loads(msettings.get_register_template())
-        # new_register_formio = dict(register_formio)
         update_available_periods(available_periods, new_register_formio, 'select-period-boxes')
         return render_template('end_user/register.html', registration_periods=available_periods,
-                               registration_form=new_register_formio)
+                               registration_form=new_register_formio, default_values=default_registration_values)
     except Exception as e:
         log.error(f'could not register {request.args}: {e}')
         return render_template('end_user/messages.html', type='could-not-register', message=e)
@@ -56,20 +51,23 @@ def register_save(form_data):
     nbr_boxes = 0
     for period in periods:
         key = f'select-boxes-{period["id"]}'
-        if key in data and  (int(data[key]) > 0):
+        if key in data and (int(data[key]) > 0):
             period_id = period['id']
             nbr_boxes = int(data[key])
             break
     if nbr_boxes == 0:
         return render_template('end_user/messages.html', type='no-boxes-selected')
     ret = mreservation.add_registration(data['name-school'], data['name-teacher-1'], data['name-teacher-2'],
-                                  data['name-teacher-3'], data['email'], data['phone'], data['address'],
-                                  data['postal-code'], data['city'], data['number-students'], period_id, nbr_boxes,
-                                  data['meeting-email'], data['meeting-date'])
+                                        data['name-teacher-3'], data['email'], data['phone'], data['address'],
+                                        data['postal-code'], data['city'], data['number-students'], period_id,
+                                        nbr_boxes, data['reservation-code'],
+                                        data['meeting-email'], data['meeting-date'])
     if ret == 'ok':
-        return render_template('end_user/messages.html', type='register-ok')
+        info = {'school': data['name-school'], 'period': period['period'], 'nbr_boxes': nbr_boxes}
+        return render_template('end_user/messages.html', type='register-ok', info=info)
     if ret == 'not-enough-boxes':
-        return render_template('end_user/messages.html', type='not-enough-boxes', message='Er zijn niet genoeg boxen beschikbaar, gelieve nogmaals te proberen')
+        return render_template('end_user/messages.html', type='not-enough-boxes',
+                               message='Er zijn niet genoeg boxen beschikbaar, gelieve nogmaals te proberen')
     return render_template('end_user/messages.html', type='could-not-register')
 
 

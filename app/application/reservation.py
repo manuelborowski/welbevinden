@@ -35,7 +35,7 @@ def add_registration(name_school, name_teacher_1, name_teacher_2, name_teacher_3
                      city, nbr_students, available_period_id, nbr_boxes, code, meeting_email, meeting_date):
     try:
         try:
-            date = datetime.datetime.strptime(meeting_date.split('+')[0], '%Y-%m-%dT%H:%M:%S')
+            date = datetime.datetime.strptime(':'.join(meeting_date.split(':')[:2]), '%Y-%m-%dT%H:%M')
         except:
             date = None
         period = mreservation.get_available_period(id=available_period_id)
@@ -57,27 +57,11 @@ def add_registration(name_school, name_teacher_1, name_teacher_2, name_teacher_3
     return "unknown-error"
 
 
-def get_default_reservation_values(code=None, flat=False):
+def prepare_reservation_for_update(code=None):
     try:
         if code == None: return {}
-        reservation = mreservation.get_registration(code=code)
-        period_id_key = f'select-boxes-{reservation.reservation_period_id}'
-        flat = {
-            'name-school': reservation.name_school,
-            'name-teacher-1': reservation.name_teacher_1,
-            'name-teacher-2': reservation.name_teacher_2,
-            'name-teacher-3': reservation.name_teacher_3,
-            'email': reservation.email,
-            'phone': reservation.phone,
-            'address': reservation.address,
-            'postal-code': reservation.postal_code,
-            'city': reservation.city,
-            'number-students': reservation.nbr_students,
-            period_id_key: reservation.reservation_nbr_boxes,
-            'meeting-email': reservation.meeting_email,
-            'meeting-date': reservation.meeting_date_string(),
-            'reservation-code': reservation.reservation_code,
-        }
+        reservation = mreservation.get_registration_by_code(code)
+        flat = reservation.flat()
         mreservation.set_registration(reservation, nbr_boxes=0)
         return flat
     except Exception as e:

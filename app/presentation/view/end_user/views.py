@@ -29,7 +29,7 @@ def enter():
 def register():
     try:
         code = request.args['code'] if 'code' in request.args else None
-        default_registration_values = mreservation.get_default_reservation_values(code, flat=True)
+        default_registration_values = mreservation.prepare_reservation_for_update(code)
         available_periods = mreservation.get_available_periods()
         current_url = request.url
         current_url = re.sub(f'{request.url_rule.rule}.*', '', current_url)

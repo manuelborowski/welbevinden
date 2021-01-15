@@ -1,28 +1,24 @@
 from app.data import settings as msettings, reservation as mreservation
 from app import email, log, email_scheduler, flask_app
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 import datetime, time, re
+from flask_mail import Message
 
-
-def send_email(email_info):
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = email_info['subject']
-    msg['From'] = 'sum-in-a-box@campussintursula.be'
-    msg['To'] = email_info['to']
-    html = MIMEText(email_info['body'], 'html')
-    msg.attach(html)
+def send_email(to, subject, content):
+    msg = Message(sender='sum-in-a-box@campussintursula.be', recipients=[to], subject=subject, html=content)
     try:
-        email.sendmail(msg['From'], msg['To'], msg.as_string())
+        email.send(msg)
         return True
     except Exception as e:
         log.error(f'send_email: ERROR, could not send email: {e}')
     return False
 
-# send_email(None, None)
+
+def return_table_row(name, value):
+    return f'<tr><td style="border:1px solid black;">{name}</td> <td style="border:1px solid black;">{value}</td></tr>'
+
 
 def send_register_ack(**kwargs):
-    reservation = mreservation.get_registration(email_sent=False)
+    reservation = mreservation.get_first_not_sent_registration()
     if reservation:
         email_subject = msettings.get_configuration_setting('register-mail-ack-subject-template')
         email_content = msettings.get_configuration_setting('register-mail-ack-content-template')
@@ -30,16 +26,27 @@ def send_register_ack(**kwargs):
         email_content = email_content.replace('{{TAG-PERIOD}}', reservation.period.period_string())
         email_content = email_content.replace('{{TAG-NBR-BOXES}}', f'{reservation.reservation_nbr_boxes}')
         base_url = f'{msettings.get_configuration_setting("base-url")}/register?code={reservation.reservation_code}'
-        template = f'<a href={base_url}>hier</a>'
-        email_content = email_content.replace('{{TAG-UPDATE-URL}}', template)
+        url_template = f'<a href={base_url}>hier</a>'
+        email_content = email_content.replace('{{TAG-UPDATE-URL}}', url_template)
 
-        email_info = {
-            'body': email_content,
-            'subject': email_subject,
-            'to': reservation.email,
-        }
+        info = reservation.flat()
+        info_string = '<table style="border:1px solid black;">' + \
+            return_table_row('Naam school', info['name-school']) + \
+            return_table_row('Leerkracht 1', info['name-teacher-1']) + \
+            return_table_row('Leerkracht 2', info['name-teacher-2']) + \
+            return_table_row('Leerkracht 3', info['name-teacher-3']) + \
+            return_table_row('E-mailadres', info['email']) + \
+            return_table_row('Telefoonnummer', info['phone']) + \
+            return_table_row('Adres school', info['address']) + \
+            return_table_row('Postcode', info['postal-code']) + \
+            return_table_row('Gemeente', info['city']) + \
+            return_table_row('Totaal aantal leerlingen', info['number-students']) + \
+            return_table_row('Teams e-mailadres', info['meeting-email']) + \
+            return_table_row('Teams datum', info['meeting-date']) + \
+            '</table>'
+        email_content = email_content.replace('{{TAG-RESERVATION-INFO}}', info_string)
         log.info(f'"{email_subject}" to {reservation.email}')
-        ret = send_email(email_info)
+        ret = send_email(reservation.email, email_subject, email_content)
         if ret:
             reservation.email_is_sent()
         return ret

@@ -93,12 +93,16 @@ def update_registration_by_code(name_school, name_teacher_1, name_teacher_2, nam
     return False
 
 
-def get_registration(email_sent=None, code=None):
+def get_registration_by_code(code):
     reservation = SchoolReservation.query.filter(SchoolReservation.active, SchoolReservation.enabled)
-    if email_sent is not None:
-        reservation = reservation.filter(SchoolReservation.ack_email_sent == email_sent)
-    if code:
-        reservation = reservation.filter(SchoolReservation.reservation_code == code)
+    reservation = reservation.filter(SchoolReservation.reservation_code == code)
+    reservation = reservation.first()
+    return reservation
+
+
+def get_first_not_sent_registration():
+    reservation = SchoolReservation.query.filter(SchoolReservation.active, SchoolReservation.enabled)
+    reservation = reservation.filter(SchoolReservation.ack_email_sent == False)
     reservation = reservation.first()
     return reservation
 

@@ -384,4 +384,23 @@ class SchoolReservation(db.Model):
 
     def meeting_date_string(self):
         if self.meeting_date is None: return ''
-        return datetime.datetime.strftime(self.meeting_date, '%Y/%m/%d %H:%M')
+        return datetime.datetime.strftime(self.meeting_date, '%Y-%m-%d %H:%M')
+    
+    def flat(self):
+        period_id_key = f'select-boxes-{self.reservation_period_id}'
+        return {
+            'name-school': self.name_school,
+            'name-teacher-1': self.name_teacher_1,
+            'name-teacher-2': self.name_teacher_2,
+            'name-teacher-3': self.name_teacher_3,
+            'email': self.email,
+            'phone': self.phone,
+            'address': self.address,
+            'postal-code': self.postal_code,
+            'city': self.city,
+            'number-students': self.nbr_students,
+            period_id_key: self.reservation_nbr_boxes,
+            'meeting-email': self.meeting_email,
+            'meeting-date': self.meeting_date_string(),
+            'reservation-code': self.reservation_code,
+        }

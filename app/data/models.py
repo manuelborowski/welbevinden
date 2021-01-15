@@ -404,3 +404,11 @@ class SchoolReservation(db.Model):
             'meeting-date': self.meeting_date_string(),
             'reservation-code': self.reservation_code,
         }
+
+
+    def ret_dict(self):
+        flat = self.flat()
+        flat.update({'id': self.id, 'DT_RowId': self.id, 'number-boxes': self.reservation_nbr_boxes, 'period': self.period.period_string()})
+        return flat
+
+

@@ -22,10 +22,6 @@ from app.presentation.view import base_multiple_items
 #         formio_set_default_value(component, default_values)
 #
 
-false = False
-true = True
-null = None
-
 @settings.route('/settings', methods=['GET', 'POST'])
 @admin_required
 @login_required
@@ -39,6 +35,7 @@ def update_settings_cb(msg, client_sid=None):
 
 msocketio.subscribe_on_type('settings', update_settings_cb)
 
+from app.presentation.view import false, true, null
 
 # https://formio.github.io/formio.js/app/builder
 settings_formio = \

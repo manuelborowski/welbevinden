@@ -100,6 +100,12 @@ def get_registration_by_code(code):
     return reservation
 
 
+def get_registration_by_id(id):
+    reservation = SchoolReservation.query.filter(SchoolReservation.id == id)
+    reservation = reservation.first()
+    return reservation
+
+
 def get_first_not_sent_registration():
     reservation = SchoolReservation.query.filter(SchoolReservation.active, SchoolReservation.enabled)
     reservation = reservation.filter(SchoolReservation.ack_email_sent == False)
@@ -107,7 +113,28 @@ def get_first_not_sent_registration():
     return reservation
 
 
-def set_registration(registration, nbr_boxes=None):
+def update_registration(registration, nbr_boxes=None):
     if nbr_boxes is not None:
         registration.reservation_nbr_boxes = nbr_boxes
     db.session.commit()
+
+
+def pre_filter():
+    return db.session.query(SchoolReservation).join(AvailablePeriod)
+
+
+def search_data(search_string):
+    search_constraints = []
+    search_constraints.append(SchoolReservation.name_school.like(search_string))
+    search_constraints.append(SchoolReservation.name_teacher_1.like(search_string))
+    return search_constraints
+
+
+def format_data(db_list):
+    out = []
+    for i in db_list:
+        em = i.ret_dict()
+        em['row_action'] = f"{i.id}"
+        out.append(em)
+    return out
+

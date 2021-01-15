@@ -1,28 +1,14 @@
 from flask import redirect, render_template, request, url_for, jsonify, session, copy_current_request_context, request
-import json
+from flask_login import login_required, current_user
 from . import end_user
-from app import log, socketio
+from app import log, socketio, admin_required
 from flask_socketio import emit, join_room, leave_room, close_room, rooms, disconnect
 from app.application import end_user as mend_user, info_items as minfo_items, floor as mfloor, visit as mvisit, \
     reservation as mreservation, settings as msettings, email as memail
 import json, re
-
-
-@end_user.route('/enter', methods=['POST', 'GET'])
-def enter():
-    try:
-        code = request.args['code']
-        visit = mend_user.get_visit(code, set_timestamp=True)
-        clb_items = minfo_items.get_info_items('clb')
-        flat_clb_items = [i.flat() for i in clb_items]
-        config = {
-            'intro_video': "https://www.youtube.com/embed/YrLk4vdY28Q",
-        }
-    except Exception as e:
-        log.error(f'end user with args {request.args} could not enter: {e}')
-        return render_template('end_user/messages.html', type='could-not-enter')
-    return render_template('end_user/end_user.html', user=visit.flat(), floors=mfloor.get_floors(),
-                           config=config, async_mode=socketio.async_mode, items=flat_clb_items)
+from app.data import reservation as dmreservation
+from app.data.models import SchoolReservation
+from app.presentation.view import base_multiple_items
 
 
 @end_user.route('/register', methods=['POST', 'GET'])
@@ -97,9 +83,9 @@ def update_available_periods(periods, form, key):
     return
 
 
-false = False
-true = True
-null = None
+
+
+from app.presentation.view import false, true, null
 
 register_formio = \
     {

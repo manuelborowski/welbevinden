@@ -62,11 +62,15 @@ def prepare_reservation_for_update(code=None):
         if code == None: return {}
         reservation = mreservation.get_registration_by_code(code)
         flat = reservation.flat()
-        mreservation.set_registration(reservation, nbr_boxes=0)
+        mreservation.update_registration(reservation, nbr_boxes=0)
         return flat
     except Exception as e:
         mutils.raise_error(f'could not get reservation by code {code}', e)
     return None
+
+
+def get_reservation_by_id(id):
+    return mreservation.get_registration_by_id(id)
 
 
 add_available_period(datetime.datetime(year=2021, month=1, day=25), 4, 4)

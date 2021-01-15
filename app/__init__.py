@@ -19,10 +19,11 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 # V0.3 : registration and error html ok
 # V0.4 : first registration ok, e-mail is sent
 # V0.5 : e-mail is ok
+# V0.6 : update requirements.txt
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.5')
+    return dict(version='V0.6')
 
 #enable logging
 LOG_HANDLE = 'SIAB'

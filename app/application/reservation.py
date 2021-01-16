@@ -27,34 +27,62 @@ def get_available_periods():
     return []
 
 
+def get_period_by_id(id):
+    return mreservation.get_available_period_by_id(id)
+
+
 def create_random_string(len):
     return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(len))
 
 
-def add_registration(name_school, name_teacher_1, name_teacher_2, name_teacher_3, email, phone, address, postal_code,
-                     city, nbr_students, available_period_id, nbr_boxes, code, meeting_email, meeting_date):
+class RegisterSaveResult:
+    def __init__(self, result, reservation={}):
+        self.result = result
+        self.reservation = reservation
+
+    class Result:
+        E_OK = 'ok'
+        E_NO_BOXES_SELECTED = 'no-boxes-selected'
+        E_NOT_ENOUGH_BOXES = 'not-enough-boxes'
+        E_COULD_NOT_REGISTER = 'could-not-register'
+
+    result = Result.E_OK
+    reservation = {}
+
+
+def add_registration(data):
     try:
-        try:
-            date = datetime.datetime.strptime(':'.join(meeting_date.split(':')[:2]), '%Y-%m-%dT%H:%M')
-        except:
-            date = None
-        period = mreservation.get_available_period(id=available_period_id)
-        if (period.max_nbr_boxes - period.nbr_boxes_taken) < nbr_boxes:
-            return "not-enough-boxes"
-        if code == '':
-            code = create_random_string(32)
-            mreservation.add_registration(name_school, name_teacher_1, name_teacher_2, name_teacher_3, email, phone,
-                                          address, postal_code, city, nbr_students, available_period_id, nbr_boxes,
-                                          meeting_email, date, code)
+        periods = get_available_periods()
+        valid_nbr_boxes = False
+        for period in periods:
+            key = f'select-boxes-{period["id"]}'
+            if key in data and (int(data[key]) > 0):
+                data['period_id'] = period['id']
+                data['nbr_boxes'] = int(data[key])
+                valid_nbr_boxes = True
+                break
+        if not valid_nbr_boxes:
+            return RegisterSaveResult(result=RegisterSaveResult.Result.E_NO_BOXES_SELECTED)
+        period = mreservation.get_available_period_by_id(id=data['period_id'])
+        if (period.max_nbr_boxes - period.nbr_boxes_taken) < data['nbr_boxes']:
+            return RegisterSaveResult(result=RegisterSaveResult.Result.E_NOT_ENOUGH_BOXES)
+        if data['reservation-code'] == '':
+            data['reservation-code'] = create_random_string(32)
+            reservation=mreservation.add_registration(data)
         else:
-            mreservation.update_registration_by_code(name_school, name_teacher_1, name_teacher_2, name_teacher_3, email,
-                                                     phone, address, postal_code, city, nbr_students,
-                                                     available_period_id, nbr_boxes,
-                                                     meeting_email, date, code)
-        return "ok"
+            mreservation.update_registration_by_code(data)
+        # name_school, name_teacher_1, name_teacher_2, name_teacher_3, email, phone,
+                #                           address, postal_code, city, nbr_students, available_period_id, nbr_boxes,
+                #                           meeting_email, date, code)
+        # else:
+        #     mreservation.update_registration_by_code(name_school, name_teacher_1, name_teacher_2, name_teacher_3, email,
+        #                                              phone, address, postal_code, city, nbr_students,
+        #                                              available_period_id, nbr_boxes,
+        #                                              meeting_email, date, code)
+        return RegisterSaveResult(result=RegisterSaveResult.Result.E_OK, reservation=reservation.ret_dict())
     except Exception as e:
-        mutils.raise_error(f'could not add registration {name_school}', e)
-    return "unknown-error"
+        mutils.raise_error(f'could not add registration {data["name-school"]}', e)
+    return RegisterSaveResult(result=RegisterSaveResult.Result.E_COULD_NOT_REGISTER)
 
 
 def prepare_reservation_for_update(code=None):

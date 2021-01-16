@@ -31,29 +31,19 @@ def register():
 
 @end_user.route('/register_save/<string:form_data>', methods=['POST', 'GET'])
 def register_save(form_data):
-    data = json.loads(form_data)
-    periods = mreservation.get_available_periods()
-    period_id = -1
-    nbr_boxes = 0
-    for period in periods:
-        key = f'select-boxes-{period["id"]}'
-        if key in data and (int(data[key]) > 0):
-            period_id = period['id']
-            nbr_boxes = int(data[key])
-            break
-    if nbr_boxes == 0:
-        return render_template('end_user/messages.html', type='no-boxes-selected')
-    ret = mreservation.add_registration(data['name-school'], data['name-teacher-1'], data['name-teacher-2'],
-                                        data['name-teacher-3'], data['email'], data['phone'], data['address'],
-                                        data['postal-code'], data['city'], data['number-students'], period_id,
-                                        nbr_boxes, data['reservation-code'],
-                                        data['meeting-email'], data['meeting-date'])
-    if ret == 'ok':
-        info = {'school': data['name-school'], 'period': period['period'], 'nbr_boxes': nbr_boxes}
-        return render_template('end_user/messages.html', type='register-ok', info=info)
-    if ret == 'not-enough-boxes':
-        return render_template('end_user/messages.html', type='not-enough-boxes',
-                               message='Er zijn niet genoeg boxen beschikbaar, gelieve nogmaals te proberen')
+    try:
+        data = json.loads(form_data)
+        ret = mreservation.add_registration(data)
+        if ret.result == ret.Result.E_NO_BOXES_SELECTED:
+            return render_template('end_user/messages.html', type='no-boxes-selected')
+        if ret.result == ret.Result.E_OK:
+            info = {'school': ret.reservation['name-school'], 'period': ret.reservation['period'], 'nbr_boxes': ret.reservation['number-boxes']}
+            return render_template('end_user/messages.html', type='register-ok', info=info)
+        if ret.result == ret.Result.E_NOT_ENOUGH_BOXES:
+            return render_template('end_user/messages.html', type='not-enough-boxes',
+                                   message='Er zijn niet genoeg boxen beschikbaar, gelieve nogmaals te proberen')
+    except Exception as e:
+        return render_template('end_user/messages.html', type='could-not-register', message=e)
     return render_template('end_user/messages.html', type='could-not-register')
 
 

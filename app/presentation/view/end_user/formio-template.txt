@@ -1,0 +1,263 @@
+{
+  "display": "form",
+  "components": [
+    {
+      "html": "<p><i>Beste directie, beste meester/juf</i></p><p><i>Hieronder kan je een reservatie maken voor SUM-in-a-box.</i></p><p><i>Gelieve één tijdslot te kiezen en het aantal boxen te selecteren (1 box is geschikt voor maximum 25 leerlingen).</i></p><p><i>Vul de velden met de contactgegevens in, zodat we de box op het schooladres kunnen leveren en eventueel contact kunnen opnemen.&nbsp;</i></p><p><i>Onderaan kan u nogmaals een mailadres, een datum en uur opgeven (niet verplicht). &nbsp;Naar het mailadres zullen we een Microsoft Teams-link doorsturen en op de geselecteerde datum en uur zullen wij via Teams contact opnemen.</i></p><p><i>Velden met een rood sterretje zijn verplicht.</i></p>",
+      "label": "header",
+      "refreshOnChange": false,
+      "key": "header",
+      "type": "content",
+      "input": false,
+      "tableView": false
+    },
+    {
+      "title": "Contactgegevens",
+      "theme": "warning",
+      "collapsible": false,
+      "key": "contact-info",
+      "type": "panel",
+      "label": "Contactgegevens even proberen",
+      "input": false,
+      "tableView": false,
+      "components": [
+        {
+          "label": "Naam school",
+          "labelPosition": "left-left",
+          "tableView": true,
+          "persistent": false,
+          "validate": {
+            "required": true
+          },
+          "key": "name-school",
+          "type": "textfield",
+          "input": true
+        },
+        {
+          "label": "Voornaam en familienaam van leerkracht 1",
+          "labelPosition": "left-left",
+          "tableView": true,
+          "validate": {
+            "required": true
+          },
+          "key": "name-teacher-1",
+          "type": "textfield",
+          "labelWidth": 40,
+          "labelMargin": 3,
+          "input": true
+        },
+        {
+          "label": "Voornaam en familienaam van leerkracht 2",
+          "labelPosition": "left-left",
+          "tableView": true,
+          "persistent": false,
+          "key": "name-teacher-2",
+          "type": "textfield",
+          "labelWidth": 40,
+          "input": true
+        },
+        {
+          "label": "Voornaam en familienaam van leerkracht 3",
+          "labelPosition": "left-left",
+          "tableView": true,
+          "persistent": false,
+          "key": "name-teacher-3",
+          "type": "textfield",
+          "labelWidth": 40,
+          "input": true
+        },
+        {
+          "label": "E-mailadres",
+          "labelPosition": "left-left",
+          "tableView": true,
+          "validate": {
+            "required": true
+          },
+          "key": "email",
+          "type": "email",
+          "input": true
+        },
+        {
+          "label": "Telefoonnummer",
+          "labelPosition": "left-left",
+          "tableView": true,
+          "key": "phone",
+          "type": "textfield",
+          "input": true
+        },
+        {
+          "label": "Adres school (straat en nummer)",
+          "labelPosition": "left-left",
+          "tableView": true,
+          "validate": {
+            "required": true
+          },
+          "key": "address",
+          "type": "textfield",
+          "input": true
+        },
+        {
+          "label": "Postcode",
+          "labelPosition": "left-left",
+          "tableView": true,
+          "validate": {
+            "required": true
+          },
+          "key": "postal-code",
+          "type": "textfield",
+          "input": true
+        },
+        {
+          "label": "Gemeente",
+          "labelPosition": "left-left",
+          "tableView": true,
+          "validate": {
+            "required": true
+          },
+          "key": "city",
+          "type": "textfield",
+          "input": true
+        },
+        {
+          "label": "Totaal aantal leerlingen",
+          "labelPosition": "left-left",
+          "mask": false,
+          "spellcheck": true,
+          "tableView": false,
+          "delimiter": false,
+          "requireDecimal": false,
+          "inputFormat": "plain",
+          "validate": {
+            "required": true
+          },
+          "key": "number-students",
+          "type": "number",
+          "input": true
+        }
+      ]
+    },
+    {
+      "title": "Kies één tijdslot en selecteer het aantal boxen.",
+      "theme": "warning",
+      "collapsible": false,
+      "key": "select-period-boxes",
+      "type": "panel",
+      "label": "Kies één tijdslot en selecteer het aantal boxen",
+      "input": false,
+      "tableView": false,
+      "components": [
+        {
+          "label": "Datum-1",
+          "labelPosition": "left-left",
+          "widget": "choicesjs",
+          "tableView": true,
+          "defaultValue": "0",
+          "data": {
+            "values": [
+              {
+                "label": "0",
+                "value": "0"
+              },
+              {
+                "label": "1",
+                "value": "1"
+              }
+            ]
+          },
+          "dataType": "string",
+          "selectThreshold": 0.3,
+          "persistent": false,
+          "validate": {
+            "onlyAvailableItems": false
+          },
+          "key": "datum1",
+          "attributes": {
+            "class": "test"
+          },
+          "type": "select",
+          "indexeddb": {
+            "filter": {}
+          },
+          "input": true
+        }
+      ]
+    },
+    {
+      "title": "Op onderstaand mailadres sturen we een Microsoft Teams-link om digitaal vragen met de klasgroep te kunnen beantwoorden. Selecteer een datum en uur wanneer dit kan plaatsvinden:",
+      "theme": "warning",
+      "collapsible": false,
+      "key": "info-or-questions",
+      "type": "panel",
+      "label": "Info of vragen?  Laat een e-mailadres achter en selecteer een datum en uur wanneer wij u kunnen contacteren",
+      "input": false,
+      "tableView": false,
+      "components": [
+        {
+          "label": "E-mailadres",
+          "labelPosition": "left-left",
+          "tableView": true,
+          "key": "meeting-email",
+          "type": "email",
+          "input": true
+        },
+        {
+          "label": "Datum en uur in die uitgeleende week",
+          "labelPosition": "left-left",
+          "useLocaleSettings": true,
+          "allowInput": false,
+          "format": "dd/MM/yyyy HH:mm",
+          "tableView": false,
+          "enableMinDateInput": true,
+          "datePicker": {
+            "disableWeekends": false,
+            "disableWeekdays": false
+          },
+          "enableMaxDateInput": false,
+          "timePicker": {
+            "showMeridian": false,
+            "minuteStep": 30
+          },
+          "persistent": false,
+          "key": "meeting-date",
+          "type": "datetime",
+          "labelWidth": 40,
+          "input": true,
+          "widget": {
+            "type": "calendar",
+            "displayInTimezone": "viewer",
+            "locale": "en",
+            "useLocaleSettings": true,
+            "allowInput": false,
+            "mode": "single",
+            "enableTime": true,
+            "noCalendar": false,
+            "format": "dd/MM/yyyy HH:mm",
+            "hourIncrement": 1,
+            "minuteIncrement": 30,
+            "time_24hr": true,
+            "disableWeekends": false,
+            "disableWeekdays": false,
+            "maxDate": null
+          }
+        },
+        {
+          "label": "Registration Code",
+          "persistent": false,
+          "key": "reservation-code",
+          "type": "hidden",
+          "input": true,
+          "tableView": false
+        }
+      ]
+    },
+    {
+      "label": "Inzenden",
+      "showValidations": false,
+      "theme": "success",
+      "size": "lg",
+      "tableView": false,
+      "key": "submit",
+      "type": "button",
+      "input": true
+    }
+  ]
+}

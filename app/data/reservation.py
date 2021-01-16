@@ -1,4 +1,4 @@
-from app.data.models import AvailablePeriod, SchoolReservation
+from app.data.models import AvailablePeriod, SchoolReservation, TeamsMeeting
 from app.data import utils as mutils
 from app import log, db
 import datetime, random, string
@@ -27,7 +27,7 @@ def get_available_periods():
     return []
 
 
-def get_available_period(id=None):
+def get_available_period_by_id(id=None):
     period = None
     try:
         if id:
@@ -42,54 +42,89 @@ def create_random_string(len):
     return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(len))
 
 
-def add_registration(name_school, name_teacher_1, name_teacher_2, name_teacher_3, email, phone, address, postal_code,
-                     city,
-                     nbr_students, available_period_id, nbr_boxes, meeting_email, meeting_date, code):
+def add_registration(data):
     try:
-        period = AvailablePeriod.query.get(available_period_id)
-        reservation = SchoolReservation(name_school=name_school, name_teacher_1=name_teacher_1,
-                                        name_teacher_2=name_teacher_2, name_teacher_3=name_teacher_3, email=email,
-                                        phone=phone,
-                                        address=address, postal_code=postal_code,
-                                        city=city, nbr_students=nbr_students, period=period,
-                                        reservation_nbr_boxes=nbr_boxes, meeting_email=meeting_email,
-                                        meeting_date=meeting_date,
-                                        reservation_code=code)
+        meetings = []
+        for md in data['teams-meetings']:
+            try:
+                if md['meeting-email'] == '': continue
+                date = datetime.datetime.strptime(':'.join(md['meeting-date'].split(':')[:2]), '%Y-%m-%dT%H:%M')
+                meeting = TeamsMeeting(classgroup=md['classgroup'], date=date, email=md['meeting-email'])
+                db.session.add(meeting)
+                meetings.append(meeting)
+            except:
+                continue
+
+        period = AvailablePeriod.query.get(data['period_id'])
+        reservation = SchoolReservation(name_school=data['name-school'], name_teacher_1=data['name-teacher-1'],
+                                        name_teacher_2=data['name-teacher-2'], name_teacher_3=data['name-teacher-3'], email=data['email'],
+                                        phone=data['phone'],
+                                        address=data['address'], postal_code=data['postal-code'],
+                                        city=data['city'], nbr_students=data['number-students'], period=period,
+                                        reservation_nbr_boxes=data['nbr_boxes'], meetings=meetings,
+                                        reservation_code=data['reservation-code'])
         db.session.add(reservation)
         db.session.commit()
-        log.info(f'reservation added {code}')
-        return True
+        log.info(f'reservation added {data["reservation-code"]}')
+        return reservation
     except Exception as e:
-        mutils.raise_error(f'could not add registration {name_school}', e)
-    return False
+        mutils.raise_error(f'could not add registration {data["name-school"]}', e)
+    return None
 
 
-def update_registration_by_code(name_school, name_teacher_1, name_teacher_2, name_teacher_3, email, phone, address,
-                                postal_code, city,
-                                nbr_students, available_period_id, nbr_boxes, meeting_email, meeting_date, code):
+def update_registration_by_code(data):
+    # name_school, name_teacher_1, name_teacher_2, name_teacher_3, email, phone, address,
+    #                             postal_code, city,
+    #                             nbr_students, available_period_id, nbr_boxes, meeting_email, meeting_date, code):
     try:
-        period = AvailablePeriod.query.get(available_period_id)
-        reservation = SchoolReservation.query.filter(SchoolReservation.reservation_code == code).first()
-        reservation.name_school = name_school
-        reservation.name_teacher_1 = name_teacher_1
-        reservation.name_teacher_2 = name_teacher_2
-        reservation.name_teacher_3 = name_teacher_3
-        reservation.email = email
-        reservation.phone = phone
-        reservation.address = address
-        reservation.postal_code = postal_code
-        reservation.city = city
-        reservation.nbr_students = nbr_students
-        reservation.period = period
-        reservation.reservation_nbr_boxes = nbr_boxes
-        reservation.meeting_email = meeting_email
-        reservation.meeting_date = meeting_date
-        reservation.ack_email_sent = False
-        db.session.commit()
-        log.info(f'reservation update {code}')
+        # period = AvailablePeriod.query.get(data['reservation-code'])
+        reservation = SchoolReservation.query.join(TeamsMeeting, AvailablePeriod).filter(SchoolReservation.reservation_code == data['reservation-code']).first()
+
+        meetings_cache = {m.classgroup + m.email + str(m.date): m for m in reservation.meetings}
+        # for meeting in reservation.meetings:
+        #     meetings_cache[meeting.classgroup + meeting.email + str(meeting.date)] = meeting
+
+        meetings = []
+        new_meetings = []
+        for md in data['teams-meetings']:
+            try:
+                if md['meeting-email'] == '': continue
+                date = datetime.datetime.strptime(':'.join(md['meeting-date'].split(':')[:2]), '%Y-%m-%dT%H:%M')
+                key = md['classgroup'] + md['meeting-email'] + str(date)
+                if key in meetings_cache:
+                    new_meetings.append(meetings_cache[key])
+                    del meetings_cache[key]
+                    continue
+                meeting = TeamsMeeting(classgroup=md['classgroup'], date=date, email=md['meeting-email'])
+                db.session.add(meeting)
+                new_meetings.append(meeting)
+            except:
+                continue
+        reservation.meetings = new_meetings
+        for k, v in meetings_cache.items():
+            db.session.delete(v)
+
+        # reservation.name_school = name_school
+        # reservation.name_teacher_1 = name_teacher_1
+        # reservation.name_teacher_2 = name_teacher_2
+        # reservation.name_teacher_3 = name_teacher_3
+        # reservation.email = email
+        # reservation.phone = phone
+        # reservation.address = address
+        # reservation.postal_code = postal_code
+        # reservation.city = city
+        # reservation.nbr_students = nbr_students
+        # reservation.period = period
+        # reservation.reservation_nbr_boxes = nbr_boxes
+        # reservation.meeting_email = meeting_email
+        # reservation.meeting_date = meeting_date
+        # reservation.ack_email_sent = False
+        # db.session.commit()
+        # log.info(f'reservation update {code}')
         return True
     except Exception as e:
-        mutils.raise_error(f'could not update registration {code}', e)
+        pass
+        # mutils.raise_error(f'could not update registration {code}', e)
     return False
 
 
@@ -119,6 +154,16 @@ def update_registration(registration, nbr_boxes=None):
     db.session.commit()
 
 
+def add_meeting(classgroup, date, email):
+    try:
+        meeting = TeamsMeeting(classgroup=classgroup, date=date, email=email)
+        db.session.add(meeting)
+        db.session.commit()
+    except Exception as e:
+        mutils.raise_error('could not add teams meeting', e)
+    return None
+
+
 def pre_filter():
     return db.session.query(SchoolReservation).join(AvailablePeriod)
 
@@ -137,4 +182,5 @@ def format_data(db_list):
         em['row_action'] = f"{i.id}"
         out.append(em)
     return out
+
 

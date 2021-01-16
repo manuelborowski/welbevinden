@@ -370,22 +370,20 @@ class SchoolReservation(db.Model):
     reservation_nbr_boxes = db.Column(db.Integer)
     reservation_code = db.Column(db.String(256))
 
-    meeting_email = db.Column(db.String(256))
-    meeting_date = db.Column(db.DateTime())
-
     ack_email_sent = db.Column(db.Boolean, default=False)
 
     active = db.Column(db.Boolean, default=True)
     enabled = db.Column(db.Boolean, default=True)
 
+    meetings = db.relationship('TeamsMeeting', cascade='all, delete', backref='reservation')
+
+    timestamp = db.Column(db.DateTime(timezone=True), server_default=func.now())
+
     def email_is_sent(self, sent=True):
         self.ack_email_sent = sent
         db.session.commit()
 
-    def meeting_date_string(self):
-        if self.meeting_date is None: return ''
-        return datetime.datetime.strftime(self.meeting_date, '%Y-%m-%d %H:%M')
-    
+
     def flat(self):
         period_id_key = f'select-boxes-{self.reservation_period_id}'
         return {
@@ -400,8 +398,7 @@ class SchoolReservation(db.Model):
             'city': self.city,
             'number-students': self.nbr_students,
             period_id_key: self.reservation_nbr_boxes,
-            'meeting-email': self.meeting_email,
-            'meeting-date': self.meeting_date_string(),
+            'teams-meetings': [m.flat() for m in self.meetings],
             'reservation-code': self.reservation_code,
         }
 
@@ -412,3 +409,25 @@ class SchoolReservation(db.Model):
         return flat
 
 
+class TeamsMeeting(db.Model):
+    __tablename__ = 'teams_meetings'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    classgroup = db.Column(db.String(256), default='')
+    email = db.Column(db.String(256))
+    date = db.Column(db.DateTime())
+    teams_meeting_code = db.Column(db.String(1024), default = None)
+
+    reservation_id = db.Column(db.Integer, db.ForeignKey('school_reservations.id'))
+
+    def date_string(self):
+        if self.date is None: return ''
+        return datetime.datetime.strftime(self.date, '%Y-%m-%d %H:%M')
+
+    def flat(self):
+        return {
+            'classgroup': self.classgroup,
+            'meeting-email': self.email,
+            'meeting-date': self.date_string()
+        }

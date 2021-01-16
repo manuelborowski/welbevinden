@@ -13,8 +13,14 @@ def send_email(to, subject, content):
     return False
 
 
-def return_table_row(name, value):
-    return f'<tr><td style="border:1px solid black;">{name}</td> <td style="border:1px solid black;">{value}</td></tr>'
+# def return_table_row(name, value):
+def return_table_row(*cell_values):
+    row_string = '<tr>'
+    for value in cell_values:
+        row_string += f'<td style="border:1px solid black;">{value}</td>'
+    row_string += '</tr>'
+    return row_string
+    # return f'<tr><td style="border:1px solid black;">{name}</td> <td style="border:1px solid black;">{value}</td></tr>'
 
 
 def send_register_ack(**kwargs):
@@ -30,20 +36,28 @@ def send_register_ack(**kwargs):
         email_content = email_content.replace('{{TAG-UPDATE-URL}}', url_template)
 
         info = reservation.flat()
-        info_string = '<table style="border:1px solid black;">' + \
-            return_table_row('Naam school', info['name-school']) + \
-            return_table_row('Leerkracht 1', info['name-teacher-1']) + \
-            return_table_row('Leerkracht 2', info['name-teacher-2']) + \
-            return_table_row('Leerkracht 3', info['name-teacher-3']) + \
-            return_table_row('E-mailadres', info['email']) + \
-            return_table_row('Telefoonnummer', info['phone']) + \
-            return_table_row('Adres school', info['address']) + \
-            return_table_row('Postcode', info['postal-code']) + \
-            return_table_row('Gemeente', info['city']) + \
-            return_table_row('Totaal aantal leerlingen', info['number-students']) + \
-            return_table_row('Teams e-mailadres', info['meeting-email']) + \
-            return_table_row('Teams datum', info['meeting-date']) + \
-            '</table>'
+        info_string = '<br>U heeft volgende informatie ingegeven:<br>'
+        info_string += '<table style="border:1px solid black;">'
+        info_string += return_table_row('Naam school', info['name-school'])
+        info_string += return_table_row('Leerkracht 1', info['name-teacher-1'])
+        info_string += return_table_row('Leerkracht 2', info['name-teacher-2'])
+        info_string += return_table_row('Leerkracht 3', info['name-teacher-3'])
+        info_string += return_table_row('E-mailadres', info['email'])
+        info_string += return_table_row('Telefoonnummer', info['phone'])
+        info_string += return_table_row('Adres school', info['address'])
+        info_string += return_table_row('Postcode', info['postal-code'])
+        info_string += return_table_row('Gemeente', info['city'])
+        info_string += return_table_row('Totaal aantal leerlingen', info['number-students'])
+        info_string += '</table>'
+
+        if info['teams-meetings']:
+            info_string += '<br><br>U heeft volgende ondersteuningsmomenten gekozen:<br><br>'
+            info_string += '<table style="border:1px solid black;">'
+            info_string += return_table_row('Klasgroep', 'E-mail', 'Datum')
+            for meeting in info['teams-meetings']:
+                info_string += return_table_row(meeting['classgroup'], meeting['meeting-email'], meeting['meeting-date'])
+            info_string += '</table>'
+
         email_content = email_content.replace('{{TAG-RESERVATION-INFO}}', info_string)
         log.info(f'"{email_subject}" to {reservation.email}')
         ret = send_email(reservation.email, email_subject, email_content)

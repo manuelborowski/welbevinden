@@ -22,11 +22,12 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 # V0.6 : update requirements.txt
 # V0.7 : update requirements.txt : remove package...0.0.0
 # V0.8 : update in teams-meetings : multiple meetings possible
+# V0.9 : aesthetic update
 
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.8')
+    return dict(version='V0.9')
 
 #enable logging
 LOG_HANDLE = 'SIAB'

@@ -13,12 +13,15 @@ import json
 
 
 @reservation.route('/reservation', methods=['POST', 'GET'])
+@login_required
+@supervisor_required
 def show():
     return base_multiple_items.show(table_configuration)
 
 
 @reservation.route('/reservation/table_ajax', methods=['GET', 'POST'])
 @login_required
+@supervisor_required
 def table_ajax():
     return base_multiple_items.ajax(table_configuration)
 

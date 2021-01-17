@@ -436,3 +436,8 @@ class TeamsMeeting(db.Model):
             'meeting-email': self.email,
             'meeting-date': self.date_string(date_format),
         }
+
+    def ret_dict(self):
+        flat = self.flat('%d/%m/%Y %H:%M')
+        flat.update({'id': self.id, 'DT_RowId': self.id, 'code': self.teams_meeting_code, 'reservation': self.reservation.ret_dict()})
+        return flat

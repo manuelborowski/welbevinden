@@ -9,21 +9,18 @@ import json, re
 from app.data import reservation as dmreservation
 from app.data.models import SchoolReservation
 from app.presentation.view import base_multiple_items
-
+from app.presentation.view import update_available_periods, false, true, null, prepare_registration_form
 
 @end_user.route('/register', methods=['POST', 'GET'])
 def register():
     try:
-        code = request.args['code'] if 'code' in request.args else None
-        default_registration_values = mreservation.prepare_reservation_for_update(code)
-        available_periods = mreservation.get_available_periods()
         current_url = request.url
         current_url = re.sub(f'{request.url_rule.rule}.*', '', current_url)
         memail.set_base_url(current_url)
-        new_register_formio = json.loads(msettings.get_register_template())
-        update_available_periods(available_periods, new_register_formio, 'select-period-boxes')
-        return render_template('end_user/register.html', registration_periods=available_periods,
-                               registration_form=new_register_formio, default_values=default_registration_values)
+        code = request.args['code'] if 'code' in request.args else None
+        config_data = prepare_registration_form(code)
+        return render_template('end_user/register.html', config_data=config_data,
+                               registration_endpoint = 'end_user.register_save')
     except Exception as e:
         log.error(f'could not register {request.args}: {e}')
         return render_template('end_user/messages.html', type='unknown-error', message=e)
@@ -41,7 +38,7 @@ def register_save(form_data):
                 return render_template('end_user/messages.html', type='could-not-cancel', message=e)
         else:
             try:
-                ret = mreservation.add_registration(data)
+                ret = mreservation.add_or_update_registration(data)
                 if ret.result == ret.Result.E_NO_BOXES_SELECTED:
                     return render_template('end_user/messages.html', type='no-boxes-selected')
                 if ret.result == ret.Result.E_OK:
@@ -55,36 +52,6 @@ def register_save(form_data):
     except Exception as e:
         return render_template('end_user/messages.html', type='unknown-error', message=e)
 
-
-def update_available_periods(periods, form, key):
-    components = form['components']
-    for component in components:
-        if 'key' in component and component['key'] == key:
-            select_template = component['components'][0]
-            data_template = component['components'][0]['data']['values'][0]
-            component['components'] = []
-            for period in periods:
-                if period['boxes_available'] <= 0:
-                    continue
-                new = dict(select_template)
-                new['data'] = dict({'values': []})
-                for value in range(period['boxes_available'] + 1):
-                    new_data = dict(data_template)
-                    new_data['label'] = str(value)
-                    new_data['value'] = str(value)
-                    new['data']['values'].append(new_data)
-                new['label'] = period['period']
-                new['key'] = f'select-boxes-{period["id"]}'
-                component['components'].append(new)
-            return
-        if 'components' in component:
-            update_available_periods(periods, component, key)
-    return
-
-
-
-
-from app.presentation.view import false, true, null
 
 register_formio = \
     {

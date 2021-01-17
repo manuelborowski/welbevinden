@@ -7,19 +7,20 @@ def add_available_period(period, period_length, max_nbr_boxes):
     return mreservation.add_available_period(period, period_length, max_nbr_boxes)
 
 
-def get_available_periods():
+def get_available_periods(reservation=None):
     available_periods = []
     try:
         periods = mreservation.get_available_periods()
         for period in periods:
             nbr_boxes_taken = period.nbr_boxes_taken
+            compensate_nbr_boxes = reservation.reservation_nbr_boxes if reservation and reservation.period == period else 0
             available_periods.append({
                 'id': period.id,
                 'period': period.period_string(),
                 'length': period.length,
                 'max_number': period.max_nbr_boxes,
                 'current_number': nbr_boxes_taken,
-                'boxes_available': period.max_nbr_boxes - nbr_boxes_taken,
+                'boxes_available': period.max_nbr_boxes - nbr_boxes_taken + compensate_nbr_boxes,
             })
         return available_periods
     except Exception as e:
@@ -58,8 +59,9 @@ def delete_registration(reservation_code):
     return RegisterSaveResult(result=RegisterSaveResult.Result.E_OK)
 
 
-def add_registration(data):
+def add_or_update_registration(data, suppress_send_ack_email=False):
     try:
+        reservation = None
         periods = get_available_periods()
         valid_nbr_boxes = False
         for period in periods:
@@ -71,31 +73,38 @@ def add_registration(data):
                 break
         if not valid_nbr_boxes:
             return RegisterSaveResult(result=RegisterSaveResult.Result.E_NO_BOXES_SELECTED)
+        if data['reservation-code'] != '':
+            reservation = mreservation.get_registration_by_code(data['reservation-code'])
+            mreservation.update_registration(reservation, 0)
         period = mreservation.get_available_period_by_id(id=data['period_id'])
         if (period.max_nbr_boxes - period.nbr_boxes_taken) < data['nbr_boxes']:
             return RegisterSaveResult(result=RegisterSaveResult.Result.E_NOT_ENOUGH_BOXES)
-        if data['reservation-code'] == '':
+        if reservation:
+            reservation = mreservation.update_registration_by_code(data)
+            if not suppress_send_ack_email:
+                reservation.send_ack_email()
+        else:
             data['reservation-code'] = create_random_string(32)
             reservation = mreservation.add_registration(data)
-        else:
-            reservation = mreservation.update_registration_by_code(data)
-            reservation.send_ack_email()
         return RegisterSaveResult(result=RegisterSaveResult.Result.E_OK, reservation=reservation.ret_dict())
     except Exception as e:
         mutils.raise_error(f'could not add registration {data["name-school"]}', e)
     return RegisterSaveResult(result=RegisterSaveResult.Result.E_COULD_NOT_REGISTER)
 
 
-def prepare_reservation_for_update(code=None):
+def get_default_values(code=None):
     try:
-        if code == None: return {}
-        reservation = mreservation.get_registration_by_code(code)
-        flat = reservation.flat()
-        mreservation.update_registration(reservation, nbr_boxes=0)
-        return flat
+        if code == None:
+            periods = get_available_periods()
+            return {}, periods
+        else:
+            reservation = mreservation.get_registration_by_code(code)
+            flat = reservation.flat()
+            periods = get_available_periods(reservation)
+            return flat, periods
     except Exception as e:
         mutils.raise_error(f'could not get reservation by code {code}', e)
-    return None
+    return {}, []
 
 
 def get_reservation_by_id(id):

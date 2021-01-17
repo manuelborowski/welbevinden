@@ -14,9 +14,9 @@
 {% block scripts %}
     {{ super() }}
     <script>
-        var registration_periods = {{ registration_periods | tojson }}
-        var registration_form = {{ registration_form | tojson }}
-        var default_values = {{ default_values | tojson }}
+        var registration_form = {{ config_data.form | tojson }}
+        var default_values = {{ config_data.default | tojson }}
+        var registration_endpoint = {{ registration_endpoint | tojson }}
     </script>
     <script type="module"> {% include "end_user/register.js" %}</script>
 {% endblock %}

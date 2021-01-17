@@ -20,7 +20,7 @@ def add_available_period(date, length, max_nbr_boxes):
 
 def get_available_periods():
     try:
-        periods = AvailablePeriod.query.filter(AvailablePeriod.active == True).order_by(AvailablePeriod.date).all()
+        periods = AvailablePeriod.query.filter(AvailablePeriod.active).order_by(AvailablePeriod.date).all()
         return periods
     except Exception as e:
         mutils.raise_error('could not get available periods', e)
@@ -75,7 +75,7 @@ def add_registration(data):
 def update_registration_by_code(data):
     try:
         period = AvailablePeriod.query.get(data['period_id'])
-        reservation = SchoolReservation.query.join(TeamsMeeting, AvailablePeriod).filter(SchoolReservation.reservation_code == data['reservation-code']).first()
+        reservation = SchoolReservation.query.filter(SchoolReservation.reservation_code == data['reservation-code']).first()
         meetings_cache = {m.classgroup + m.email + str(m.date): m for m in reservation.meetings}
         new_meetings = []
         for md in data['teams-meetings']:

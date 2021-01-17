@@ -11,15 +11,13 @@ $(document).ready(function () {
         formio_form = form
         form.on('change', form_changed);
         form.on('submit', function(submitted) {
-            console.log('submitting')
-            window.location.href = Flask.url_for('end_user.register_save', {form_data: JSON.stringify(submitted.data)});
+            window.location.href = Flask.url_for(registration_endpoint, {form_data: JSON.stringify(submitted.data)});
         });
     });
 });
 
 
 function form_changed(changed) {
-    console.log('changed');
     formio_form.off('change', form_changed);
     var key = changed.changed.component.key;
     if (key.includes('select-boxes-')) {
@@ -29,8 +27,8 @@ function form_changed(changed) {
             item.setValue(0);
         });
         formio_form.getComponent(key).setValue(val);
-        setTimeout(function (){formio_form.on('change', form_changed)}, 1000);
     }
+    setTimeout(function (){formio_form.on('change', form_changed)}, 1000);
 }
 
 

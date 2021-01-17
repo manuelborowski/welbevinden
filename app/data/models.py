@@ -379,12 +379,15 @@ class SchoolReservation(db.Model):
 
     timestamp = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
-    def email_is_sent(self, sent=True):
-        self.ack_email_sent = sent
+    def ack_email_is_sent(self):
+        self.ack_email_sent = True
         db.session.commit()
 
+    def send_ack_email(self):
+        self.ack_email_sent = False
+        db.session.commit()
 
-    def flat(self):
+    def flat(self, date_format=None):
         period_id_key = f'select-boxes-{self.reservation_period_id}'
         return {
             'name-school': self.name_school,
@@ -398,7 +401,7 @@ class SchoolReservation(db.Model):
             'city': self.city,
             'number-students': self.nbr_students,
             period_id_key: self.reservation_nbr_boxes,
-            'teams-meetings': [m.flat() for m in self.meetings],
+            'teams-meetings': [m.flat(date_format) for m in self.meetings],
             'reservation-code': self.reservation_code,
         }
 
@@ -421,13 +424,15 @@ class TeamsMeeting(db.Model):
 
     reservation_id = db.Column(db.Integer, db.ForeignKey('school_reservations.id'))
 
-    def date_string(self):
+    def date_string(self, layout=None):
         if self.date is None: return ''
-        return datetime.datetime.strftime(self.date, '%Y-%m-%d %H:%M')
+        layout = '%Y-%m-%dT%H:%M' if layout == None else layout
+        return datetime.datetime.strftime(self.date, layout)
 
-    def flat(self):
+
+    def flat(self, date_format=None):
         return {
             'classgroup': self.classgroup,
             'meeting-email': self.email,
-            'meeting-date': self.date_string()
+            'meeting-date': self.date_string(date_format),
         }

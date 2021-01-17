@@ -50,6 +50,14 @@ class RegisterSaveResult:
     reservation = {}
 
 
+def delete_registration(reservation_code):
+    try:
+        mreservation.delete_registration_by_code(reservation_code)
+    except Exception as e:
+        mutils.raise_error(f'could not delete registration {reservation_code}', e)
+    return RegisterSaveResult(result=RegisterSaveResult.Result.E_OK)
+
+
 def add_registration(data):
     try:
         periods = get_available_periods()
@@ -68,17 +76,10 @@ def add_registration(data):
             return RegisterSaveResult(result=RegisterSaveResult.Result.E_NOT_ENOUGH_BOXES)
         if data['reservation-code'] == '':
             data['reservation-code'] = create_random_string(32)
-            reservation=mreservation.add_registration(data)
+            reservation = mreservation.add_registration(data)
         else:
-            mreservation.update_registration_by_code(data)
-        # name_school, name_teacher_1, name_teacher_2, name_teacher_3, email, phone,
-                #                           address, postal_code, city, nbr_students, available_period_id, nbr_boxes,
-                #                           meeting_email, date, code)
-        # else:
-        #     mreservation.update_registration_by_code(name_school, name_teacher_1, name_teacher_2, name_teacher_3, email,
-        #                                              phone, address, postal_code, city, nbr_students,
-        #                                              available_period_id, nbr_boxes,
-        #                                              meeting_email, date, code)
+            reservation = mreservation.update_registration_by_code(data)
+            reservation.send_ack_email()
         return RegisterSaveResult(result=RegisterSaveResult.Result.E_OK, reservation=reservation.ret_dict())
     except Exception as e:
         mutils.raise_error(f'could not add registration {data["name-school"]}', e)

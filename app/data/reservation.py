@@ -73,18 +73,10 @@ def add_registration(data):
 
 
 def update_registration_by_code(data):
-    # name_school, name_teacher_1, name_teacher_2, name_teacher_3, email, phone, address,
-    #                             postal_code, city,
-    #                             nbr_students, available_period_id, nbr_boxes, meeting_email, meeting_date, code):
     try:
-        # period = AvailablePeriod.query.get(data['reservation-code'])
+        period = AvailablePeriod.query.get(data['period_id'])
         reservation = SchoolReservation.query.join(TeamsMeeting, AvailablePeriod).filter(SchoolReservation.reservation_code == data['reservation-code']).first()
-
         meetings_cache = {m.classgroup + m.email + str(m.date): m for m in reservation.meetings}
-        # for meeting in reservation.meetings:
-        #     meetings_cache[meeting.classgroup + meeting.email + str(meeting.date)] = meeting
-
-        meetings = []
         new_meetings = []
         for md in data['teams-meetings']:
             try:
@@ -100,31 +92,40 @@ def update_registration_by_code(data):
                 new_meetings.append(meeting)
             except:
                 continue
-        reservation.meetings = new_meetings
         for k, v in meetings_cache.items():
             db.session.delete(v)
-
-        # reservation.name_school = name_school
-        # reservation.name_teacher_1 = name_teacher_1
-        # reservation.name_teacher_2 = name_teacher_2
-        # reservation.name_teacher_3 = name_teacher_3
-        # reservation.email = email
-        # reservation.phone = phone
-        # reservation.address = address
-        # reservation.postal_code = postal_code
-        # reservation.city = city
-        # reservation.nbr_students = nbr_students
-        # reservation.period = period
-        # reservation.reservation_nbr_boxes = nbr_boxes
-        # reservation.meeting_email = meeting_email
-        # reservation.meeting_date = meeting_date
-        # reservation.ack_email_sent = False
-        # db.session.commit()
-        # log.info(f'reservation update {code}')
-        return True
+        reservation.name_school = data['name-school']
+        reservation.name_teacher_1 = data['name-teacher-1']
+        reservation.name_teacher_2 = data['name-teacher-2']
+        reservation.name_teacher_3 = data['name-teacher-3']
+        reservation.email = data['email']
+        reservation.phone = data['phone']
+        reservation.address = data['address']
+        reservation.postal_code = data['postal-code']
+        reservation.city = data['city']
+        reservation.nbr_students = data['number-students']
+        reservation.period = period
+        reservation.reservation_nbr_boxes = data['nbr_boxes']
+        reservation.meetings = new_meetings
+        db.session.commit()
+        log.info(f'reservation update {data["reservation-code"]}')
+        return reservation
     except Exception as e:
         pass
-        # mutils.raise_error(f'could not update registration {code}', e)
+        mutils.raise_error(f'could not update registration {data["reservation-code"]}', e)
+    return None
+
+
+
+def delete_registration_by_code(reservation_code):
+    try:
+        reservation = SchoolReservation.query.filter(SchoolReservation.reservation_code == reservation_code).first()
+        db.session.delete(reservation)
+        db.session.commit()
+        log.info(f'reservation deleted {reservation_code}')
+        return True
+    except Exception as e:
+        mutils.raise_error(f'could not delete registration {reservation_code}', e)
     return False
 
 

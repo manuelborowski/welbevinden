@@ -35,7 +35,7 @@ def send_register_ack(**kwargs):
         url_template = f'<a href={base_url}>hier</a>'
         email_content = email_content.replace('{{TAG-UPDATE-URL}}', url_template)
 
-        info = reservation.flat()
+        info = reservation.flat(date_format='%d/%m/%Y %H:%M')
         info_string = '<br>U heeft volgende informatie ingegeven:<br>'
         info_string += '<table style="border:1px solid black;">'
         info_string += return_table_row('Naam school', info['name-school'])
@@ -51,8 +51,7 @@ def send_register_ack(**kwargs):
         info_string += '</table>'
 
         if info['teams-meetings']:
-            info_string += '<br><br>U heeft volgende ondersteuningsmomenten gekozen:<br><br>'
-            info_string += '<table style="border:1px solid black;">'
+            info_string += '<br><table style="border:1px solid black;">'
             info_string += return_table_row('Klasgroep', 'E-mail', 'Datum')
             for meeting in info['teams-meetings']:
                 info_string += return_table_row(meeting['classgroup'], meeting['meeting-email'], meeting['meeting-date'])
@@ -62,7 +61,7 @@ def send_register_ack(**kwargs):
         log.info(f'"{email_subject}" to {reservation.email}')
         ret = send_email(reservation.email, email_subject, email_content)
         if ret:
-            reservation.email_is_sent()
+            reservation.ack_email_is_sent()
         return ret
     return False
 

@@ -2,7 +2,11 @@ var formio_form
 $(document).ready(function () {
     Formio.createForm(document.getElementById('register-form'), registration_form).then((form) => {
         $.each(default_values, function (k, v) {
-            form.getComponent(k).setValue(v);
+            try {
+                form.getComponent(k).setValue(v);
+            } catch (error ) {
+                return;
+            }
         });
         formio_form = form
         form.on('change', form_changed);

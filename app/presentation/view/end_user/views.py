@@ -26,25 +26,34 @@ def register():
                                registration_form=new_register_formio, default_values=default_registration_values)
     except Exception as e:
         log.error(f'could not register {request.args}: {e}')
-        return render_template('end_user/messages.html', type='could-not-register', message=e)
+        return render_template('end_user/messages.html', type='unknown-error', message=e)
 
 
 @end_user.route('/register_save/<string:form_data>', methods=['POST', 'GET'])
 def register_save(form_data):
     try:
         data = json.loads(form_data)
-        ret = mreservation.add_registration(data)
-        if ret.result == ret.Result.E_NO_BOXES_SELECTED:
-            return render_template('end_user/messages.html', type='no-boxes-selected')
-        if ret.result == ret.Result.E_OK:
-            info = {'school': ret.reservation['name-school'], 'period': ret.reservation['period'], 'nbr_boxes': ret.reservation['number-boxes']}
-            return render_template('end_user/messages.html', type='register-ok', info=info)
-        if ret.result == ret.Result.E_NOT_ENOUGH_BOXES:
-            return render_template('end_user/messages.html', type='not-enough-boxes',
-                                   message='Er zijn niet genoeg boxen beschikbaar, gelieve nogmaals te proberen')
+        if data['cancel-reservation']:
+            try:
+                mreservation.delete_registration(data['reservation-code'])
+                return render_template('end_user/messages.html', type='cancel-ok')
+            except Exception as e:
+                return render_template('end_user/messages.html', type='could-not-cancel', message=e)
+        else:
+            try:
+                ret = mreservation.add_registration(data)
+                if ret.result == ret.Result.E_NO_BOXES_SELECTED:
+                    return render_template('end_user/messages.html', type='no-boxes-selected')
+                if ret.result == ret.Result.E_OK:
+                    info = {'school': ret.reservation['name-school'], 'period': ret.reservation['period'], 'nbr_boxes': ret.reservation['number-boxes']}
+                    return render_template('end_user/messages.html', type='register-ok', info=info)
+                if ret.result == ret.Result.E_NOT_ENOUGH_BOXES:
+                    return render_template('end_user/messages.html', type='not-enough-boxes')
+            except Exception as e:
+                return render_template('end_user/messages.html', type='could-not-register', message=e)
+            return render_template('end_user/messages.html', type='could-not-register')
     except Exception as e:
-        return render_template('end_user/messages.html', type='could-not-register', message=e)
-    return render_template('end_user/messages.html', type='could-not-register')
+        return render_template('end_user/messages.html', type='unknown-error', message=e)
 
 
 def update_available_periods(periods, form, key):

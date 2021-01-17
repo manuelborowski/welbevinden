@@ -25,14 +25,8 @@ def table_ajax():
 @admin_required
 def table_action():
     pass
-    # if button_pressed('add'):
-    #     return item_add()
     if button_pressed('edit'):
         return item_edit()
-    # if button_pressed('view'):
-    #     return item_view()
-    # if button_pressed('delete'):
-    #     return item_delete()
 
 
 def item_edit(done=False, id=-1):

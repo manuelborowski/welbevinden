@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <title>SIAB|{{ title }}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-    <link href="{{ url_for('static', filename = 'css/main.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+          integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.min.css"/>
     <link rel='stylesheet' href='https://cdn.form.io/formiojs/formio.full.min.css'>
+    <link href="{{ url_for('static', filename = 'css/main.css') }}" rel="stylesheet">
     {% block styles %} {% endblock %}
     {{ JSGlue.include() }}
 </head>
@@ -30,12 +31,14 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('meeting.show') }}">Team meetings</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('user.show') }}">Gebruikers</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('settings.show') }}">Instellingen</a>
-                </li>
+                {% if  current_user.is_at_least_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('user.show') }}">Gebruikers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('settings.show') }}">Instellingen</a>
+                    </li>
+                {% endif %}
             {% endif %}
             </ul>
         </div>
@@ -61,12 +64,14 @@
 {% endblock %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+        crossorigin="anonymous"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js"></script>
 <script src='https://cdn.form.io/formiojs/formio.full.min.js'></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
-            integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
-            crossorigin="anonymous"></script>
+        integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
+        crossorigin="anonymous"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/socketio.js') }}"></script>
 
 {% block scripts %}

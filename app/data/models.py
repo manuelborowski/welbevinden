@@ -452,7 +452,7 @@ class TeamsMeeting(db.Model):
         flat.update({'id': self.id, 'DT_RowId': self.id, 'code': self.teams_meeting_code,
                      'reservation': self.reservation.ret_dict(), 'email_sent': self.ack_email_sent,
                      'enabled': self.enabled,
-                     'html_url': f'<a href="{self.teams_meeting_code}" >Hier klikken voor Teams meeting</a>'
+                     'html_url': f'<a href="{self.teams_meeting_code}" target="_blank" >Hier klikken voor Teams meeting</a>'
                      })
         return flat
 

@@ -104,6 +104,16 @@ $(document).ready(function () {
         $('<tfoot/>').append($("#datatable thead tr").clone())
     );
 
+    //ellipsis
+    $.each(config_columns, function (i, v) {
+        if("render" in v) {
+            var cuttoff = v.render.cuttoff;
+            var wordbreak = v.render.wordbreak;
+            v.render = $.fn.dataTable.render.ellipsis(cuttoff, wordbreak, true);
+        }
+    });
+
+
     var datatable_config = {
         serverSide: true,
         stateSave: true,
@@ -162,7 +172,7 @@ $(document).ready(function () {
             }
             create_cell_edit();
             create_cell_toggle();
-        }
+        },
     }
 
     if (table_config.suppress_dom) {

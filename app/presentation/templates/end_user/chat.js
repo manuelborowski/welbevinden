@@ -29,10 +29,15 @@ class Chat {
         socketio.subscribe_on_receive("add-chat-room", this.socketio_add_chat_room_cb.bind(this));
     }
 
+    on_connect_cb(opaque) {
+        socketio.send_to_server('new-end-user', {user_code: opaque});
+    }
+
+
     start(user_code, add_room_cb, delete_room_cb) {
         this.add_chat_room_cb = add_room_cb;
         this.delete_chat_room_cb = delete_room_cb;
-        socketio.start(user_code);
+        socketio.start(this.on_connect_cb, user_code);
     }
 
     subscribe_to_room(floor_level, room_code, sender_code, user_initials) {

@@ -4,7 +4,7 @@ from flask import redirect, url_for, request, render_template
 from flask_login import login_required
 from app.presentation.view import base_multiple_items
 from app.data import reservation as mdreservation, meeting as mmeeting
-from app.application import reservation as mreservation, settings as msettings
+from app.application import reservation as mreservation, settings as msettings, socketio as msocketio
 from app.data.models import SchoolReservation, AvailablePeriod, TeamsMeeting
 from app.presentation.layout.utils import flash_plus, button_pressed
 from app.presentation.view import update_available_periods, false, true, null, prepare_registration_form
@@ -34,46 +34,25 @@ def table_action():
     # if button_pressed('edit'):
     #     return item_edit()
 
-#
-# def item_edit(done=False, id=-1):
-#     try:
-#         chbx_id_list = request.form.getlist('chbx')
-#         if chbx_id_list:
-#             id = int(chbx_id_list[0])  # only the first one can be edited
-#         reservation = mreservation.get_reservation_by_id(id)
-#         config_data = prepare_registration_form(reservation.reservation_code)
-#         return render_template('end_user/register.html', config_data=config_data,
-#                                registration_endpoint = 'reservation.reservation_save')
-#     except Exception as e:
-#         log.error(f'could not edit reservation {request.args}: {e}')
-#         return redirect(url_for('reservation.show'))
-#
-# @reservation.route('/reservation_save/<string:form_data>', methods=['POST', 'GET'])
-# @login_required
-# @supervisor_required
-# def reservation_save(form_data):
-#     try:
-#         data = json.loads(form_data)
-#         if data['cancel-reservation']:
-#             try:
-#                 mreservation.delete_registration(data['reservation-code'])
-#             except Exception as e:
-#                 flash_plus('Kon de reservatie niet verwijderen', e)
-#         else:
-#             try:
-#                 ret = mreservation.add_or_update_registration(data, suppress_send_ack_email=True)
-#                 if ret.result == ret.Result.E_NO_BOXES_SELECTED:
-#                     flash_plus('U hebt geen boxen geselecteerd',)
-#                 if ret.result == ret.Result.E_OK:
-#                     flash_plus('Reservatie is aangepast')
-#                 if ret.result == ret.Result.E_NOT_ENOUGH_BOXES:
-#                     flash_plus('Er zijn niet genoeg boxen')
-#             except Exception as e:
-#                 flash_plus('Onbekende fout opgetreden', e)
-#     except Exception as e:
-#         flash_plus('Onbekende fout opgetreden', e)
-#     return redirect(url_for('reservation.show'))
-#
+
+def update_meeting_cb(msg, client_sid=None):
+    if msg['data']['column'] == 6: # code column
+        mreservation.update_meeting_code_by_id(msg['data']['id'], msg['data']['value'])
+    if msg['data']['column'] == 7: # mail sent column
+        mreservation.update_meeting_email_sent_by_id(msg['data']['id'], msg['data']['value'])
+    if msg['data']['column'] == 8: # enable send mail column
+        mreservation.update_meeting_email_enable_by_id(msg['data']['id'], msg['data']['value'])
+    msocketio.send_to_room({'type': 'celledit-meeting', 'data': {'status': True}}, client_sid)
+
+msocketio.subscribe_on_type('celledit-meeting', update_meeting_cb)
+
+
+def ack_email_sent_cb(value, opaque):
+    msocketio.broadcast_message({'type': 'celledit-meeting', 'data': {'reload-table': True}})
+
+
+mreservation.subscribe_ack_email_sent(ack_email_sent_cb, None)
+
 
 table_configuration = {
     'view': 'meeting',
@@ -86,9 +65,13 @@ table_configuration = {
     'template': [
         {'name': 'row_action', 'data': 'row_action', 'width': '2%'},
         {'name': 'School', 'data': 'reservation.name-school', 'order_by': SchoolReservation.name_school, 'orderable': True},
+        {'name': 'Klas', 'data': 'classgroup', 'order_by': TeamsMeeting.classgroup, 'orderable': True},
         {'name': 'E-mail', 'data': 'meeting-email', 'order_by': TeamsMeeting.email, 'orderable': True},
         {'name': 'Moment', 'data': 'meeting-date', 'order_by': TeamsMeeting.date, 'orderable': True},
-        {'name': 'Code', 'data': 'code', 'order_by': TeamsMeeting.teams_meeting_code, 'orderable': True, 'width': '50%'},
+        {'name': 'Meeting URL', 'data': 'html_url', 'order_by': TeamsMeeting.teams_meeting_code, 'orderable': True},
+        {'name': 'Code', 'data': 'code', 'order_by': TeamsMeeting.teams_meeting_code, 'orderable': True, 'celledit' : 'text'},
+        {'name': 'Zend e-mail', 'data': 'email_sent', 'order_by': TeamsMeeting.ack_email_sent, 'orderable': True,'celltoggle' : 'standard'},
+        {'name': 'Actief', 'data': 'enabled', 'order_by': TeamsMeeting.enabled, 'orderable': True,'celltoggle' : 'standard'},
     ],
     'filter': [],
     'item': {
@@ -101,6 +84,7 @@ table_configuration = {
     'format_data': mmeeting.format_data,
     'search_data': mmeeting.search_data,
     'default_order': (1, 'asc'),
+    'socketio_endpoint': 'celledit-meeting',
     # 'cell_color': {'supress_cell_content': True, 'color_keys': {'X': 'red', 'O': 'green'}}, #TEST
     # 'suppress_dom': True,
 

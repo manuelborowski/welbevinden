@@ -267,19 +267,10 @@ settings_formio = \
                 "collapsible": true,
                 "key": "RegistratieTemplate",
                 "type": "panel",
-                "label": "Registratie template",
+                "label": "Registratie template en e-mail",
                 "input": false,
                 "tableView": false,
                 "components": [
-                    {
-                        "label": "E-mails mogen worden verzonden",
-                        "tableView": false,
-                        "persistent": false,
-                        "key": "enable-send-email",
-                        "type": "checkbox",
-                        "input": true,
-                        "defaultValue": false
-                    },
                     {
                         "label": "Web registratie template",
                         "autoExpand": false,
@@ -305,7 +296,51 @@ settings_formio = \
                         "key": "register-mail-ack-content-template",
                         "type": "textarea",
                         "input": true
+                    }
+                ],
+                "collapsed": true
+            },
+            {
+                "title": "Teams-meeting bevestigingse-mail",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "teamsMeetingBevestigingseMail",
+                "type": "panel",
+                "label": "Panel",
+                "input": false,
+                "tableView": false,
+                "components": [
+                    {
+                        "label": "Bevestigingse-mail: onderwerp",
+                        "autoExpand": false,
+                        "tableView": true,
+                        "persistent": false,
+                        "key": "meeting-mail-ack-subject-template",
+                        "type": "textarea",
+                        "input": true
                     },
+                    {
+                        "label": "Bevestigingse-mail: inhoud",
+                        "autoExpand": false,
+                        "tableView": true,
+                        "persistent": false,
+                        "key": "meeting-mail-ack-content-template",
+                        "type": "textarea",
+                        "input": true
+                    }
+                ],
+                "collapsed": true
+            },
+            {
+                "title": "E-mail server settings",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "eMailServerSettings",
+                "type": "panel",
+                "label": "E-mail server settings",
+                "input": false,
+                "tableView": false,
+                "components": [
                     {
                         "label": "Tijd (seconden) tussen het verzenden van e-mails",
                         "labelPosition": "left-left",
@@ -341,9 +376,18 @@ settings_formio = \
                         "key": "base-url",
                         "type": "textfield",
                         "input": true
+                    },
+                    {
+                        "label": "E-mails mogen worden verzonden",
+                        "tableView": false,
+                        "persistent": false,
+                        "key": "enable-send-email",
+                        "type": "checkbox",
+                        "input": true,
+                        "defaultValue": false
                     }
                 ],
-                "collapsed": false
+                "collapsed": true
             }
         ]
     }

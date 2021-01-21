@@ -4,7 +4,6 @@ $(document).ready(function () {
     $('.video-btn').click(function () {
         $videoSrc = $(this).data("src");
     });
-    console.log($videoSrc);
     $('#myModal').on('shown.bs.modal', function (e) {
         $("#video").attr('src', $videoSrc + "?rel=0&amp;showinfo=0&amp;modestbranding=1&amp;autoplay=1");
     })
@@ -60,7 +59,6 @@ function lightbox_close() {
 function show_youtube_video(item) {
     var $videoSrc = item.item;
     // $videoSrc = $(this).data("src");
-    console.log($videoSrc);
     $('#myModal').on('shown.bs.modal', function (e) {
         $("#video").attr('src', $videoSrc + "?rel=0&amp;showinfo=0&amp;modestbranding=1&amp;autoplay=1");
     })

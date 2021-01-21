@@ -5,7 +5,11 @@ var True = true;
 //If not exactly one checkbox is selected, display warning and return false, else return true
 function is_exactly_one_checkbox_selected() {
     var nbr_checked = 0;
-    $(".chbx_all").each(function(i){if(this.checked) {nbr_checked++;}});
+    $(".chbx_all").each(function (i) {
+        if (this.checked) {
+            nbr_checked++;
+        }
+    });
     if (nbr_checked == 1) {
         return true;
     } else {
@@ -17,8 +21,12 @@ function is_exactly_one_checkbox_selected() {
 //If one or more checkboxes are checked, return true.  Else display warning and return false
 function is_at_least_one_checkbox_selected() {
     var nbr_checked = 0;
-    $(".chbx_all").each(function(i){if(this.checked) {nbr_checked++;}});
-    if (nbr_checked==0) {
+    $(".chbx_all").each(function (i) {
+        if (this.checked) {
+            nbr_checked++;
+        }
+    });
+    if (nbr_checked == 0) {
         bootbox.alert("U hebt niets geselecteerd, probeer nogmaals");
         return false;
     } else {
@@ -30,8 +38,8 @@ function is_at_least_one_checkbox_selected() {
 //Before removing multiple entries, a confirm-box is shown.
 function delete_item() {
     if (is_at_least_one_checkbox_selected()) {
-        message=table_config.delete_message;
-        bootbox.confirm(message, function(result) {
+        message = table_config.delete_message;
+        bootbox.confirm(message, function (result) {
             if (result) {
                 $("#button-pressed").val("delete");
                 $("#action_form").submit();
@@ -59,20 +67,22 @@ function edit_item() {
     }
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
     var filter_settings = {}
 
     //if a filter is changed, then the filter is applied by simulating a click on the filter button
-    $(".table-filter").change(function(){$("#filter").click();});
+    $(".table-filter").change(function () {
+        $("#filter").click();
+    });
     //The filter button of the filter is clicked
-    $('#filter').click(function() {
+    $('#filter').click(function () {
         store_filter_settings();
         table.ajax.reload();
     });
 
     //The clear button of the filter is clicked
-    $('#clear').click(function() {
-        for(i = 0; i < filters.length; i++) {
+    $('#clear').click(function () {
+        for (i = 0; i < filters.length; i++) {
             $("#" + filters[i].name).val(filters[i].default);
         }
         //emulate click on filter button
@@ -81,7 +91,7 @@ $(document).ready(function() {
 
     //Store locally in the client-browser
     function store_filter_settings() {
-        for(i = 0; i < filters.length; i++) {
+        for (i = 0; i < filters.length; i++) {
             filter_settings[filters[i].name] = $("#" + filters[i].name).val();
         }
         localStorage.setItem("Filter", JSON.stringify(filter_settings));
@@ -91,45 +101,45 @@ $(document).ready(function() {
 
     //Bugfix to repeat the table header at the bottom
     $("#datatable").append(
-        $('<tfoot/>').append( $("#datatable thead tr").clone() )
+        $('<tfoot/>').append($("#datatable thead tr").clone())
     );
 
     var datatable_config = {
         serverSide: true,
         stateSave: true,
         ajax: {
-           url: Flask.url_for(table_config.table_ajax),
-           type: 'POST',
-           data: function (d) {
-               return $.extend({}, d, filter_settings);
-           }
+            url: Flask.url_for(table_config.table_ajax),
+            type: 'POST',
+            data: function (d) {
+                return $.extend({}, d, filter_settings);
+            }
         },
         pagingType: "full_numbers",
         columns: config_columns,
         language: {
             url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Dutch.json"
         },
-        initComplete: function(settings, json) { //intercept flash messages when the table is loaded
+        initComplete: function (settings, json) { //intercept flash messages when the table is loaded
             if ('flash' in json) {
                 bootbox.alert(json['flash'].toString());
             }
         },
-        createdRow: function(row, data, dataIndex, cells) {
+        createdRow: function (row, data, dataIndex, cells) {
             if (data.overwrite_row_color != "") {
                 $(row).attr("style", "background-color: " + data.overwrite_row_color + ";");
             }
         },
-        rowCallback: function(row, data, displayNum, displayIndex, dataIndex ) {
+        rowCallback: function (row, data, displayNum, displayIndex, dataIndex) {
             if (data.row_action != "") {
-                row.cells[0].innerHTML ="<input type='checkbox' class='chbx_all' name='chbx' value='" + data.row_action + "'>" +
+                row.cells[0].innerHTML = "<input type='checkbox' class='chbx_all' name='chbx' value='" + data.row_action + "'>" +
                     "<div value='" + data.row_action + "' class='pencil glyphicon glyphicon-pencil'></div>";
 
             }
         },
-        preDrawCallback: function(settings) {
+        preDrawCallback: function (settings) {
             busy_indication_on();
         },
-        drawCallback: function(settings) {
+        drawCallback: function (settings) {
             busy_indication_off();
             if (cell_to_color) {
                 table.cells().every(function () {
@@ -150,15 +160,17 @@ $(document).ready(function() {
                     edit_item();
                 });
             }
+            create_cell_edit();
+            create_cell_toggle();
         }
     }
 
-    if(table_config.suppress_dom) {
-        datatable_config["filter"]= false;
+    if (table_config.suppress_dom) {
+        datatable_config["filter"] = false;
         datatable_config["paging"] = false;
-    }else {
+    } else {
         datatable_config["dom"] = "fiptlp";
-        }
+    }
 
     if (current_user_is_at_least_admin) {
         datatable_config["lengthMenu"] = [50, 100, 200, 500, 1000];
@@ -166,33 +178,58 @@ $(document).ready(function() {
         datatable_config["lengthMenu"] = [50, 100, 200];
     }
 
-    if("default_order" in table_config) {
-        datatable_config["order"] = [[ table_config.default_order[0], table_config.default_order[1]]];
+    if ("default_order" in table_config) {
+        datatable_config["order"] = [[table_config.default_order[0], table_config.default_order[1]]];
     }
 
-    
     var table = $('#datatable').DataTable(datatable_config);
 
-    //
-    // //configure CellsEdit
-    // function  cell_changed(cell, row, old_value) {
-    //     console.log("Cell info " + cell.index().column + ", " + row.data().DT_RowId + ", " + cell.data());
-    //
-    //     data = {
-    //         'id': row.data().DT_RowId,
-    //         'column': cell.index().column,
-    //         'value': cell.data()
-    //     }
-    //     $.getJSON(Flask.url_for("{{table_config.cell_endpoint}}", {'jds': JSON.stringify(data)}),
-    //         function(data) {
-    //             if(data.status) {
-    //                 table.ajax.reload();
-    //             } else {
-    //                 bootbox.alert('Fout: kan waarde niet aanpassen');
-    //             }
-    //         }
-    //     );
-    // }
+    function cell_edit_cb(type, data) {
+        if ("status" in data) {
+            if (data.status) {table.ajax.reload();}
+        } else if ("reload-table" in data) {table.ajax.reload();}
+    }
+
+    if ('socketio_endpoint' in table_config) {
+        socketio.subscribe_on_receive(table_config.socketio_endpoint, cell_edit_cb);
+        socketio.start(null, null);
+    }
+
+
+    function update_cell_changed(data) {
+        if ('socketio_endpoint' in table_config) {
+            socketio.send_to_server(table_config.socketio_endpoint, data);
+            table.ajax.reload();
+        } else {
+            $.getJSON(Flask.url_for("{{table_config.cell_endpoint}}", {'jds': JSON.stringify(data)}),
+                function (data) {
+                    if (data.status) {
+                        table.ajax.reload();
+                    } else {
+                        bootbox.alert('Fout: kan waarde niet aanpassen');
+                    }
+                }
+            );
+        }
+    }
+
+    function cell_edit_changed_cb(cell, row, old_value) {
+        data = {
+            'id': row.data().DT_RowId,
+            'column': cell.index().column,
+            'value': cell.data()
+        }
+        update_cell_changed(data);
+    }
+
+    function cell_toggle_changed_cb(cell, row, value) {
+        data = {
+            'id': row.data().DT_RowId,
+            'column': cell.index().column,
+            'value': value
+        }
+        update_cell_changed(data);
+    }
 
     //test to cancel reload when column 1 is being edit
     // table.on('user-select', function ( e, dt, type, cell, originalEvent ) {
@@ -203,19 +240,22 @@ $(document).ready(function() {
 
     celledit_inputtypes = [];
     celledit_columns = []
-    for(i = 0; i < config_columns.length; i++) {
-        if("celledit_options" in config_columns[i]) {
+    for (i = 0; i < config_columns.length; i++) {
+        if ("celledit_options" in config_columns[i]) {
             entry = {};
             entry["column"] = i;
             celledit_columns.push(i);
             entry["type"] = "list";
             entry["options"] = [];
-            for(j = 0; j < config_columns[i]["celledit_options"].length; j++) {
-                opt = {"value": config_columns[i]["celledit_options"][j][0], "display": config_columns[i]["celledit_options"][j][1]};
+            for (j = 0; j < config_columns[i]["celledit_options"].length; j++) {
+                opt = {
+                    "value": config_columns[i]["celledit_options"][j][0],
+                    "display": config_columns[i]["celledit_options"][j][1]
+                };
                 entry["options"].push(opt);
             }
             celledit_inputtypes.push(entry);
-        } else if("celledit" in config_columns[i]) {
+        } else if ("celledit" in config_columns[i]) {
             entry = {};
             entry["column"] = i;
             celledit_columns.push(i);
@@ -225,14 +265,31 @@ $(document).ready(function() {
         }
     }
 
-    if(celledit_inputtypes.length > 0) {
-        table.MakeCellsEditable("destroy");
-        table.MakeCellsEditable({
-            onUpdate: cell_changed,
-            confirmationButton: {listenToKeys: true},
-            columns: celledit_columns,
-            inputTypes: celledit_inputtypes,
-        });
+    function create_cell_edit() {
+        if (celledit_inputtypes.length > 0) {
+            // table.MakeCellsEditable("destroy");
+            table.MakeCellsEditable({
+                onUpdate: cell_edit_changed_cb,
+                confirmationButton: {listenToKeys: true},
+                columns: celledit_columns,
+                inputTypes: celledit_inputtypes,
+            });
+        }
+    }
+
+    celltoggle_columns = []
+    $.each(config_columns, function (i, v){
+        celltoggle_columns.push(("celltoggle" in v) ? v["celltoggle"] : "");
+    });
+
+    function create_cell_toggle() {
+        if (celltoggle_columns.length > 0) {
+            // table.MakeCellsToggleable("destroy");
+            table.MakeCellsToggleable({
+                onUpdate: cell_toggle_changed_cb,
+                columns: celltoggle_columns
+            });
+        }
     }
 
     if ("row_detail" in table_config) {
@@ -303,8 +360,9 @@ $(document).ready(function() {
     }
 
     //checkbox in header is clicked
-    $("#select_all").change(function() {
+    $("#select_all").change(function () {
         $(".chbx_all").prop('checked', this.checked);
     });
 
 });
+

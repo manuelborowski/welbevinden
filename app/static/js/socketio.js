@@ -5,7 +5,7 @@ class Socketio {
         this.subscribe_on_receive("its-me-received", this.handle_its_me_received)
     }
 
-    start(user_code) {
+    start(on_connect_cb, opaque) {
         this.socket.on('send_to_client', function (msg, cb) {
             if (msg.type in this.receive_cbs) {
                 this.receive_cbs[msg.type](msg.type, msg.data);
@@ -15,8 +15,9 @@ class Socketio {
         }.bind(this));
 
         this.socket.on('connect', function () {
-            this.send_to_server('new-end-user', {user_code: user_code});
-            // this.socket.emit('its_me', {user_code: coworker.code});
+            if (on_connect_cb) {
+                on_connect_cb(opaque);
+            }
         }.bind(this));
 
     }

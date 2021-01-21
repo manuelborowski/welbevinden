@@ -1,4 +1,4 @@
-from app.data import settings as msettings, reservation as mreservation
+from app.data import settings as msettings, reservation as mreservation, meeting as mmeeting
 from app import email, log, email_scheduler, flask_app
 import datetime, time, re
 from flask_mail import Message
@@ -66,8 +66,29 @@ def send_register_ack(**kwargs):
     return False
 
 
+def send_meeting_ack(**kwargs):
+    meeting = mmeeting.get_first_not_sent_meeting()
+    if meeting:
+        email_subject = msettings.get_configuration_setting('meeting-mail-ack-subject-template')
+        email_content = msettings.get_configuration_setting('meeting-mail-ack-content-template')
+
+        email_subject = email_subject.replace('{{TAG-DATE}}', meeting.date_string('%d/%m/%Y %H:%M'))
+
+        email_content = email_content.replace('{{TAG-MEETING-URL}}', f'<a href="{meeting.teams_meeting_code}">{meeting.teams_meeting_code}</a>')
+        email_content = email_content.replace('{{TAG-CLASSGROUP}}', meeting.classgroup)
+        email_content = email_content.replace('{{TAG-DATE}}', meeting.date_string('%d/%m/%Y %H:%M'))
+
+        log.info(f'"{email_subject}" to {meeting.email}')
+        ret = send_email(meeting.email, email_subject, email_content)
+        if ret:
+            meeting.set_ack_email_sent(True)
+        return ret
+    return False
+
+
 send_email_config = [
     {'function': send_register_ack, 'args': {}},
+    {'function': send_meeting_ack, 'args': {}},
 ]
 
 

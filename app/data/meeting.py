@@ -3,6 +3,54 @@ from app.data import utils as mutils
 from app import log, db
 import datetime, random, string
 
+
+def update_meeting_code_by_id(id, value):
+    try:
+        meeting = TeamsMeeting.query.get(id)
+        meeting.teams_meeting_code = value
+        db.session.commit()
+        log.info(f'meeting code update {id} {value}')
+        return meeting
+    except Exception as e:
+        mutils.raise_error(f'could not update meeting code {id} {value}', e)
+    return None
+
+
+def update_meeting_email_sent_by_id(id, value):
+    try:
+        meeting = TeamsMeeting.query.get(id)
+        meeting.ack_email_sent = value
+        db.session.commit()
+        log.info(f'meeting email-sent update {id} {value}')
+        return meeting
+    except Exception as e:
+        mutils.raise_error(f'could not update meeting email-sent {id} {value}', e)
+    return None
+
+
+def update_meeting_email_enable_by_id(id, value):
+    try:
+        meeting = TeamsMeeting.query.get(id)
+        meeting.enabled = value
+        db.session.commit()
+        log.info(f'meeting enable email update {id} {value}')
+        return meeting
+    except Exception as e:
+        mutils.raise_error(f'could not update meeting enable email {id} {value}', e)
+    return None
+
+
+def get_first_not_sent_meeting():
+    meeting = TeamsMeeting.query.filter(TeamsMeeting.enabled, TeamsMeeting.teams_meeting_code != '')
+    meeting = meeting.filter(TeamsMeeting.ack_email_sent == False)
+    meeting = meeting.first()
+    return meeting
+
+
+def subscribe_ack_email_sent(cb, opaque):
+    return TeamsMeeting.subscribe_ack_email_sent(cb, opaque)
+
+
 def pre_filter():
     return db.session.query(TeamsMeeting).join(SchoolReservation)
 

@@ -15,3 +15,4 @@ def set_configuration_setting(setting, value):
 
 def get_register_template():
     return msettings.get_configuration_setting('register-template')
+

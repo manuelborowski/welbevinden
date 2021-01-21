@@ -1,4 +1,4 @@
-from app.data import utils as mutils, reservation as mreservation
+from app.data import utils as mutils, reservation as mreservation, meeting as mmeeting
 from app import db, log
 import datetime, random, string
 
@@ -82,7 +82,7 @@ def add_or_update_registration(data, suppress_send_ack_email=False):
         if reservation:
             reservation = mreservation.update_registration_by_code(data)
             if not suppress_send_ack_email:
-                reservation.send_ack_email()
+                reservation.set_ack_email_sent(False)
         else:
             data['reservation-code'] = create_random_string(32)
             reservation = mreservation.add_registration(data)
@@ -109,6 +109,34 @@ def get_default_values(code=None):
 
 def get_reservation_by_id(id):
     return mreservation.get_registration_by_id(id)
+
+
+def update_meeting_code_by_id(id, value):
+    try:
+        return mmeeting.update_meeting_code_by_id(id, value)
+    except Exception as e:
+        mutils.raise_error(f'could not update meeting code {id}, {value}', e)
+    return None
+
+
+def update_meeting_email_sent_by_id(id, value):
+    try:
+        return mmeeting.update_meeting_email_sent_by_id(id, value)
+    except Exception as e:
+        mutils.raise_error(f'could not update meeting email-sent {id}, {value}', e)
+    return None
+
+
+def update_meeting_email_enable_by_id(id, value):
+    try:
+        return mmeeting.update_meeting_email_enable_by_id(id, value)
+    except Exception as e:
+        mutils.raise_error(f'could not update meeting enable email {id}, {value}', e)
+    return None
+
+
+def subscribe_ack_email_sent(cb, opaque):
+    return mmeeting.subscribe_ack_email_sent(cb, opaque)
 
 
 add_available_period(datetime.datetime(year=2021, month=1, day=25), 4, 4)

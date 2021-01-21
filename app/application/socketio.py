@@ -48,3 +48,11 @@ def subscribe_on_type(type, cb):
 
 def send_to_room(msg, room):
     emit('send_to_client', msg, room=room)
+
+
+def broadcast_message(msg):
+    emit('send_to_client', msg, broadcast=True, namespace='/')
+
+
+def send_to_client(client_sid, type, msg):
+    emit(type, msg, room=client_sid)

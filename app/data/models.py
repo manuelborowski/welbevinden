@@ -134,8 +134,8 @@ class EndUser(db.Model):
     __tablename__ = 'end_users'
 
     class Profile:
-        E_FLOOR_COWORKER = 'floor-coworker' # CLB, Scholengemeenschap, Internaat
-        E_FAIR_COWORKER = 'fair-coworker'   # VTI, Sint Ursula, SAL, ...'School'
+        E_FLOOR_COWORKER = 'floor-coworker'  # CLB, Scholengemeenschap, Internaat
+        E_FAIR_COWORKER = 'fair-coworker'  # VTI, Sint Ursula, SAL, ...'School'
         E_GUEST = 'guest'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -190,6 +190,7 @@ class Visit(db.Model):
         user = self.end_user.flat()
         visit.update(user)
         return visit
+
 
 class Room(db.Model):
     __tablename__ = 'rooms'
@@ -337,7 +338,7 @@ class AvailablePeriod(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime())
-    length = db.Column(db.Integer, default=5)   #length, in days, of a period
+    length = db.Column(db.Integer, default=5)  # length, in days, of a period
     max_nbr_boxes = db.Column(db.Integer, default=4)
     active = db.Column(db.Boolean, default=True)
     reservations = db.relationship('SchoolReservation', cascade='all, delete', backref='period')
@@ -362,7 +363,7 @@ class SchoolReservation(db.Model):
     email = db.Column(db.String(256))
     phone = db.Column(db.String(256))
     address = db.Column(db.String(256))
-    postal_code= db.Column(db.Integer)
+    postal_code = db.Column(db.Integer)
     city = db.Column(db.String(256))
     nbr_students = db.Column(db.Integer)
 
@@ -405,10 +406,10 @@ class SchoolReservation(db.Model):
             'reservation-code': self.reservation_code,
         }
 
-
     def ret_dict(self):
         flat = self.flat()
-        flat.update({'id': self.id, 'DT_RowId': self.id, 'number-boxes': self.reservation_nbr_boxes, 'period': self.period.period_string()})
+        flat.update({'id': self.id, 'DT_RowId': self.id, 'number-boxes': self.reservation_nbr_boxes,
+                     'period': self.period.period_string()})
         return flat
 
 
@@ -420,15 +421,24 @@ class TeamsMeeting(db.Model):
     classgroup = db.Column(db.String(256), default='')
     email = db.Column(db.String(256))
     date = db.Column(db.DateTime())
-    teams_meeting_code = db.Column(db.String(1024), default = None)
+    teams_meeting_code = db.Column(db.String(1024), default=None)
 
     reservation_id = db.Column(db.Integer, db.ForeignKey('school_reservations.id'))
+
+    enabled = db.Column(db.Boolean, default=False)
+    ack_email_sent = db.Column(db.Boolean, default=False)
+
+    def set_ack_email_sent(self, value):
+        self.ack_email_sent = value
+        db.session.commit()
+        for cb in TeamsMeeting.ack_email_sent_cb:
+            cb[0](value, cb[1])
+        return True
 
     def date_string(self, layout=None):
         if self.date is None: return ''
         layout = '%Y-%m-%dT%H:%M' if layout == None else layout
         return datetime.datetime.strftime(self.date, layout)
-
 
     def flat(self, date_format=None):
         return {
@@ -439,5 +449,16 @@ class TeamsMeeting(db.Model):
 
     def ret_dict(self):
         flat = self.flat('%d/%m/%Y %H:%M')
-        flat.update({'id': self.id, 'DT_RowId': self.id, 'code': self.teams_meeting_code, 'reservation': self.reservation.ret_dict()})
+        flat.update({'id': self.id, 'DT_RowId': self.id, 'code': self.teams_meeting_code,
+                     'reservation': self.reservation.ret_dict(), 'email_sent': self.ack_email_sent,
+                     'enabled': self.enabled,
+                     'html_url': f'<a href="{self.teams_meeting_code}" >Hier klikken voor Teams meeting</a>'
+                     })
         return flat
+
+    ack_email_sent_cb = []
+
+    @staticmethod
+    def subscribe_ack_email_sent(cb, opaque):
+        TeamsMeeting.ack_email_sent_cb.append((cb, opaque))
+        return True

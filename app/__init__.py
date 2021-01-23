@@ -27,12 +27,12 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 # V0.11 : added supervisor access
 # V0.12 : meetings : added mail sent and enable toggle
 # V0.13 : added ellipsis
-
+# V0.14 : bugfix cell-toggle
 
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.13')
+    return dict(version='V0.14')
 
 #enable logging
 LOG_HANDLE = 'SIAB'

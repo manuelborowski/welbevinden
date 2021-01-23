@@ -106,7 +106,7 @@ $(document).ready(function () {
 
     //ellipsis
     $.each(config_columns, function (i, v) {
-        if("render" in v) {
+        if ("render" in v) {
             var cuttoff = v.render.cuttoff;
             var wordbreak = v.render.wordbreak;
             v.render = $.fn.dataTable.render.ellipsis(cuttoff, wordbreak, true);
@@ -170,8 +170,7 @@ $(document).ready(function () {
                     edit_item();
                 });
             }
-            create_cell_edit();
-            create_cell_toggle();
+            cell_toggle.display()
         },
     }
 
@@ -196,8 +195,12 @@ $(document).ready(function () {
 
     function cell_edit_cb(type, data) {
         if ("status" in data) {
-            if (data.status) {table.ajax.reload();}
-        } else if ("reload-table" in data) {table.ajax.reload();}
+            if (data.status) {
+                table.ajax.reload();
+            }
+        } else if ("reload-table" in data) {
+            table.ajax.reload();
+        }
     }
 
     if ('socketio_endpoint' in table_config) {
@@ -209,7 +212,6 @@ $(document).ready(function () {
     function update_cell_changed(data) {
         if ('socketio_endpoint' in table_config) {
             socketio.send_to_server(table_config.socketio_endpoint, data);
-            table.ajax.reload();
         } else {
             $.getJSON(Flask.url_for("{{table_config.cell_endpoint}}", {'jds': JSON.stringify(data)}),
                 function (data) {
@@ -275,20 +277,18 @@ $(document).ready(function () {
         }
     }
 
-    function create_cell_edit() {
-        if (celledit_inputtypes.length > 0) {
-            // table.MakeCellsEditable("destroy");
-            table.MakeCellsEditable({
-                onUpdate: cell_edit_changed_cb,
-                confirmationButton: {listenToKeys: true},
-                columns: celledit_columns,
-                inputTypes: celledit_inputtypes,
-            });
-        }
+    if (celledit_inputtypes.length > 0) {
+        // table.MakeCellsEditable("destroy");
+        table.MakeCellsEditable({
+            onUpdate: cell_edit_changed_cb,
+            confirmationButton: {listenToKeys: true},
+            columns: celledit_columns,
+            inputTypes: celledit_inputtypes,
+        });
     }
 
     celltoggle_columns = []
-    $.each(config_columns, function (i, v){
+    $.each(config_columns, function (i, v) {
         celltoggle_columns.push(("celltoggle" in v) ? v["celltoggle"] : "");
     });
 
@@ -301,6 +301,11 @@ $(document).ready(function () {
             });
         }
     }
+
+    var cell_toggle = new MakeCellsToggleable(table, {
+        onUpdate: cell_toggle_changed_cb,
+        columns: celltoggle_columns
+    })
 
     if ("row_detail" in table_config) {
         //For an extra-measure, show the associated remarks as a sub-table

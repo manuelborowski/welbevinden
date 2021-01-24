@@ -111,6 +111,10 @@ def get_reservation_by_id(id):
     return mreservation.get_registration_by_id(id)
 
 
+def delete_meeting(id=None, list=None):
+    return mmeeting.delete_meeting(id, list)
+
+
 def update_meeting_code_by_id(id, value):
     try:
         return mmeeting.update_meeting_code_by_id(id, value)

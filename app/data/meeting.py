@@ -47,6 +47,19 @@ def get_first_not_sent_meeting():
     return meeting
 
 
+def delete_meeting(id=None, list=None):
+    try:
+        if id: list=[id]
+        for mid in list:
+            meeting = TeamsMeeting.query.get(mid)
+            db.session.delete(meeting)
+        db.session.commit()
+        return True
+    except Exception as e:
+        mutils.raise_error(f'could not delete meeting {id}', e)
+    return False
+
+
 def subscribe_ack_email_sent(cb, opaque):
     return TeamsMeeting.subscribe_ack_email_sent(cb, opaque)
 

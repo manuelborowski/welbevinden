@@ -31,8 +31,18 @@ def table_ajax():
 @supervisor_required
 def table_action():
     pass
-    # if button_pressed('edit'):
-    #     return item_edit()
+    if button_pressed('delete'):
+        return item_delete()
+
+
+def item_delete():
+    try:
+        chbx_id_list = request.form.getlist('chbx')
+        mreservation.delete_meeting(list=chbx_id_list)
+    except Exception as e:
+        log.error(f'Could not delete meetings: {e}')
+        flash_plus(u'Kan de meetings niet verwijderen', e)
+    return redirect(url_for('meeting.show'))
 
 
 def update_meeting_cb(msg, client_sid=None):
@@ -59,7 +69,7 @@ table_configuration = {
     'title': 'Team Meetings',
     'buttons': [
         # 'delete', 'add', 'edit', 'view'
-        'edit'
+        'delete'
     ],
     'delete_message': u'Wilt u deze meeting(s) verwijderen?',
     'template': [

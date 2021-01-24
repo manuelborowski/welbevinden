@@ -292,16 +292,6 @@ $(document).ready(function () {
         celltoggle_columns.push(("celltoggle" in v) ? v["celltoggle"] : "");
     });
 
-    function create_cell_toggle() {
-        if (celltoggle_columns.length > 0) {
-            // table.MakeCellsToggleable("destroy");
-            table.MakeCellsToggleable({
-                onUpdate: cell_toggle_changed_cb,
-                columns: celltoggle_columns
-            });
-        }
-    }
-
     var cell_toggle = new MakeCellsToggleable(table, {
         onUpdate: cell_toggle_changed_cb,
         columns: celltoggle_columns

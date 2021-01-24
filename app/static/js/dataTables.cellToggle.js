@@ -19,7 +19,7 @@
 
 class MakeCellsToggleable {
     constructor(table, settings) {
-        this.table = table;
+        this.table = table.table();
         this.settings = settings;
         this.toggle_columns = []
         var _this = this

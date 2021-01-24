@@ -81,7 +81,7 @@ table_configuration = {
         {'name': 'Meeting URL', 'data': 'html_url', 'order_by': TeamsMeeting.teams_meeting_code, 'orderable': True},
         {'name': 'Code', 'data': 'code', 'order_by': TeamsMeeting.teams_meeting_code, 'orderable': True, 'celledit' : 'text', 'render': { 'cuttoff': 17, 'wordbreak': True }},
         # {'name': 'Code', 'data': 'code', 'order_by': TeamsMeeting.teams_meeting_code, 'orderable': True, 'celledit' : 'text'},
-        {'name': 'Zend e-mail', 'data': 'email_sent', 'order_by': TeamsMeeting.ack_email_sent, 'orderable': True,'celltoggle' : 'standard'},
+        {'name': 'E-mail verzonden', 'data': 'email_sent', 'order_by': TeamsMeeting.ack_email_sent, 'orderable': True,'celltoggle' : 'standard'},
         {'name': 'Actief', 'data': 'enabled', 'order_by': TeamsMeeting.enabled, 'orderable': True,'celltoggle' : 'standard'},
     ],
     'filter': [],

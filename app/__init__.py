@@ -30,11 +30,12 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 # V0.14 : bugfix cell-toggle
 # V0.15 : bugfux cell-toggle
 # V0.16 : meetings can be removed
+# V0.17  aesthetic update
 
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.16')
+    return dict(version='V0.17')
 
 #enable logging
 LOG_HANDLE = 'SIAB'

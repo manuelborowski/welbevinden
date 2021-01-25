@@ -32,11 +32,12 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 # V0.16 : meetings can be removed
 # V0.17  aesthetic update
 # V0.18 : added toggles to reservations
+# V0.19  aesthetic update
 
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.18')
+    return dict(version='V0.19')
 
 #enable logging
 LOG_HANDLE = 'SIAB'

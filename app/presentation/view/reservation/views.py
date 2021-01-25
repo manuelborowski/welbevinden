@@ -119,10 +119,8 @@ table_configuration = {
         {'name': 'Bxn', 'data': 'number-boxes', 'order_by': SchoolReservation.reservation_nbr_boxes,
          'orderable': True},
         {'name': 'Tijdslot', 'data': 'period', 'order_by': AvailablePeriod.date, 'orderable': True},
-        {'name': 'E-mail verzonden', 'data': 'email_sent', 'order_by': SchoolReservation.ack_email_sent, 'orderable': True,
-         'celltoggle': 'standard'},
-        {'name': 'Actief', 'data': 'enabled', 'order_by': SchoolReservation.enabled, 'orderable': True,
-         'celltoggle': 'standard'},
+        {'name': 'E-mail verzonden', 'data': 'email_sent', 'order_by': SchoolReservation.ack_email_sent, 'width': '2%', 'celltoggle': 'standard'},
+        {'name': 'Actief', 'data': 'enabled', 'order_by': SchoolReservation.enabled, 'width': '2%', 'celltoggle': 'standard'},
 
     ],
     'filter': [],

@@ -92,6 +92,26 @@ def add_or_update_registration(data, suppress_send_ack_email=False):
     return RegisterSaveResult(result=RegisterSaveResult.Result.E_COULD_NOT_REGISTER)
 
 
+def update_registration_email_sent_by_id(id, value):
+    try:
+        return mreservation.update_registration_email_sent_by_id(id, value)
+    except Exception as e:
+        mutils.raise_error(f'could not update registration email-sent {id}, {value}', e)
+    return None
+
+
+def update_registration_email_enable_by_id(id, value):
+    try:
+        return mreservation.update_registration_email_enable_by_id(id, value)
+    except Exception as e:
+        mutils.raise_error(f'could not update registration enable email {id}, {value}', e)
+    return None
+
+
+def subscribe_registration_ack_email_sent(cb, opaque):
+    return mreservation.subscribe_registration_ack_email_sent(cb, opaque)
+
+
 def get_default_values(code=None):
     try:
         if code == None:
@@ -139,8 +159,8 @@ def update_meeting_email_enable_by_id(id, value):
     return None
 
 
-def subscribe_ack_email_sent(cb, opaque):
-    return mmeeting.subscribe_ack_email_sent(cb, opaque)
+def subscribe_meeting_ack_email_sent(cb, opaque):
+    return mmeeting.subscribe_meeting_ack_email_sent(cb, opaque)
 
 
 add_available_period(datetime.datetime(year=2021, month=1, day=25), 4, 4)

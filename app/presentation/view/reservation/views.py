@@ -4,7 +4,7 @@ from flask import redirect, url_for, request, render_template
 from flask_login import login_required
 from app.presentation.view import base_multiple_items
 from app.data import reservation as mdreservation
-from app.application import reservation as mreservation, settings as msettings
+from app.application import reservation as mreservation, settings as msettings, socketio as msocketio
 from app.data.models import SchoolReservation, AvailablePeriod
 from app.presentation.layout.utils import flash_plus, button_pressed
 from app.presentation.view import update_available_periods, false, true, null, prepare_registration_form
@@ -75,6 +75,23 @@ def reservation_save(form_data):
     return redirect(url_for('reservation.show'))
 
 
+def update_meeting_cb(msg, client_sid=None):
+    if msg['data']['column'] == 13: # mail sent column
+        mreservation.update_registration_email_sent_by_id(msg['data']['id'], msg['data']['value'])
+    if msg['data']['column'] == 14: # enable send mail column
+        mreservation.update_registration_email_enable_by_id(msg['data']['id'], msg['data']['value'])
+    msocketio.send_to_room({'type': 'reservation-meeting', 'data': {'status': True}}, client_sid)
+
+msocketio.subscribe_on_type('reservation-meeting', update_meeting_cb)
+
+
+def ack_email_sent_cb(value, opaque):
+    msocketio.broadcast_message({'type': 'reservation-meeting', 'data': {'reload-table': True}})
+
+
+mreservation.subscribe_registration_ack_email_sent(ack_email_sent_cb, None)
+
+
 table_configuration = {
     'view': 'reservation',
     'title': 'Reservaties',
@@ -102,6 +119,11 @@ table_configuration = {
         {'name': 'Bxn', 'data': 'number-boxes', 'order_by': SchoolReservation.reservation_nbr_boxes,
          'orderable': True},
         {'name': 'Tijdslot', 'data': 'period', 'order_by': AvailablePeriod.date, 'orderable': True},
+        {'name': 'E-mail verzonden', 'data': 'email_sent', 'order_by': SchoolReservation.ack_email_sent, 'orderable': True,
+         'celltoggle': 'standard'},
+        {'name': 'Actief', 'data': 'enabled', 'order_by': SchoolReservation.enabled, 'orderable': True,
+         'celltoggle': 'standard'},
+
     ],
     'filter': [],
     'item': {
@@ -114,6 +136,7 @@ table_configuration = {
     'format_data': mdreservation.format_data,
     'search_data': mdreservation.search_data,
     'default_order': (1, 'asc'),
+    'socketio_endpoint': 'reservation-meeting',
     # 'cell_color': {'supress_cell_content': True, 'color_keys': {'X': 'red', 'O': 'green'}}, #TEST
     # 'suppress_dom': True,
 

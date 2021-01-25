@@ -380,12 +380,10 @@ class SchoolReservation(db.Model):
 
     timestamp = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
-    def ack_email_is_sent(self):
-        self.ack_email_sent = True
-        db.session.commit()
-
-    def send_ack_email(self):
-        self.ack_email_sent = False
+    def set_ack_email_sent(self, value):
+        self.ack_email_sent = value
+        for cb in SchoolReservation.ack_email_sent_cb:
+            cb[0](value, cb[1])
         db.session.commit()
 
     def flat(self, date_format=None):
@@ -404,6 +402,8 @@ class SchoolReservation(db.Model):
             period_id_key: self.reservation_nbr_boxes,
             'teams-meetings': [m.flat(date_format) for m in self.meetings],
             'reservation-code': self.reservation_code,
+            'enabled': self.enabled,
+            'email_sent': self.ack_email_sent,
         }
 
     def ret_dict(self):
@@ -411,6 +411,13 @@ class SchoolReservation(db.Model):
         flat.update({'id': self.id, 'DT_RowId': self.id, 'number-boxes': self.reservation_nbr_boxes,
                      'period': self.period.period_string()})
         return flat
+
+    ack_email_sent_cb = []
+
+    @staticmethod
+    def subscribe_ack_email_sent(cb, opaque):
+        SchoolReservation.ack_email_sent_cb.append((cb, opaque))
+        return True
 
 
 class TeamsMeeting(db.Model):

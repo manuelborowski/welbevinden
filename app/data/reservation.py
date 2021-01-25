@@ -165,6 +165,34 @@ def add_meeting(classgroup, date, email):
     return None
 
 
+def update_registration_email_sent_by_id(id, value):
+    try:
+        reservation = SchoolReservation.query.get(id)
+        reservation.ack_email_sent = value
+        db.session.commit()
+        log.info(f'registration email-sent update {id} {value}')
+        return reservation
+    except Exception as e:
+        mutils.raise_error(f'could not update registration email-sent {id} {value}', e)
+    return None
+
+
+def update_registration_email_enable_by_id(id, value):
+    try:
+        reservation = SchoolReservation.query.get(id)
+        reservation.enabled = value
+        db.session.commit()
+        log.info(f'registration enable email update {id} {value}')
+        return reservation
+    except Exception as e:
+        mutils.raise_error(f'could not update registration enable email {id} {value}', e)
+    return None
+
+
+def subscribe_registration_ack_email_sent(cb, opaque):
+    return SchoolReservation.subscribe_ack_email_sent(cb, opaque)
+
+
 def pre_filter():
     return db.session.query(SchoolReservation).join(AvailablePeriod)
 

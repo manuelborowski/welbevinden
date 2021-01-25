@@ -60,7 +60,7 @@ def delete_meeting(id=None, list=None):
     return False
 
 
-def subscribe_ack_email_sent(cb, opaque):
+def subscribe_meeting_ack_email_sent(cb, opaque):
     return TeamsMeeting.subscribe_ack_email_sent(cb, opaque)
 
 

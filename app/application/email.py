@@ -62,7 +62,7 @@ def send_register_ack(**kwargs):
             log.info(f'"{email_subject}" to {reservation.email}')
             ret = send_email(reservation.email, email_subject, email_content)
             if ret:
-                reservation.ack_email_is_sent()
+                reservation.set_ack_email_sent(True)
             return ret
         return False
     except Exception as e:

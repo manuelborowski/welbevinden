@@ -61,7 +61,7 @@ def ack_email_sent_cb(value, opaque):
     msocketio.broadcast_message({'type': 'celledit-meeting', 'data': {'reload-table': True}})
 
 
-mreservation.subscribe_ack_email_sent(ack_email_sent_cb, None)
+mreservation.subscribe_meeting_ack_email_sent(ack_email_sent_cb, None)
 
 
 table_configuration = {
@@ -80,7 +80,6 @@ table_configuration = {
         {'name': 'Moment', 'data': 'meeting-date', 'order_by': TeamsMeeting.date, 'orderable': True},
         {'name': 'Meeting URL', 'data': 'html_url', 'order_by': TeamsMeeting.teams_meeting_code, 'orderable': True},
         {'name': 'Code', 'data': 'code', 'order_by': TeamsMeeting.teams_meeting_code, 'orderable': True, 'celledit' : 'text', 'render': { 'cuttoff': 17, 'wordbreak': True }},
-        # {'name': 'Code', 'data': 'code', 'order_by': TeamsMeeting.teams_meeting_code, 'orderable': True, 'celledit' : 'text'},
         {'name': 'E-mail verzonden', 'data': 'email_sent', 'order_by': TeamsMeeting.ack_email_sent, 'orderable': True,'celltoggle' : 'standard'},
         {'name': 'Actief', 'data': 'enabled', 'order_by': TeamsMeeting.enabled, 'orderable': True,'celltoggle' : 'standard'},
     ],

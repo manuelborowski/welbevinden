@@ -23,13 +23,15 @@ def close_room(message):
 @socketio.event
 def send_to_server(msg):
     if msg['type'] in socketio_cbs:
-        socketio_cbs[msg['type']](msg, request.sid)
+        for cb in socketio_cbs[msg['type']]:
+            cb(msg, request.sid)
 
 
 @socketio.on('disconnect')
 def disconnect_socket():
     if 'disconnect' in socketio_cbs:
-        socketio_cbs['disconnect'](None, request.sid)
+        for cb in socketio_cbs['disconnect']:
+            cb(None, request.sid)
 
 
 @socketio.event
@@ -43,7 +45,10 @@ def its_me(data):
 
 
 def subscribe_on_type(type, cb):
-    socketio_cbs[type] = cb
+    if type in socketio_cbs:
+        socketio_cbs[type].append(cb)
+    else:
+        socketio_cbs[type] = [cb]
 
 
 def send_to_room(msg, room):

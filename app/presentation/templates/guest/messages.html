@@ -6,16 +6,6 @@
             <div class="container">
                 <br>
                 <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
-                <br>
                 {% if type =='unknown-error' %}
                     <div class="alert alert-danger" role="alert">
                         <h4 class="alert-heading">Foutmelding!</h4>
@@ -31,20 +21,15 @@
                     </div>
                 {% endif %}
 
-                {% if type=='could-not-enter' %}
-                    Sorry, er is iets fout gelopen en u kan niet aanmelden.
-                    Gelieve contact...
-                {% endif %}
-
                 {% if type =='register-ok' %}
                     <div class="alert alert-success" role="alert">
                         <h4 class="alert-heading">Registratie/aanpassing is een success</h4>
-                        <h5>U heeft {{ info.nbr_boxes }} box(en) gereserveerd.</h5>
-                        <h5>Voor de school: {{ info.school }}.</h5>
-                        <h5>Voor de periode: {{ info.period }}.</h5>
-                        <hr>
-                        <h5>Er wordt u nog een mail toegestuurd met extra informatie.</h5>
-                        <h5>U mag dit venster sluiten.</h5>
+                        <h5>Je registratie voor het contactmoment is succesvol voltooid!</h5>
+                        <br>
+                        <h5>Binnen enkele minuten ontvang je een bevestigingsmail met de nodige informatie. Mocht je deze mail niet ontvangen hebben, check dan de map ‘ongewenste mail’.</h5>
+                        <h5>Wij ontmoeten je in ieder geval graag op {{ info['timeslot'] }}.</h5>
+                        <br>
+                        <h5>Tot gauw!</h5>
                         </p>
                     </div>
                 {% endif %}
@@ -87,12 +72,12 @@
                     </div>
                 {% endif %}
 
-                {% if type =='not-enough-boxes' %}
+                {% if type =='timeslot-full' %}
                     <div class="alert alert-danger" role="alert">
                         <h4 class="alert-heading">Foutmelding!</h4>
-                        <h5>Er zijn niet genoeg boxen beschikbaar, gelieve nogmaals te proberen.</h5>
+                        <h5>Het spijt ons, maar dit tijdslot is volzet.  Gelieve een ander tijdslot te kiezen.</h5>
                         <hr>
-                        <a class="btn btn-success btn-lg" type="submit" href="{{ url_for('guest.register') }}">Registreren</a>
+                        <a class="btn btn-success btn-lg" type="submit" href="{{ url_for('guest.register', code=info['reservation-code']) }}">Registreren</a>
                         </p>
                     </div>
                 {% endif %}

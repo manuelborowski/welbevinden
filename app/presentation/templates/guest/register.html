@@ -2,21 +2,22 @@
 
 {% block body %}
     {{ super() }}
-<div class="content-section">
-    <div class="center">
-        <div class="container">
+    <div class="content-section">
+        <div class="center">
+            <div class="container">
                 <div id="register-form"></div>
+            </div>
         </div>
     </div>
-</div>
-{%  endblock %}
+{% endblock %}
 
 {% block scripts %}
     {{ super() }}
     <script>
-        var registration_form = {{ config_data.form | tojson }}
-        var default_values = {{ config_data.default | tojson }}
-        var registration_endpoint = {{ registration_endpoint | tojson }}
+        let config_data = {{ config_data | tojson }};
+        let registration_form = config_data.template;
+        let default_values = config_data.default_values;
+        let registration_endpoint = {{ registration_endpoint | tojson }}
     </script>
     <script type="module"> {% include "guest/register.js" %}</script>
 {% endblock %}

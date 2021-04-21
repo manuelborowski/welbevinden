@@ -1,101 +1,52 @@
-from app.data import utils as mutils, guest as mguest, settings as msettings
-from app import db, log
-import datetime, random, string, json
+from app.application.util import datetime_to_dutch_datetime_string, formiodate_to_datetime, datetime_to_formiodate
+from app.data import utils as mutils, guest as mguest, settings as msettings, timeslot_configuration as mtc
+from app import log
+import datetime, json, sys
 
 
-def add_available_period(period, period_length, max_nbr_boxes):
-    pass
-    # return mreservation.add_available_period(period, period_length, max_nbr_boxes)
-
-
-def get_available_periods():
-
-
-
-    available_periods = []
-    # try:
-    #     periods = mreservation.get_available_periods()
-    #     for period in periods:
-    #         nbr_boxes_taken = period.nbr_boxes_taken
-    #         compensate_nbr_boxes = reservation.reservation_nbr_boxes if reservation and reservation.period == period else 0
-    #         available_periods.append({
-    #             'id': period.id,
-    #             'period': period.period_string(),
-    #             'length': period.length,
-    #             'max_number': period.max_nbr_boxes,
-    #             'current_number': nbr_boxes_taken,
-    #             'boxes_available': period.max_nbr_boxes - nbr_boxes_taken + compensate_nbr_boxes,
-    #         })
-    #     return available_periods
-    # except Exception as e:
-    #     mutils.raise_error('could not get available periods', e)
-    return []
-
-
-def get_period_by_id(id):
-    pass
-    # return mreservation.get_available_period_by_id(id)
-
-
-def create_random_string(len):
-    return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(len))
-
-
-class RegisterSaveResult:
-    def __init__(self, result, reservation={}):
-        self.result = result
-        self.reservation = reservation
-
-    class Result:
-        E_OK = 'ok'
-        E_NO_BOXES_SELECTED = 'no-boxes-selected'
-        E_NOT_ENOUGH_BOXES = 'not-enough-boxes'
-        E_COULD_NOT_REGISTER = 'could-not-register'
-
-    result = Result.E_OK
-    reservation = {}
-
-
-def delete_registration(reservation_code):
+def prepare_reservation(code=None):
     try:
-        pass
-        # mreservation.delete_registration_by_code(reservation_code)
+        guest = mguest.get_first_guest(code=code)
+        if not guest:
+            return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
+        default_values = guest.flat()
+        if guest.timeslot:
+            default_values['update-reservation'] = 'true'
+        ret = {'default_values': default_values,
+               'template': json.loads(msettings.get_configuration_setting('register-template')),
+               'available_timeslots': get_available_timeslots(guest.timeslot)
+               }
+        return RegisterResult(RegisterResult.Result.E_OK, ret)
     except Exception as e:
-        mutils.raise_error(f'could not delete registration {reservation_code}', e)
-    return RegisterSaveResult(result=RegisterSaveResult.Result.E_OK)
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return RegisterResult(RegisterResult.Result.E_NOK)
 
 
-def add_or_update_registration(data, suppress_send_ack_email=False):
+def delete_reservation(code):
     try:
-        reservation = None
-        # periods = get_available_periods()
-        # valid_nbr_boxes = False
-        # for period in periods:
-        #     key = f'select-boxes-{period["id"]}'
-        #     if key in data and (int(data[key]) > 0):
-        #         data['period_id'] = period['id']
-        #         data['nbr_boxes'] = int(data[key])
-        #         valid_nbr_boxes = True
-        #         break
-        # if not valid_nbr_boxes:
-        #     return RegisterSaveResult(result=RegisterSaveResult.Result.E_NO_BOXES_SELECTED)
-        # if data['reservation-code'] != '':
-        #     reservation = mreservation.get_registration_by_code(data['reservation-code'])
-        #     mreservation.update_registration(reservation, 0)
-        # period = mreservation.get_available_period_by_id(id=data['period_id'])
-        # if (period.max_nbr_boxes - period.nbr_boxes_taken) < data['nbr_boxes']:
-        #     return RegisterSaveResult(result=RegisterSaveResult.Result.E_NOT_ENOUGH_BOXES)
-        # if reservation:
-        #     reservation = mreservation.update_registration_by_code(data)
-        #     if not suppress_send_ack_email:
-        #         reservation.set_ack_email_sent(False)
-        # else:
-        #     data['reservation-code'] = create_random_string(32)
-        #     reservation = mreservation.add_registration(data)
-        # return RegisterSaveResult(result=RegisterSaveResult.Result.E_OK, reservation=reservation.ret_dict())
+        guest = mguest.get_first_guest(code=code)
+        mguest.update_timeslot(guest, None)
+        return RegisterResult(result=RegisterResult.Result.E_OK)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return RegisterResult(result=RegisterResult.Result.E_NOK)
+
+
+def add_or_update_reservation(data, suppress_send_ack_email=False):
+    try:
+        code = data['reservation-code']
+        guest = mguest.get_first_guest(code=code)
+        timeslot = formiodate_to_datetime(data['radio-timeslot'])
+        if timeslot != guest.timeslot and not check_requested_timeslot(timeslot):
+            return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, guest.flat())
+        guest = mguest.update_guest(guest, data['first-name'], data['last-name'], data['phone'], timeslot)
+        if guest and not suppress_send_ack_email:
+            guest.set_email_send_retry(0)
+            guest.set_ack_email_sent(False)
+        return RegisterResult(RegisterResult.Result.E_OK, guest.flat())
     except Exception as e:
         mutils.raise_error(f'could not add registration {data["name-school"]}', e)
-    return RegisterSaveResult(result=RegisterSaveResult.Result.E_COULD_NOT_REGISTER)
+    return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
 
 
 def update_registration_email_sent_by_id(id, value):
@@ -121,8 +72,45 @@ def subscribe_registration_ack_email_sent(cb, opaque):
     # return mreservation.subscribe_registration_ack_email_sent(cb, opaque)
 
 
-def get_available_timeslots():
+def get_available_timeslots(default_date=None):
+    try:
+        timeslots = []
+        timeslot_configs = mtc.get_timeslot_configurations()
+        for timeslot_config in timeslot_configs:
+            date = timeslot_config.date
+            for i in range(timeslot_config.nbr_of_timeslots):
+                nbr_guests = mguest.get_guest_count(date)
+                available = timeslot_config.items_per_timeslot - nbr_guests
+                default_flag = default_date and date == default_date
+                if default_flag:
+                    available += 1
+                timeslots.append({
+                    'label':  f"({available}) {datetime_to_dutch_datetime_string(date)}",
+                    'value': datetime_to_formiodate(date),
+                    'available': available,
+                    'default': default_flag
+                })
+                date += datetime.timedelta(minutes=timeslot_config.length)
+        return timeslots
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return []
+
+
+def check_requested_timeslot(date):
+    try:
+        timeslots = []
+        tcs = mtc.get_timeslot_configurations()
+        for tc in tcs:
+            start_date = tc.date
+            end_date = tc.date + datetime.timedelta(minutes=(tc.nbr_of_timeslots * tc.length))
+            if start_date <= date <= end_date:
+                guest_count = mguest.get_guest_count(date)
+                return guest_count < tc.items_per_timeslot
+        return False
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return False
 
 
 class RegisterResult:
@@ -132,34 +120,13 @@ class RegisterResult:
 
     class Result:
         E_OK = 'ok'
+        E_NOK = 'nok'
         E_REGISTER_OK = 'guest-ok'
         E_COULD_NOT_REGISTER = 'could-not-register'
+        E_TIMESLOT_FULL = 'timeslot-full'
 
     result = Result.E_OK
     ret = {}
-
-
-def add_guest_registration(code=None):
-    try:
-        guest = mguest.get_first_guest(code=code)
-        if not guest:
-            return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
-        ret = {'default_values': guest.flat(),
-               'template': json.loads(msettings.get_configuration_setting('register-template')),
-               'available_timeslots': get_available_timeslots()
-                }
-        pass
-        # if code == None:
-        #     periods = get_available_periods()
-        #     return {}, periods
-        # else:
-        #     reservation = mreservation.get_registration_by_code(code)
-        #     flat = reservation.flat()
-        #     periods = get_available_periods(reservation)
-        #     return flat, periods
-    except Exception as e:
-        mutils.raise_error(f'could not get reservation by code {code}', e)
-    return {}, []
 
 
 def get_reservation_by_id(id):
@@ -202,7 +169,6 @@ def update_meeting_email_enable_by_id(id, value):
 def subscribe_meeting_ack_email_sent(cb, opaque):
     pass
     # return mmeeting.subscribe_meeting_ack_email_sent(cb, opaque)
-
 
 # add_available_period(datetime.datetime(year=2021, month=1, day=25), 4, 4)
 # add_available_period(datetime.datetime(year=2021, month=2, day=1), 5, 4)

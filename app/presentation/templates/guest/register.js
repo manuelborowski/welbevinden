@@ -5,7 +5,7 @@ $(document).ready(function () {
             try {
                 form.getComponent(k).setValue(v);
             } catch (error ) {
-                return;
+                console.log("skipped ", k, v);
             }
         });
         formio_form = form

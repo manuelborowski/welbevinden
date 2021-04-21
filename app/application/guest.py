@@ -25,3 +25,4 @@ def add_guest(first_name, last_name, email, code=None):
 
 
 add_guest('manuel', 'borowski', 'emmanuel.borowski@gmail.com')
+add_guest('manuel', 'campus', 'manuel.borowski@campussintursula.be')

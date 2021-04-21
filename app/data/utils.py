@@ -3,7 +3,11 @@ import datetime
 from sqlalchemy import desc
 
 from app import flask_app, log, data, db
-from app.data import settings
+from app.data import models as mmodels
+
+
+def datetime_to_dutch_datetime_string(date):
+    return mmodels.datetime_to_dutch_datetime_string(date)
 
 
 def raise_error(message, details=None):

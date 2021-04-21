@@ -28,16 +28,20 @@ def add_guest(first_name, last_name, email, code):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def get_guests(email=None, code=None, first=False):
+def get_guests(email=None, code=None, timeslot=None, first=False, count=False):
     try:
         guests = Guest.query
         if email:
             guests = guests.filter(Guest.email == email)
         if code:
             guests = guests.filter(Guest.code == code)
+        if timeslot:
+            guests = guests.filter(Guest.timeslot == timeslot)
         if first:
             guest = guests.first()
             return guest
+        if count:
+            return guests.count()
         guests = guests.all()
         return guests()
     except Exception as e:
@@ -48,6 +52,38 @@ def get_guests(email=None, code=None, first=False):
 def get_first_guest(email=None, code=None):
     try:
         guest = get_guests(email=email, code=code, first=True)
+        return guest
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
+
+def get_guest_count(timeslot=None):
+    try:
+        count = get_guests(timeslot=timeslot, count=True)
+        return count
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return -1
+
+
+def update_guest(guest, first_name, last_name, phone, timeslot):
+    try:
+        guest.first_name = first_name
+        guest.last_name = last_name
+        guest.phone = phone
+        guest.timeslot = timeslot
+        db.session.commit()
+        return guest
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
+
+def update_timeslot(guest, timeslot):
+    try:
+        guest.timeslot = timeslot
+        db.session.commit()
         return guest
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

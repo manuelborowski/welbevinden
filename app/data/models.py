@@ -3,6 +3,16 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import UniqueConstraint
 import datetime
+from babel.dates import get_day_names, get_month_names
+
+
+# woensdag 24 februari om 14 uur
+def datetime_to_dutch_datetime_string(date):
+    try:
+        date_string = f'{get_day_names(locale="nl")[date.weekday()]} {date.day} {get_month_names(locale="nl")[date.month]} om {date.strftime("%H.%M")}'
+        return date_string
+    except:
+        return ''
 
 
 class User(UserMixin, db.Model):
@@ -126,6 +136,7 @@ class Guest(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(256))
+    phone = db.Column(db.String(256))
     first_name = db.Column(db.String(256))
     last_name = db.Column(db.String(256))
     last_login = db.Column(db.DateTime())
@@ -145,17 +156,18 @@ class Guest(db.Model):
     def flat(self):
         return {
             'id': self.id,
+            'phone': self.phone,
             'email': self.email,
-            'first_name': self.first_name,
-            'last_name': self.last_name,
+            'first-name': self.first_name,
+            'last-name': self.last_name,
             'full_name': f'{self.first_name} {self.last_name}',
             'last_login': self.last_login,
-            'code': self.code,
-            'invite_email_sent': self.invit_email_sent,
+            'reservation-code': self.code,
+            'invite_email_sent': self.invite_email_sent,
             'ack_email_sent': self.ack_email_sent,
             'email-send-retry': self.email_send_retry,
             'enabled': self.enabled,
-            'timeslote': self.timeslot,
+            'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
         }
 
     ack_email_sent_cb = []

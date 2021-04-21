@@ -14,12 +14,12 @@ from flask_mail import Mail
 
 flask_app = Flask(__name__, instance_relative_config=True, template_folder='presentation/templates/')
 
-#  V0.1 : copy from suminabox V0.19
-
+#  V0.1: copy from suminabox V0.19
+#  V0.2: send invite mail, guest can register and update, ack email send
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.1')
+    return dict(version='V0.2')
 
 #  enable logging
 LOG_HANDLE = 'RDV'
@@ -123,7 +123,7 @@ else:
     from app.presentation.view import auth, user, settings, guest, reservation
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
-    # flask_app.register_blueprint(guest.end_user)
+    flask_app.register_blueprint(guest.guest)
     flask_app.register_blueprint(settings.settings)
     # flask_app.register_blueprint(reservation.reservation)
 

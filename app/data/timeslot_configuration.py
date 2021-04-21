@@ -28,23 +28,31 @@ def add_timeslot_configuration(date, length, nbr_of_timeslots, items_per_timeslo
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def get_timeslot_configurations(first=False):
+def get_timeslot_configurations(date=None, length=None, nbr_of_timeslots=None, items_per_timeslot=None, first=False):
     try:
-        timeslot_configurations = TimeslotConfiguration.query
+        tcs = TimeslotConfiguration.query
+        if date:
+          tcs = tcs.filter(TimeslotConfiguration.date == date)
+        if length:
+          tcs = tcs.filter(TimeslotConfiguration.length == length )
+        if nbr_of_timeslots:
+          tcs = tcs.filter(TimeslotConfiguration.nbr_of_timeslots == nbr_of_timeslots)
+        if items_per_timeslot:
+          tcs = tcs.filter(TimeslotConfiguration.items_per_timeslot == items_per_timeslot)
         if first:
-            timeslot_configuration = timeslot_configurations.first()
-            return timeslot_configuration
-        timeslot_configurations = timeslot_configurations.all()
-        return timeslot_configurations()
+            tc = tcs.first()
+            return tc
+        tcs = tcs.all()
+        return tcs
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
 
-def get_first_timeslot_configuration():
+def get_first_timeslot_configuration(date=None, length=None, nbr_of_timeslots=None, items_per_timeslot=None):
     try:
-        timeslot_configuration = get_timeslot_configurations()
-        return timeslot_configuration
+        tc = get_timeslot_configurations(date=date, length=length, nbr_of_timeslots=nbr_of_timeslots, items_per_timeslot=items_per_timeslot, first=True)
+        return tc
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None

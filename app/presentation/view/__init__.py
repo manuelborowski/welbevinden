@@ -7,38 +7,35 @@ null = None
 
 
 def prepare_registration_form(code):
-    ret = mreservation.add_guest_registration(code)
-    new_register_formio = json.loads(msettings.get_configuration_setting('register-template'))
-    update_available_timeslots(available_timeslots, new_register_formio, 'radio-timeslots')
-    return {
-        'default': default_values,
-        'form': new_register_formio
-    }
+    ret = mreservation.prepare_reservation(code)
+    if ret.result == ret.Result.E_OK:
+        available_timeslots = ret.ret['available_timeslots']
+        template = ret.ret['template']
+        update_available_timeslots(available_timeslots, template, 'radio-timeslot')
+    return ret
 
 
-def update_available_timeslots(periods, form, key):
+def update_available_timeslots(timeslots, form, key):
     components = form['components']
     for component in components:
         if 'key' in component and component['key'] == key:
-            select_template = component['components'][0]
-            data_template = component['components'][0]['data']['values'][0]
-            component['components'] = []
-            for period in periods:
-                if period['items_available'] <= 0:
+            values = []
+            # component['components'] = []
+            for timeslot in timeslots:
+                if timeslot['available'] <= 0:
                     continue
-                new = dict(select_template)
-                new['data'] = dict({'values': []})
-                for value in range(period['boxes_available'] + 1):
-                    new_data = dict(data_template)
-                    new_data['label'] = str(value)
-                    new_data['value'] = str(value)
-                    new['data']['values'].append(new_data)
-                new['label'] = period['period']
-                new['key'] = f'select-boxes-{period["id"]}'
-                component['components'].append(new)
+                new = {
+                    'label': timeslot['label'],
+                    'value': timeslot['value'],
+                    'shortcut': '',
+                }
+                values.append(new)
+                if timeslot['default']:
+                    component['defaultValue'] = timeslot['value']
+            component['values'] = values
             return
         if 'components' in component:
-            update_available_timeslots(periods, component, key)
+            update_available_timeslots(timeslots, component, key)
     return
 
 

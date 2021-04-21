@@ -5,17 +5,18 @@ false = False
 true = True
 null = None
 
-def prepare_registration_form(registration_code):
-    default_values, available_periods = mreservation.get_default_values(registration_code)
-    new_register_formio = json.loads(msettings.get_register_template())
-    update_available_periods(available_periods, new_register_formio, 'select-period-boxes')
+
+def prepare_registration_form(code):
+    ret = mreservation.add_guest_registration(code)
+    new_register_formio = json.loads(msettings.get_configuration_setting('register-template'))
+    update_available_timeslots(available_timeslots, new_register_formio, 'radio-timeslots')
     return {
         'default': default_values,
         'form': new_register_formio
     }
 
 
-def update_available_periods(periods, form, key):
+def update_available_timeslots(periods, form, key):
     components = form['components']
     for component in components:
         if 'key' in component and component['key'] == key:
@@ -23,7 +24,7 @@ def update_available_periods(periods, form, key):
             data_template = component['components'][0]['data']['values'][0]
             component['components'] = []
             for period in periods:
-                if period['boxes_available'] <= 0:
+                if period['items_available'] <= 0:
                     continue
                 new = dict(select_template)
                 new['data'] = dict({'values': []})
@@ -37,7 +38,7 @@ def update_available_periods(periods, form, key):
                 component['components'].append(new)
             return
         if 'components' in component:
-            update_available_periods(periods, component, key)
+            update_available_timeslots(periods, component, key)
     return
 
 

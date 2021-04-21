@@ -1,4 +1,4 @@
-{% extends "end_user/base.html" %}
+{% extends "guest/base.html" %}
 
 {% block body %}
     {{ super() }}
@@ -18,5 +18,5 @@
         var default_values = {{ config_data.default | tojson }}
         var registration_endpoint = {{ registration_endpoint | tojson }}
     </script>
-    <script type="module"> {% include "end_user/register.js" %}</script>
+    <script type="module"> {% include "guest/register.js" %}</script>
 {% endblock %}

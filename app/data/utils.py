@@ -6,10 +6,6 @@ from app import flask_app, log, data, db
 from app.data import settings
 
 
-def data_done():
-    db.session.commit()
-
-
 def raise_error(message, details=None):
     error = Exception(f'm({message}), d({details}), td({type(details).__name__})')
     raise error

@@ -51,29 +51,21 @@ def get_test_server():
     return False
 
 
-class StageSetting:
-    E_AFTER_START_TIMESLOT = "start-timeslot"
-    E_AFTER_LOGON = "logon"
-
 default_configuration_settings = {
-    'stage-2-start-timer-at': (StageSetting.E_AFTER_START_TIMESLOT, Settings.SETTING_TYPE.E_STRING),
-    'stage-2-delay': (0, Settings.SETTING_TYPE.E_INT),
-    'stage-2-delay-start-timer-until-start-timeslot': (True, Settings.SETTING_TYPE.E_BOOL),
-    'stage-3-start-timer-at': (StageSetting.E_AFTER_START_TIMESLOT, Settings.SETTING_TYPE.E_STRING),
-    'stage-3-delay': (0, Settings.SETTING_TYPE.E_INT),
-    'stage-3-delay-start-timer-until-start-timeslot': (True, Settings.SETTING_TYPE.E_BOOL),
-    'timeslot-first-start': ('2021-2-10-14:0:0', Settings.SETTING_TYPE.E_STRING),
-    'timeslot-length': (30, Settings.SETTING_TYPE.E_INT),
-    'timeslot-number': (10, Settings.SETTING_TYPE.E_INT),
-    'timeslot-max-guests': (50, Settings.SETTING_TYPE.E_INT),
     'register-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'invite-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'invite-mail-content-template': ('', Settings.SETTING_TYPE.E_STRING),
     'register-mail-ack-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
     'register-mail-ack-content-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'meeting-mail-ack-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'meeting-mail-ack-content-template': ('', Settings.SETTING_TYPE.E_STRING),
+
     'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
     'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),
+    'email-send-max-retries': (2, Settings.SETTING_TYPE.E_INT),
+
     'base-url': ('localhost:5000', Settings.SETTING_TYPE.E_STRING),
+
+    'enable-send-invite-email': (False, Settings.SETTING_TYPE.E_BOOL),
+    'enable-send-ack-email': (False, Settings.SETTING_TYPE.E_BOOL),
     'enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
 }
 
@@ -86,7 +78,7 @@ def get_configuration_settings():
 
 
 def set_configuration_setting(setting, value):
-    if value == None:
+    if None == value:
         value = default_configuration_settings[setting][0]
     return set_setting(setting, value, 1)
 
@@ -102,4 +94,4 @@ def get_configuration_setting(setting):
 
 
 # save settings which are not in the database yet
-get_configuration_settings()
+# get_configuration_settings()

@@ -7,55 +7,37 @@ from werkzeug.routing import IntegerConverter as OrigIntegerConvertor
 import logging.handlers, os, sys
 from functools import wraps
 from flask_socketio import SocketIO
-# from smtplib import SMTP
+#  from smtplib import SMTP
 from flask_apscheduler import APScheduler
 from flask_mail import Mail
 
 
 flask_app = Flask(__name__, instance_relative_config=True, template_folder='presentation/templates/')
 
-# V0.1 : first trial of registration form
-# V0.2 : small bugfix
-# V0.3 : registration and error html ok
-# V0.4 : first registration ok, e-mail is sent
-# V0.5 : e-mail is ok
-# V0.6 : update requirements.txt
-# V0.7 : update requirements.txt : remove package...0.0.0
-# V0.8 : update in teams-meetings : multiple meetings possible
-# V0.9 : aesthetic update
-# V0.10 : bugfixed edit registration
-# V0.11 : added supervisor access
-# V0.12 : meetings : added mail sent and enable toggle
-# V0.13 : added ellipsis
-# V0.14 : bugfix cell-toggle
-# V0.15 : bugfux cell-toggle
-# V0.16 : meetings can be removed
-# V0.17  aesthetic update
-# V0.18 : added toggles to reservations
-# V0.19  aesthetic update
+#  V0.1 : copy from suminabox V0.19
 
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.19')
+    return dict(version='V0.1')
 
-#enable logging
-LOG_HANDLE = 'SIAB'
+#  enable logging
+LOG_HANDLE = 'RDV'
 log = logging.getLogger(LOG_HANDLE)
 
-# local imports
+#  local imports
 from config import app_config
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 
-#The original werkzeug-url-converter cannot handle negative integers (e.g. asset/add/-1/1)  
+#  1he original werkzeug-url-converter cannot handle negative integers (e.g. asset/add/-1/1)
 class IntegerConverter(OrigIntegerConvertor):
     regex = r'-?\d+'
     num_convert = int
 
 
-#support custom filtering while logging
+# support custom filtering while logging
 class MyLogFilter(logging.Filter):
     def filter(self, record):
         record.username = current_user.username if current_user and current_user.is_active else 'NONE'
@@ -64,8 +46,8 @@ class MyLogFilter(logging.Filter):
 config_name = os.getenv('FLASK_CONFIG')
 config_name = config_name if config_name else 'production'
 
-#set up logging
-LOG_FILENAME = os.path.join(sys.path[0], app_config[config_name].STATIC_PATH, 'log/siab-log.txt')
+# set up logging
+LOG_FILENAME = os.path.join(sys.path[0], app_config[config_name].STATIC_PATH, 'log/rdv-log.txt')
 try:
     log_level = getattr(logging, app_config[config_name].LOG_LEVEL)
 except:
@@ -77,13 +59,13 @@ log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(us
 log_handler.setFormatter(log_formatter)
 log.addHandler(log_handler)
 
-log.info('start SIAB')
+log.info('start RDV')
 
 flask_app.config.from_object(app_config[config_name])
 flask_app.config.from_pyfile('config.py')
 
 jsglue = JSGlue(flask_app)
-db.app=flask_app  # hack:-(
+db.app=flask_app  #  hack:-(
 db.init_app(flask_app)
 
 socketio = SocketIO(flask_app, async_mode=flask_app.config['SOCKETIO_ASYNC_MODE'], ping_timeout=10, ping_interval=5,
@@ -105,7 +87,7 @@ login_manager.login_view = 'auth.login'
 
 migrate = Migrate(flask_app, db)
 
-#configure e-mailclient
+# configure e-mailclient
 email = Mail(flask_app)
 send_emails = False
 
@@ -117,17 +99,9 @@ email_scheduler.start()
 if 'db' in sys.argv:
     from app.data import models
 else:
-    create_admin() # Only once
+    create_admin()  #  Only once
 
-    #flask database migrate
-    #flask database upgrade
-    #uncheck when migrating database
-    #return flapp
-
-    #flapp.config['PROFILE'] = True
-    #flapp.wsgi_app = ProfilerMiddleware(flapp.wsgi_app, restrictions=['flapp', 0.8])
-
-    #decorator to grant access to admins only
+    # decorator to grant access to admins only
     def admin_required(func):
         @wraps(func)
         def decorated_view(*args, **kwargs):
@@ -137,7 +111,7 @@ else:
         return decorated_view
 
 
-    #decorator to grant access to at least supervisors
+    # decorator to grant access to at least supervisors
     def supervisor_required(func):
         @wraps(func)
         def decorated_view(*args, **kwargs):
@@ -146,13 +120,12 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings, end_user, reservation, meeting
+    from app.presentation.view import auth, user, settings, guest, reservation
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
-    flask_app.register_blueprint(end_user.end_user)
+    # flask_app.register_blueprint(guest.end_user)
     flask_app.register_blueprint(settings.settings)
-    flask_app.register_blueprint(reservation.reservation)
-    flask_app.register_blueprint(meeting.meeting)
+    # flask_app.register_blueprint(reservation.reservation)
 
     @flask_app.errorhandler(403)
     def forbidden(error):

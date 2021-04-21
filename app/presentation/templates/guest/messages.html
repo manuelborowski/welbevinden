@@ -1,4 +1,4 @@
-{% extends "end_user/base.html" %}
+{% extends "guest/base.html" %}
 
 {% block body %}
     <div class="content-section">
@@ -92,7 +92,7 @@
                         <h4 class="alert-heading">Foutmelding!</h4>
                         <h5>Er zijn niet genoeg boxen beschikbaar, gelieve nogmaals te proberen.</h5>
                         <hr>
-                        <a class="btn btn-success btn-lg" type="submit" href="{{ url_for('end_user.register') }}">Registreren</a>
+                        <a class="btn btn-success btn-lg" type="submit" href="{{ url_for('guest.register') }}">Registreren</a>
                         </p>
                     </div>
                 {% endif %}
@@ -102,7 +102,7 @@
                         <h4 class="alert-heading">Foutmelding!</h4>
                         <h5>U hebt geen boxen geselecteerd, gelieve nogmaals te proberen.</h5>
                         <hr>
-                        <a class="btn btn-success btn-lg" type="submit" href="{{ url_for('end_user.register') }}">Registreren</a>
+                        <a class="btn btn-success btn-lg" type="submit" href="{{ url_for('guest.register') }}">Registreren</a>
                         </p>
                     </div>
                 {% endif %}

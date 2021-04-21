@@ -9,8 +9,11 @@ $(document).ready(function () {
                 console.log("Could not set default setting: ", k, v);
             }
         });
+        form.on('button-send-invite-emails', function (changed) {
+            socketio_transmit_event('button-send-invite-emails');
+        });
         form.on('change', function (changed) {
-            socketio_transmit_setting(changed.changed.component.key ,changed.changed.value)
+            socketio_transmit_setting(changed.changed.component.key ,changed.changed.value);
         });
     });
 });
@@ -19,6 +22,11 @@ $(document).ready(function () {
 function socketio_receive_settings(type, data) {
 }
 
+
+function socketio_transmit_event(event) {
+    socketio.send_to_server('event', {event: event});
+    return false;
+}
 
 function socketio_transmit_setting(setting, value) {
     socketio.send_to_server('settings', {setting: setting, value: value});

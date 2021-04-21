@@ -18,10 +18,11 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 #  V0.2: send invite mail, guest can register and update, ack email send
 #  V0.3: update requirements.txt
 #  V0.4: do not add default guests
+#  V0.5: bugfix sending of invite mail
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.4')
+    return dict(version='V0.5')
 
 #  enable logging
 LOG_HANDLE = 'RDV'

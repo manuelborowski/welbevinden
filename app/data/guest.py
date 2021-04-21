@@ -28,7 +28,7 @@ def add_guest(first_name, last_name, email, code):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def get_guests(email=None, code=None, timeslot=None, first=False, count=False):
+def get_guests(email=None, code=None, timeslot=None, enabled=None, first=False, count=False):
     try:
         guests = Guest.query
         if email:
@@ -37,13 +37,15 @@ def get_guests(email=None, code=None, timeslot=None, first=False, count=False):
             guests = guests.filter(Guest.code == code)
         if timeslot:
             guests = guests.filter(Guest.timeslot == timeslot)
+        if enabled is not None:
+            guests = guests.filter(Guest.enabled == enabled)
         if first:
             guest = guests.first()
             return guest
         if count:
             return guests.count()
         guests = guests.all()
-        return guests()
+        return guests
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None

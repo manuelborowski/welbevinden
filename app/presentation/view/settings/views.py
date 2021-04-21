@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 
 from .forms import AddForm, EditForm, ViewForm
 from app import db, log, admin_required, data
-from app.application import socketio as msocketio
+from app.application import socketio as msocketio, event as mevent
 from . import settings
 from app.data.models import User
 
@@ -35,7 +35,11 @@ def update_settings_cb(msg, client_sid=None):
     msettings.set_configuration_setting(msg['data']['setting'], msg['data']['value'])
 
 
+def event_received_cb(msg, client_sid=None):
+    mevent.process_event(msg['data']['event'])
+
 msocketio.subscribe_on_type('settings', update_settings_cb)
+msocketio.subscribe_on_type('event', event_received_cb)
 
 
 from app.presentation.view import false, true, null
@@ -72,6 +76,59 @@ settings_formio = \
                         "key": "enable-send-ack-email",
                         "type": "checkbox",
                         "input": true
+                    },
+                    {
+                        "label": "Columns",
+                        "columns": [
+                            {
+                                "components": [
+                                    {
+                                        "label": "Opgepast: stuur een uitnodiging naar alle gasten",
+                                        "tableView": false,
+                                        "key": "checkbox-enable-send-invite",
+                                        "type": "checkbox",
+                                        "input": true,
+                                        "defaultValue": false,
+                                        "hideOnChildrenHidden": false
+                                    }
+                                ],
+                                "width": 6,
+                                "offset": 0,
+                                "push": 0,
+                                "pull": 0,
+                                "size": "md"
+                            },
+                            {
+                                "components": [
+                                    {
+                                        "label": "Stuur uitnodigingse-mails naar alle gasten",
+                                        "action": "event",
+                                        "showValidations": false,
+                                        "theme": "danger",
+                                        "tableView": false,
+                                        "key": "button-send-invite-emails",
+                                        "conditional": {
+                                            "show": true,
+                                            "when": "checkbox-enable-send-invite",
+                                            "eq": "true"
+                                        },
+                                        "type": "button",
+                                        "input": true,
+                                        "event": "button-send-invite-emails",
+                                        "hideOnChildrenHidden": false
+                                    }
+                                ],
+                                "width": 6,
+                                "offset": 0,
+                                "push": 0,
+                                "pull": 0,
+                                "size": "md"
+                            }
+                        ],
+                        "key": "columns",
+                        "type": "columns",
+                        "input": false,
+                        "tableView": false
                     }
                 ],
                 "collapsed": true

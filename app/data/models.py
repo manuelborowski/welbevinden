@@ -165,7 +165,7 @@ class Guest(db.Model):
             'reservation-code': self.code,
             'invite_email_sent': self.invite_email_sent,
             'ack_email_sent': self.ack_email_sent,
-            'email-send-retry': self.email_send_retry,
+            'email_send_retry': self.email_send_retry,
             'enabled': self.enabled,
             'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
         }

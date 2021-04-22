@@ -28,9 +28,11 @@ def add_guest(first_name, last_name, email, code):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def get_guests(email=None, code=None, timeslot=None, enabled=None, first=False, count=False):
+def get_guests(id=None, email=None, code=None, timeslot=None, enabled=None, first=False, count=False):
     try:
         guests = Guest.query
+        if id:
+            guests = guests.filter(Guest.id == id)
         if email:
             guests = guests.filter(Guest.email == email)
         if code:
@@ -51,9 +53,9 @@ def get_guests(email=None, code=None, timeslot=None, enabled=None, first=False, 
     return None
 
 
-def get_first_guest(email=None, code=None):
+def get_first_guest(id=None, email=None, code=None):
     try:
-        guest = get_guests(email=email, code=code, first=True)
+        guest = get_guests(id=id, email=email, code=code, first=True)
         return guest
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -110,6 +112,22 @@ def get_first_not_sent_ack():
     return None
 
 
+def subscribe_ack_email_sent(cb, opaque):
+    return Guest.subscribe_ack_email_sent(cb, opaque)
+
+
+def subscribe_invite_email_sent(cb, opaque):
+    return Guest.subscribe_invite_email_sent(cb, opaque)
+
+
+def subscribe_email_send_retry(cb, opaque):
+    return Guest.subscribe_email_send_retry(cb, opaque)
+
+
+def subscribe_enabled(cb, opaque):
+    return Guest.subscribe_enabled(cb, opaque)
+
+
 def pre_filter():
     return db.session.query(Guest)
 
@@ -124,8 +142,12 @@ def search_data(search_string):
 def format_data(db_list):
     out = []
     for i in db_list:
-        em = i.ret_dict()
-        em['row_action'] = f"{i.id}"
+        em = i.flat()
+        em.update({
+            'row_action': f"{i.id}",
+            'id': i.id,
+            'DT_RowId': i.id
+        })
         out.append(em)
     return out
 

@@ -29,6 +29,7 @@ def event_send_invite_emails(opaque):
     try:
         guests = mguest.get_guests(enabled=True)
         for guest in guests:
+            guest.set_email_send_retry(0)
             guest.set_invite_email_sent(False)
     except Exception as e:
         mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)

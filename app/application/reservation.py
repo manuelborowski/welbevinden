@@ -45,31 +45,44 @@ def add_or_update_reservation(data, suppress_send_ack_email=False):
             guest.set_ack_email_sent(False)
         return RegisterResult(RegisterResult.Result.E_OK, guest.flat())
     except Exception as e:
-        mutils.raise_error(f'could not add registration {data["name-school"]}', e)
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
 
 
-def update_registration_email_sent_by_id(id, value):
+def update_reservation(property, id, value):
     try:
-        pass
-        # return mreservation.update_registration_email_sent_by_id(id, value)
+        guest = mguest.get_first_guest(id=id)
+        if 'invite_email_sent' == property:
+            guest.set_invite_email_sent(value)
+        elif 'ack_email_sent' == property:
+            guest.set_ack_email_sent(value)
+        elif 'enabled' == property:
+            guest.set_enabled(value)
+        elif 'email_send_retry' == property:
+            guest.set_email_send_retry(value)
     except Exception as e:
-        mutils.raise_error(f'could not update registration email-sent {id}, {value}', e)
-    return None
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def update_registration_email_enable_by_id(id, value):
+reservation_changed_cb = []
+
+
+def subscribe_reservation_changed(cb, opaque):
     try:
-        pass
-        # return mreservation.update_registration_email_enable_by_id(id, value)
+        reservation_changed_cb.append((cb, opaque))
     except Exception as e:
-        mutils.raise_error(f'could not update registration enable email {id}, {value}', e)
-    return None
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def subscribe_registration_ack_email_sent(cb, opaque):
-    pass
-    # return mreservation.subscribe_registration_ack_email_sent(cb, opaque)
+def guest_property_change_cb(value, opaque):
+    for cb in reservation_changed_cb:
+        cb[0](value, cb[1])
+
+
+mguest.subscribe_enabled(guest_property_change_cb, None)
+mguest.subscribe_ack_email_sent(guest_property_change_cb, None)
+mguest.subscribe_invite_email_sent(guest_property_change_cb, None)
+mguest.subscribe_email_send_retry(guest_property_change_cb, None)
 
 
 def get_available_timeslots(default_date=None):
@@ -128,50 +141,3 @@ class RegisterResult:
     result = Result.E_OK
     ret = {}
 
-
-def get_reservation_by_id(id):
-    pass
-    # return mreservation.get_registration_by_id(id)
-
-
-def delete_meeting(id=None, list=None):
-    pass
-    # return mmeeting.delete_meeting(id, list)
-
-
-def update_meeting_code_by_id(id, value):
-    try:
-        pass
-        # return mmeeting.update_meeting_code_by_id(id, value)
-    except Exception as e:
-        mutils.raise_error(f'could not update meeting code {id}, {value}', e)
-    return None
-
-
-def update_meeting_email_sent_by_id(id, value):
-    try:
-        pass
-        # return mmeeting.update_meeting_email_sent_by_id(id, value)
-    except Exception as e:
-        mutils.raise_error(f'could not update meeting email-sent {id}, {value}', e)
-    return None
-
-
-def update_meeting_email_enable_by_id(id, value):
-    try:
-        pass
-        # return mmeeting.update_meeting_email_enable_by_id(id, value)
-    except Exception as e:
-        mutils.raise_error(f'could not update meeting enable email {id}, {value}', e)
-    return None
-
-
-def subscribe_meeting_ack_email_sent(cb, opaque):
-    pass
-    # return mmeeting.subscribe_meeting_ack_email_sent(cb, opaque)
-
-# add_available_period(datetime.datetime(year=2021, month=1, day=25), 4, 4)
-# add_available_period(datetime.datetime(year=2021, month=2, day=1), 5, 4)
-# add_available_period(datetime.datetime(year=2021, month=2, day=8), 5, 4)
-# add_available_period(datetime.datetime(year=2021, month=2, day=22), 5, 4)
-# add_available_period(datetime.datetime(year=2021, month=3, day=1), 5, 4)

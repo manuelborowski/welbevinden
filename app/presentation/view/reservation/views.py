@@ -5,7 +5,8 @@ from flask_login import login_required
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus, button_pressed
 from app.data import guest as mguest
-from app.application import socketio as msocketio
+from app.application import socketio as msocketio, reservation as mreservation
+from app.data.models import Guest
 from app.presentation.view import update_available_timeslots, false, true, null, prepare_registration_form
 
 import json
@@ -74,13 +75,26 @@ def reservation_save(form_data):
     return redirect(url_for('reservation.show'))
 
 
+def reservation_update_cb(value, opaque):
+    msocketio.broadcast_message({'type': 'celledit-reservation', 'data': {'reload-table': True}})
 
 
-def ack_email_sent_cb(value, opaque):
-    msocketio.broadcast_message({'type': 'reservation-meeting', 'data': {'reload-table': True}})
+mreservation.subscribe_reservation_changed(reservation_update_cb, None)
 
 
-# mreservation.subscribe_registration_ack_email_sent(ack_email_sent_cb, None)
+def celledit_event_cb(msg, client_sid=None):
+    if msg['data']['column'] == 5:
+        mreservation.update_reservation('invite_email_sent', msg['data']['id'], msg['data']['value'])
+    if msg['data']['column'] == 6:
+        mreservation.update_reservation('ack_email_sent', msg['data']['id'], msg['data']['value'])
+    if msg['data']['column'] == 7:
+        mreservation.update_reservation('enabled', msg['data']['id'], msg['data']['value'])
+    if msg['data']['column'] == 8:
+        mreservation.update_reservation('email_send_retry', msg['data']['id'], msg['data']['value'])
+    msocketio.send_to_room({'type': 'celledit-reservation', 'data': {'status': True}}, client_sid)
+
+
+msocketio.subscribe_on_type('celledit-reservation', celledit_event_cb)
 
 
 table_configuration = {
@@ -93,26 +107,14 @@ table_configuration = {
     'delete_message': u'Wilt u deze reservatie(s) verwijderen?',
     'template': [
         {'name': 'row_action', 'data': 'row_action', 'width': '2%'},
-        # {'name': 'School', 'data': 'name-school', 'order_by': SchoolReservation.name_school, 'orderable': True},
-        # {'name': 'Lkr 1', 'data': 'name-teacher-1', 'order_by': SchoolReservation.name_teacher_1,
-        #  'orderable': True},
-        # {'name': 'Lkr 2', 'data': 'name-teacher-2', 'order_by': SchoolReservation.name_teacher_2,
-        #  'orderable': True},
-        # {'name': 'Lkr 3', 'data': 'name-teacher-3', 'order_by': SchoolReservation.name_teacher_3,
-        #  'orderable': True},
-        # {'name': 'Email', 'data': 'email', 'order_by': SchoolReservation.email, 'orderable': True},
-        # {'name': 'Tel', 'data': 'phone', 'order_by': SchoolReservation.phone, 'orderable': True},
-        # {'name': 'Adres', 'data': 'address', 'order_by': SchoolReservation.address, 'orderable': True},
-        # {'name': 'Postcode', 'data': 'postal-code', 'order_by': SchoolReservation.postal_code, 'orderable': True},
-        # {'name': 'Gemeente', 'data': 'city', 'order_by': SchoolReservation.city, 'orderable': True},
-        # {'name': 'Lln', 'data': 'number-students', 'order_by': SchoolReservation.nbr_students,
-        #  'orderable': True},
-        # {'name': 'Bxn', 'data': 'number-boxes', 'order_by': SchoolReservation.reservation_nbr_boxes,
-        #  'orderable': True},
-        # {'name': 'Tijdslot', 'data': 'period', 'order_by': AvailablePeriod.date, 'orderable': True},
-        # {'name': 'E-mail verzonden', 'data': 'email_sent', 'order_by': SchoolReservation.ack_email_sent, 'width': '2%', 'celltoggle': 'standard'},
-        # {'name': 'Actief', 'data': 'enabled', 'order_by': SchoolReservation.enabled, 'width': '2%', 'celltoggle': 'standard'},
-
+        {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True},
+        {'name': 'Email', 'data': 'email', 'order_by': Guest.email, 'orderable': True},
+        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.last_name, 'orderable': True},
+        {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True},
+        {'name': 'Uitnodiging', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_sent, 'width': '2%', 'celltoggle': 'standard'},
+        {'name': 'Bevestiging', 'data': 'ack_email_sent', 'order_by': Guest.ack_email_sent, 'width': '2%', 'celltoggle': 'standard'},
+        {'name': 'Actief', 'data': 'enabled', 'order_by': Guest.enabled, 'width': '2%', 'celltoggle': 'standard'},
+        {'name': 'Retry', 'data': 'email_send_retry', 'order_by': Guest.email_send_retry, 'orderable': True, 'celledit': 'text'},
     ],
     'filter': [],
     'item': {
@@ -125,7 +127,7 @@ table_configuration = {
     'format_data': mguest.format_data,
     'search_data': mguest.search_data,
     'default_order': (1, 'asc'),
-    'socketio_endpoint': 'reservation-meeting',
+    'socketio_endpoint': 'celledit-reservation',
     # 'cell_color': {'supress_cell_content': True, 'color_keys': {'X': 'red', 'O': 'green'}}, #TEST
     # 'suppress_dom': True,
 

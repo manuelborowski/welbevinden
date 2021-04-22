@@ -19,10 +19,13 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 #  V0.3: update requirements.txt
 #  V0.4: do not add default guests
 #  V0.5: bugfix sending of invite mail
+#  V0.6: added reservation overview
+
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.5')
+    return dict(version='V0.6')
+
 
 #  enable logging
 LOG_HANDLE = 'RDV'
@@ -34,7 +37,8 @@ from config import app_config
 db = SQLAlchemy()
 login_manager = LoginManager()
 
-#  1he original werkzeug-url-converter cannot handle negative integers (e.g. asset/add/-1/1)
+
+#  The original werkzeug-url-converter cannot handle negative integers (e.g. asset/add/-1/1)
 class IntegerConverter(OrigIntegerConvertor):
     regex = r'-?\d+'
     num_convert = int
@@ -45,6 +49,7 @@ class MyLogFilter(logging.Filter):
     def filter(self, record):
         record.username = current_user.username if current_user and current_user.is_active else 'NONE'
         return True
+
 
 config_name = os.getenv('FLASK_CONFIG')
 config_name = config_name if config_name else 'production'
@@ -74,6 +79,7 @@ db.init_app(flask_app)
 socketio = SocketIO(flask_app, async_mode=flask_app.config['SOCKETIO_ASYNC_MODE'], ping_timeout=10, ping_interval=5,
                     cors_allowed_origins=flask_app.config['SOCKETIO_CORS_ALLOWED_ORIGIN'])
 
+
 def create_admin():
     from app.data.models import User
     find_admin = User.query.filter(User.username == 'admin').first()
@@ -82,8 +88,8 @@ def create_admin():
         db.session.add(admin)
         db.session.commit()
 
-flask_app.url_map.converters['int'] = IntegerConverter
 
+flask_app.url_map.converters['int'] = IntegerConverter
 login_manager.init_app(flask_app)
 login_manager.login_message = 'Je moet aangemeld zijn om deze pagina te zien!'
 login_manager.login_view = 'auth.login'
@@ -128,7 +134,7 @@ else:
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(guest.guest)
     flask_app.register_blueprint(settings.settings)
-    # flask_app.register_blueprint(reservation.reservation)
+    flask_app.register_blueprint(reservation.reservation)
 
     @flask_app.errorhandler(403)
     def forbidden(error):

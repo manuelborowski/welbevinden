@@ -23,11 +23,12 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 #  V0.7: import guest info file
 #  V0.8: update requirements.txt
 #  V0.9: update timeslot configuration
+#  V0.10: add leading 0 when importing phone number
 
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.9')
+    return dict(version='V0.10')
 
 
 #  enable logging

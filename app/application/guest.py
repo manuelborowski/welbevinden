@@ -49,13 +49,19 @@ def import_guest_info(file_storeage):
         for guest in guest_dict:
             if not guest['e-mailadres'] in guest_emails:
                 code = create_random_string()
-                mguest.add_guest_bulk(full_name=guest['naam ouder'], phone=guest['telefoonnummer'],
+                phone = str(guest['telefoonnummer'])
+                if phone[0] != '0':
+                    phone = f'0{phone}'
+                mguest.add_guest_bulk(full_name=guest['naam ouder'], phone=phone,
                                       email=guest['e-mailadres'], code=code)
                 guest_emails.append(guest['e-mailadres'])
             if guest['e-mailadres begeleidende organisatie'] and not \
                     guest['e-mailadres begeleidende organisatie'] in guest_emails:
+                phone = str(guest['telefoonnummer'])
+                if phone[0] != '0':
+                    phone = f'0{phone}'
                 code = create_random_string()
-                mguest.add_guest_bulk(full_name=guest['naam ouder'], phone=guest['telefoonnummer'],
+                mguest.add_guest_bulk(full_name=guest['naam ouder'], phone=phone,
                                       email=guest['e-mailadres begeleidende organisatie'], code=code)
                 guest_emails.append(guest['e-mailadres begeleidende organisatie'])
         mguest.add_guest_commit()

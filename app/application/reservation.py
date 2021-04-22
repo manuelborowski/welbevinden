@@ -39,7 +39,7 @@ def add_or_update_reservation(data, suppress_send_ack_email=False):
         timeslot = formiodate_to_datetime(data['radio-timeslot'])
         if timeslot != guest.timeslot and not check_requested_timeslot(timeslot):
             return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, guest.flat())
-        guest = mguest.update_guest(guest, data['first-name'], data['last-name'], data['phone'], timeslot)
+        guest = mguest.update_guest(guest, full_name=data['full_name'], phone=data['phone'], timeslot=timeslot)
         if guest and not suppress_send_ack_email:
             guest.set_email_send_retry(0)
             guest.set_ack_email_sent(False)

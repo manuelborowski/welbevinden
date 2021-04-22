@@ -107,9 +107,9 @@ table_configuration = {
     'delete_message': u'Wilt u deze reservatie(s) verwijderen?',
     'template': [
         {'name': 'row_action', 'data': 'row_action', 'width': '2%'},
-        {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True},
+        {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True, 'width': '15%'},
         {'name': 'Email', 'data': 'email', 'order_by': Guest.email, 'orderable': True},
-        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.full_name, 'orderable': True},
+        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.full_name, 'orderable': True, 'width': '20%'},
         {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True},
         {'name': 'Uitndg', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_sent, 'width': '2%', 'celltoggle': 'standard'},
         {'name': 'Uitndg', 'data': 'nbr_invite_sent', 'order_by': Guest.nbr_invite_sent, 'width': '2%'},

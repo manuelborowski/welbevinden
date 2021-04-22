@@ -70,12 +70,18 @@ def get_guest_count(timeslot=None):
     return -1
 
 
-def update_guest(guest, first_name, last_name, phone, timeslot):
+def update_guest(guest, full_name=None, first_name=None, last_name=None, phone=None, timeslot=None):
     try:
-        guest.first_name = first_name
-        guest.last_name = last_name
-        guest.phone = phone
-        guest.timeslot = timeslot
+        if full_name:
+            guest.full_name = full_name
+        if first_name:
+            guest.first_name = first_name
+        if last_name:
+            guest.last_name = last_name
+        if phone:
+            guest.phone = phone
+        if timeslot:
+            guest.timeslot = timeslot
         db.session.commit()
         return guest
     except Exception as e:

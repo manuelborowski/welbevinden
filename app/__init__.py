@@ -22,11 +22,12 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 #  V0.6: added reservation overview
 #  V0.7: import guest info file
 #  V0.8: update requirements.txt
+#  V0.9: update timeslot configuration
 
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.8')
+    return dict(version='V0.9')
 
 
 #  enable logging

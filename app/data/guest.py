@@ -1,13 +1,12 @@
-from app.data.models import Guest, TimeslotConfiguration
+from app.data.models import Guest
 from sqlalchemy import not_
-from app.data import utils as mutils
 from app import log, db
-import datetime, random, string, sys
+import sys
 
 
-def add_guest_bulk(first_name, last_name, email, code):
+def add_guest_bulk(full_name=None, first_name=None, last_name=None, phone=None, email=None, code=None):
     try:
-        guest = Guest(first_name=first_name, last_name=last_name, email=email, code=code)
+        guest = Guest(full_name=full_name, first_name=first_name, last_name=last_name, phone=phone, email=email, code=code)
         db.session.add(guest)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -20,9 +19,9 @@ def add_guest_commit():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def add_guest(first_name, last_name, email, code):
+def add_guest(full_name=None, first_name=None, last_name=None, phone=None, email=None, code=None):
     try:
-        add_guest_bulk(first_name, last_name, email, code)
+        add_guest_bulk(full_name=full_name, first_name=first_name, last_name=last_name, phone=phone, email=email, code=code)
         add_guest_commit()
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

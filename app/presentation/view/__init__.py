@@ -15,6 +15,12 @@ def prepare_registration_form(code):
     return ret
 
 
+def prepare_settings_form(form):
+    component = search_component(form, 'div-load-guest-file')
+    template = msettings.get_configuration_setting('div-load-guest-file')
+    component['html'] = template
+
+
 def update_available_timeslots(timeslots, form, key):
     components = form['components']
     for component in components:
@@ -37,5 +43,19 @@ def update_available_timeslots(timeslots, form, key):
         if 'components' in component:
             update_available_timeslots(timeslots, component, key)
     return
+
+
+
+
+
+def search_component(form, key):
+    components = form['components']
+    for component in components:
+        if 'key' in component and component['key'] == key:
+            return component
+        if 'components' in component:
+            found_component = search_component(component, key)
+            if found_component: return found_component
+    return None
 
 

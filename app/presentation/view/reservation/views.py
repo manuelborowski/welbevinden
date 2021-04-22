@@ -85,11 +85,11 @@ mreservation.subscribe_reservation_changed(reservation_update_cb, None)
 def celledit_event_cb(msg, client_sid=None):
     if msg['data']['column'] == 5:
         mreservation.update_reservation('invite_email_sent', msg['data']['id'], msg['data']['value'])
-    if msg['data']['column'] == 6:
-        mreservation.update_reservation('ack_email_sent', msg['data']['id'], msg['data']['value'])
     if msg['data']['column'] == 7:
+        mreservation.update_reservation('ack_email_sent', msg['data']['id'], msg['data']['value'])
+    if msg['data']['column'] == 9:
         mreservation.update_reservation('enabled', msg['data']['id'], msg['data']['value'])
-    if msg['data']['column'] == 8:
+    if msg['data']['column'] == 10:
         mreservation.update_reservation('email_send_retry', msg['data']['id'], msg['data']['value'])
     msocketio.send_to_room({'type': 'celledit-reservation', 'data': {'status': True}}, client_sid)
 
@@ -109,10 +109,12 @@ table_configuration = {
         {'name': 'row_action', 'data': 'row_action', 'width': '2%'},
         {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True},
         {'name': 'Email', 'data': 'email', 'order_by': Guest.email, 'orderable': True},
-        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.last_name, 'orderable': True},
+        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.full_name, 'orderable': True},
         {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True},
-        {'name': 'Uitnodiging', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_sent, 'width': '2%', 'celltoggle': 'standard'},
-        {'name': 'Bevestiging', 'data': 'ack_email_sent', 'order_by': Guest.ack_email_sent, 'width': '2%', 'celltoggle': 'standard'},
+        {'name': 'Uitndg', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_sent, 'width': '2%', 'celltoggle': 'standard'},
+        {'name': 'Uitndg', 'data': 'nbr_invite_sent', 'order_by': Guest.nbr_invite_sent, 'width': '2%'},
+        {'name': 'Bevtg', 'data': 'ack_email_sent', 'order_by': Guest.ack_email_sent, 'width': '2%', 'celltoggle': 'standard'},
+        {'name': 'Bevtg', 'data': 'nbr_ack_sent', 'order_by': Guest.nbr_ack_sent, 'width': '2%'},
         {'name': 'Actief', 'data': 'enabled', 'order_by': Guest.enabled, 'width': '2%', 'celltoggle': 'standard'},
         {'name': 'Retry', 'data': 'email_send_retry', 'order_by': Guest.email_send_retry, 'orderable': True, 'celledit': 'text'},
     ],

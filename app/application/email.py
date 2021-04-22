@@ -46,6 +46,7 @@ def send_register_ack(**kwargs):
         ret = send_email(guest.email, email_subject, email_content)
         if ret:
             guest.set_ack_email_sent(True)
+            guest.set_nbr_ack_sent(guest.nbr_ack_sent + 1)
             return ret
         return False
     except Exception as e:
@@ -78,6 +79,7 @@ def send_invite(**kwargs):
         ret = send_email(guest.email, email_subject, email_content)
         if ret:
             guest.set_invite_email_sent(True)
+            guest.set_nbr_invite_sent(guest.nbr_invite_sent + 1)
             return ret
         return False
     except Exception as e:

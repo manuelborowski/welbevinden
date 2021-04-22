@@ -139,19 +139,16 @@ class Guest(db.Model):
     phone = db.Column(db.String(256))
     first_name = db.Column(db.String(256))
     last_name = db.Column(db.String(256))
+    full_name = db.Column(db.String(256))
     last_login = db.Column(db.DateTime())
     invite_email_sent = db.Column(db.Boolean, default=True)
     ack_email_sent = db.Column(db.Boolean, default=True)
     email_send_retry = db.Column(db.Integer(), default=0)
+    nbr_invite_sent = db.Column(db.Integer(), default=0)
+    nbr_ack_sent = db.Column(db.Integer(), default=0)
     enabled = db.Column(db.Boolean, default=True)
     code = db.Column(db.String(256), default='')
     timeslot = db.Column(db.DateTime())
-
-    def full_name(self):
-        return f'{self.first_name} {self.last_name}'
-
-    def __repr__(self):
-        return f'{self.email}/{self.full_name()}/{self.visits[0].code}/{self.profile}'
 
     def flat(self):
         return {
@@ -160,11 +157,13 @@ class Guest(db.Model):
             'email': self.email,
             'first-name': self.first_name,
             'last-name': self.last_name,
-            'full_name': f'{self.first_name} {self.last_name}',
+            'full_name': self.full_name,
             'last_login': self.last_login,
             'reservation-code': self.code,
             'invite_email_sent': self.invite_email_sent,
+            'nbr_invite_sent': self.nbr_invite_sent,
             'ack_email_sent': self.ack_email_sent,
+            'nbr_ack_sent': self.nbr_ack_sent,
             'email_send_retry': self.email_send_retry,
             'enabled': self.enabled,
             'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
@@ -184,6 +183,20 @@ class Guest(db.Model):
         Guest.ack_email_sent_cb.append((cb, opaque))
         return True
 
+    nbr_ack_sent_cb = []
+
+    def set_nbr_ack_sent(self, value):
+        self.nbr_ack_sent = value
+        db.session.commit()
+        for cb in Guest.nbr_ack_sent_cb:
+            cb[0](value, cb[1])
+        return True
+
+    @staticmethod
+    def subscribe_nbr_ack_sent(cb, opaque):
+        Guest.nbr_ack_sent_cb.append((cb, opaque))
+        return True
+
     invite_email_sent_cb = []
 
     def set_invite_email_sent(self, value):
@@ -196,6 +209,20 @@ class Guest(db.Model):
     @staticmethod
     def subscribe_invite_email_sent(cb, opaque):
         Guest.invite_email_sent_cb.append((cb, opaque))
+        return True
+
+    nbr_invite_sent_cb = []
+
+    def set_nbr_invite_sent(self, value):
+        self.nbr_invite_sent = value
+        db.session.commit()
+        for cb in Guest.nbr_invite_sent_cb:
+            cb[0](value, cb[1])
+        return True
+
+    @staticmethod
+    def subscribe_nbr_invite_sent(cb, opaque):
+        Guest.nbr_invite_sent_cb.append((cb, opaque))
         return True
 
     email_send_retry_cb = []

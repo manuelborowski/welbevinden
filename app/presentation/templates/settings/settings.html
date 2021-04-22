@@ -1,24 +1,37 @@
 {% extends "base.html" %}
 {% block body %}
-<div class="content-section">
-    <div class="center">
-        <div class="container">
+    <div class="content-section">
+        <div class="center">
+            <div class="container">
+                <form method="post" enctype=multipart/form-data>
+                <input class="btn btn-default" type="button" id="import" value="Import"
+                       onclick="$('#controlcard_fileid').click();">
+                <input id='controlcard_fileid' type='file' name='guest_info_file' style="display:none" accept=".xlsx"
+                       onchange="$('#controlcard_trigger').click();">
+                <input id="controlcard_trigger" type="submit" formaction="{{ url_for('settings.upload_guest_info') }}"
+                       style="display:none">
+                Import xlsx-file with guest info.
+                </form>
+                <br>
                 <div id="configuration-settings"></div>
+            </div>
         </div>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
     </div>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-</div>
 
 {% endblock %}
 
 {% block scripts %}
+   {{ super() }}
     <script>
-        var settings_form = {{ settings_form | tojson }}
-        var default_settings = {{ default_settings | tojson }}
+        var settings_form =
+        {{ settings_form | tojson }}
+        var default_settings =
+        {{ default_settings | tojson }}
     </script>
     <script type="module"> {% include "settings/settings.js" %}</script>
 {% endblock %}

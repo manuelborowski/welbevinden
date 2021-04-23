@@ -42,29 +42,29 @@ mevent.subscribe_event('button-send-invite-emails', event_send_invite_emails, No
 
 
 def import_guest_info(file_storeage):
+    def add_or_update(email, guest, guest_emails):
+        if email:
+            phone = str(guest['telefoonnummer'])
+            if phone[0] != '0':
+                phone = f'0{phone}'
+            if phone[0:3] == '032':
+                phone = f'0{phone}'
+            if email in guest_emails:
+                dbguest = guest_emails[email]
+                mguest.update_guest_bulk(dbguest, full_name=guest['naam ouder'], child_name=guest['naam kind'], phone=phone)
+            else:
+                code = create_random_string()
+                dbguest = mguest.add_guest_bulk(full_name=guest['naam ouder'], child_name=guest['naam kind'], phone=phone, email=email, code=code)
+                guest_emails[email] = dbguest
+
     try:
         guests = mguest.get_guests(enabled=True)
-        guest_emails = [g.email for g in guests]
+        guest_emails = {g.email: g for g in guests}
         guest_dict = XLSXDictReader(BytesIO(file_storeage.read()))
         for guest in guest_dict:
-            if not guest['e-mailadres'] in guest_emails:
-                code = create_random_string()
-                phone = str(guest['telefoonnummer'])
-                if phone[0] != '0':
-                    phone = f'0{phone}'
-                mguest.add_guest_bulk(full_name=guest['naam ouder'], phone=phone,
-                                      email=guest['e-mailadres'], code=code)
-                guest_emails.append(guest['e-mailadres'])
-            if guest['e-mailadres begeleidende organisatie'] and not \
-                    guest['e-mailadres begeleidende organisatie'] in guest_emails:
-                phone = str(guest['telefoonnummer'])
-                if phone[0] != '0':
-                    phone = f'0{phone}'
-                code = create_random_string()
-                mguest.add_guest_bulk(full_name=guest['naam ouder'], phone=phone,
-                                      email=guest['e-mailadres begeleidende organisatie'], code=code)
-                guest_emails.append(guest['e-mailadres begeleidende organisatie'])
-        mguest.add_guest_commit()
+            add_or_update(guest['e-mailadres'], guest, guest_emails)
+            add_or_update(guest['e-mailadres begeleidende organisatie'], guest, guest_emails)
+        mguest.guest_bulk_commit()
     except Exception as e:
         mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)
     return None

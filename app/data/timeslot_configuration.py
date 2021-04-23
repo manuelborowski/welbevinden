@@ -58,6 +58,18 @@ def get_first_timeslot_configuration(date=None, length=None, nbr_of_timeslots=No
     return None
 
 
+def delete_timeslot_configuration(tc=None, tc_list=None):
+    try:
+        if tc:
+            tc_list = [tc]
+        for tc in tc_list:
+            db.session.delete(tc)
+        db.session.commit()
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
+
 def pre_filter():
     return db.session.query(TimeslotConfiguration)
 

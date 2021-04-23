@@ -110,6 +110,7 @@ table_configuration = {
         {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True, 'width': '15%'},
         {'name': 'Email', 'data': 'email', 'order_by': Guest.email, 'orderable': True},
         {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.full_name, 'orderable': True, 'width': '20%'},
+        {'name': 'Kind', 'data': 'child_name', 'order_by': Guest.child_name, 'orderable': True, 'width': '20%'},
         {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True},
         {'name': 'Uitndg', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_sent, 'width': '2%', 'celltoggle': 'standard'},
         {'name': 'Uitndg', 'data': 'nbr_invite_sent', 'order_by': Guest.nbr_invite_sent, 'width': '2%'},

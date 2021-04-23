@@ -4,27 +4,31 @@ from app import log, db
 import sys
 
 
-def add_guest_bulk(full_name=None, first_name=None, last_name=None, phone=None, email=None, code=None):
+def add_guest_bulk(full_name=None, child_name=None, phone=None, email=None, code=None):
     try:
-        guest = Guest(full_name=full_name, first_name=first_name, last_name=last_name, phone=phone, email=email, code=code)
+        guest = Guest(full_name=full_name, child_name=child_name, phone=phone, email=email, code=code)
         db.session.add(guest)
+        return guest
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
 
 
-def add_guest_commit():
+def guest_bulk_commit():
     try:
         db.session.commit()
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def add_guest(full_name=None, first_name=None, last_name=None, phone=None, email=None, code=None):
+def add_guest(full_name=None, child_name=None,phone=None, email=None, code=None):
     try:
-        add_guest_bulk(full_name=full_name, first_name=first_name, last_name=last_name, phone=phone, email=email, code=code)
-        add_guest_commit()
+        guest = add_guest_bulk(full_name=full_name, child_name=child_name, phone=phone, email=email, code=code)
+        guest_bulk_commit()
+        return guest
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
 
 
 def get_guests(id=None, email=None, code=None, timeslot=None, enabled=None, first=False, count=False):
@@ -70,19 +74,22 @@ def get_guest_count(timeslot=None):
     return -1
 
 
-def update_guest(guest, full_name=None, first_name=None, last_name=None, phone=None, timeslot=None):
+def update_guest(guest, full_name=None, child_name=None, phone=None, timeslot=None):
+    guest = update_guest_bulk(guest, full_name=full_name, child_name=child_name, phone=phone, timeslot=timeslot)
+    guest_bulk_commit()
+    return guest
+
+
+def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, timeslot=None):
     try:
         if full_name:
             guest.full_name = full_name
-        if first_name:
-            guest.first_name = first_name
-        if last_name:
-            guest.last_name = last_name
+        if child_name:
+            guest.child_name = child_name
         if phone:
             guest.phone = phone
         if timeslot:
             guest.timeslot = timeslot
-        db.session.commit()
         return guest
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -139,8 +146,10 @@ def pre_filter():
 
 def search_data(search_string):
     search_constraints = []
-    # search_constraints.append(SchoolReservation.name_school.like(search_string))
-    # search_constraints.append(SchoolReservation.name_teacher_1.like(search_string))
+    search_constraints.append(Guest.full_name.like(search_string))
+    search_constraints.append(Guest.child_name.like(search_string))
+    search_constraints.append(Guest.email.like(search_string))
+    search_constraints.append(Guest.phone.like(search_string))
     return search_constraints
 
 

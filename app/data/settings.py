@@ -67,6 +67,8 @@ default_configuration_settings = {
     'enable-send-invite-email': (False, Settings.SETTING_TYPE.E_BOOL),
     'enable-send-ack-email': (False, Settings.SETTING_TYPE.E_BOOL),
     'enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
+
+    'timeslot-config-template': ('', Settings.SETTING_TYPE.E_STRING),
 }
 
 
@@ -80,7 +82,10 @@ def get_configuration_settings():
 def set_configuration_setting(setting, value):
     if None == value:
         value = default_configuration_settings[setting][0]
-    return set_setting(setting, value, 1)
+    ret = set_setting(setting, value, 1)
+    if setting in setting_changed_cb:
+        setting_changed_cb[setting][0](value, setting_changed_cb[setting][1])
+    return ret
 
 
 def get_configuration_setting(setting):
@@ -91,6 +96,15 @@ def get_configuration_setting(setting):
         default_setting = default_configuration_settings[setting]
         add_setting(setting, default_setting[0], default_setting[1], 1)
         return default_setting[0]
+
+
+setting_changed_cb = {}
+
+
+def subscribe_setting_changed(setting, cb, opaque):
+    setting_changed_cb[setting] = (cb, opaque)
+    return True
+
 
 
 # save settings which are not in the database yet

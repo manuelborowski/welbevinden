@@ -31,7 +31,7 @@ def add_guest(full_name=None, child_name=None,phone=None, email=None, code=None)
     return None
 
 
-def get_guests(id=None, email=None, code=None, timeslot=None, enabled=None, first=False, count=False):
+def get_guests(id=None, email=None, code=None, timeslot=None, enabled=None, timeslot_is_not_none=False, timeslot_is_none=False,  first=False, count=False):
     try:
         guests = Guest.query
         if id:
@@ -44,6 +44,10 @@ def get_guests(id=None, email=None, code=None, timeslot=None, enabled=None, firs
             guests = guests.filter(Guest.timeslot == timeslot)
         if enabled is not None:
             guests = guests.filter(Guest.enabled == enabled)
+        if timeslot_is_not_none:
+            guests = guests.filter(Guest.timeslot != None)
+        if timeslot_is_none:
+            guests = guests.filter(Guest.timeslot == None)
         if first:
             guest = guests.first()
             return guest
@@ -142,6 +146,16 @@ def subscribe_enabled(cb, opaque):
 
 def pre_filter():
     return db.session.query(Guest)
+
+
+def filter_data(query, filter):
+    if 'timeslot' in filter:
+        select = filter['timeslot']
+        if 'yes' == select:
+            query = query.filter(Guest.timeslot != None)
+        elif 'no' == select:
+            query = query.filter(Guest.timeslot == None)
+    return query
 
 
 def search_data(search_string):

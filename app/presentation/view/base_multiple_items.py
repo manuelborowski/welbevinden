@@ -16,9 +16,14 @@ def ajax(table_configuration):
 
 def show(table_configuration):
     filters = []
+    show_info = []
     config = None
+    if 'get_filters' in table_configuration:
+        filters = table_configuration['get_filters']()
+    if 'get_show_info' in table_configuration:
+        show_info = table_configuration['get_show_info']()
     try:
         config = tables.prepare_config_table_for_view(table_configuration)
     except Exception as e:
         flash_plus(f'Tabel kan niet getoond worden (show)', e)
-    return render_template('base_multiple_items.html', table_config=config, filters=filters)
+    return render_template('base_multiple_items.html', table_config=config, filters=filters, show_info=show_info)

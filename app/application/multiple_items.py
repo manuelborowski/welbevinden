@@ -1,6 +1,6 @@
 from flask import request
 from sqlalchemy import or_, func
-import time, datetime
+import time, datetime, json
 
 from app import data
 
@@ -44,7 +44,6 @@ def check_string_in_form(value_key, form):
 
 def prepare_data_for_ajax(table_configuration, paginate=True):
     try:
-        filters_enabled = table_configuration['filter']
         template = table_configuration['template']
         # a composed query is a tree like query, i.e. the roots are retrieved via an explicit SQL query and the attached
         # leaves are implicitly retrieved and put in a tree like ORM structure
@@ -57,6 +56,11 @@ def prepare_data_for_ajax(table_configuration, paginate=True):
             sql_query = table_configuration['query_filter'](sql_query)
 
         total_count = sql_query.count()
+
+        #filter
+        if 'filter' in request.values and 'filter_data' in table_configuration:
+            filter = json.loads(request.values['filter'])
+            sql_query = table_configuration['filter_data'](sql_query, filter)
 
         # search, if required
         search_value = check_string_in_form('search[value]', request.values)

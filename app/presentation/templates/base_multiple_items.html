@@ -25,11 +25,19 @@
                             </div>
                         {%  endif %}
                     {% endfor %}
-                    <a class="btn btn-default hidden" id="filter">Filter</a>
-                    <a class="btn btn-default" id="clear">Herstel</a>
                 </div>
                 <hr class="nice-green-line">
             {% endif %}
+
+            {% if show_info %}
+                <div class="d-flex flex-row">
+                    {% for s in show_info %}
+                        <div class="p-2 border">{{ s }}</div>
+                    {% endfor %}
+                </div>
+                <hr class="nice-green-line">
+            {%  endif %}
+
             {% if table_config.buttons %}
                 <input type="hidden" id="button-pressed" name="button-pressed">
                 {% if 'view' in table_config.buttons %}

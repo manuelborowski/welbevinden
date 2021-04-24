@@ -7,7 +7,7 @@ from app.presentation.layout.utils import flash_plus, button_pressed
 from app.data import guest as mguest
 from app.application import socketio as msocketio, reservation as mreservation
 from app.data.models import Guest
-from app.presentation.view import update_available_timeslots, false, true, null, prepare_registration_form
+from app.presentation.view import prepare_registration_form
 
 import json
 
@@ -38,15 +38,18 @@ def table_action():
 def item_edit(done=False, id=-1):
     try:
         chbx_id_list = request.form.getlist('chbx')
-        # if chbx_id_list:
-        #     id = int(chbx_id_list[0])  # only the first one can be edited
-        # reservation = mreservation.get_reservation_by_id(id)
-        # config_data = prepare_registration_form(reservation.reservation_code)
-        # return render_template('guest/register.html', config_data=config_data,
-        #                        registration_endpoint = 'reservation.reservation_save')
+        if chbx_id_list:
+            id = int(chbx_id_list[0])  # only the first one can be edited
+        guest = mguest.get_first_guest(id=id)
+        ret = prepare_registration_form(guest.code)
+        if ret.result == ret.Result.E_COULD_NOT_REGISTER:
+            return render_template('guest/messages.html', type='could-not-register')
+        return render_template('guest/register.html', config_data=ret.ret,
+                               registration_endpoint='reservation.reservation_save')
     except Exception as e:
         log.error(f'could not edit reservation {request.args}: {e}')
         return redirect(url_for('reservation.show'))
+
 
 @reservation.route('/reservation_save/<string:form_data>', methods=['POST', 'GET'])
 @login_required
@@ -54,22 +57,21 @@ def item_edit(done=False, id=-1):
 def reservation_save(form_data):
     try:
         data = json.loads(form_data)
-        # if data['cancel-reservation']:
-        #     try:
-        #         mreservation.delete_registration(data['reservation-code'])
-        #     except Exception as e:
-        #         flash_plus('Kon de reservatie niet verwijderen', e)
-        # else:
-        #     try:
-        #         ret = mreservation.add_or_update_registration(data, suppress_send_ack_email=True)
-        #         if ret.result == ret.Result.E_NO_BOXES_SELECTED:
-        #             flash_plus('U hebt geen boxen geselecteerd',)
-        #         if ret.result == ret.Result.E_OK:
-        #             flash_plus('Reservatie is aangepast')
-        #         if ret.result == ret.Result.E_NOT_ENOUGH_BOXES:
-        #             flash_plus('Er zijn niet genoeg boxen')
-        #     except Exception as e:
-        #         flash_plus('Onbekende fout opgetreden', e)
+        if 'cancel-reservation' in data and data['cancel-reservation']:
+            try:
+                mreservation.delete_reservation(data['reservation-code'])
+                flash_plus('Reservatie is verwijderd')
+            except Exception as e:
+                flash_plus('Kon de reservatie niet verwijderen', e)
+        else:
+            try:
+                ret = mreservation.add_or_update_reservation(data)
+                if ret.result == ret.Result.E_OK:
+                    flash_plus('Reservatie is aangepast')
+                if ret.result == ret.Result.E_TIMESLOT_FULL:
+                    flash_plus('Op dit tijdslot zijn er geen plaatsen meer beschikbaar')
+            except Exception as e:
+                flash_plus('Onbekende fout opgetreden', e)
     except Exception as e:
         flash_plus('Onbekende fout opgetreden', e)
     return redirect(url_for('reservation.show'))
@@ -97,6 +99,30 @@ def celledit_event_cb(msg, client_sid=None):
 msocketio.subscribe_on_type('celledit-reservation', celledit_event_cb)
 
 
+def get_filters():
+    return [
+        {
+            'type': 'select',
+            'name': 'timeslot',
+            'label': 'Reservatie',
+            'choices': [
+                ['default', 'Alles'],
+                ['yes', 'Gemaakt'],
+                ['no', 'Open'],
+            ],
+            'default': 'default',
+        },
+    ]
+
+def get_show_info():
+    nbr_total, nbr_open, nbr_reserved = mreservation.get_reservation_counters()
+    return [
+        f'Totaal: {nbr_total}',
+        f'Open: {nbr_open}',
+        f'Gereserveerd: {nbr_reserved}',
+    ]
+
+
 table_configuration = {
     'view': 'reservation',
     'title': 'Reservaties',
@@ -112,14 +138,18 @@ table_configuration = {
         {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.full_name, 'orderable': True, 'width': '20%'},
         {'name': 'Kind', 'data': 'child_name', 'order_by': Guest.child_name, 'orderable': True, 'width': '20%'},
         {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True},
-        {'name': 'Uitndg', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_sent, 'width': '2%', 'celltoggle': 'standard'},
+        {'name': 'Uitndg', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_sent, 'width': '2%',
+         'celltoggle': 'standard'},
         {'name': 'Uitndg', 'data': 'nbr_invite_sent', 'order_by': Guest.nbr_invite_sent, 'width': '2%'},
-        {'name': 'Bevtg', 'data': 'ack_email_sent', 'order_by': Guest.ack_email_sent, 'width': '2%', 'celltoggle': 'standard'},
+        {'name': 'Bevtg', 'data': 'ack_email_sent', 'order_by': Guest.ack_email_sent, 'width': '2%',
+         'celltoggle': 'standard'},
         {'name': 'Bevtg', 'data': 'nbr_ack_sent', 'order_by': Guest.nbr_ack_sent, 'width': '2%'},
         {'name': 'Actief', 'data': 'enabled', 'order_by': Guest.enabled, 'width': '2%', 'celltoggle': 'standard'},
-        {'name': 'Retry', 'data': 'email_send_retry', 'order_by': Guest.email_send_retry, 'orderable': True, 'celledit': 'text'},
+        {'name': 'Retry', 'data': 'email_send_retry', 'order_by': Guest.email_send_retry, 'orderable': True,
+         'celledit': 'text'},
     ],
-    'filter': [],
+    'get_filters': get_filters,
+    'get_show_info': get_show_info,
     'item': {
         # 'edit': {'title': 'Wijzig een reservatie', 'buttons': ['save', 'cancel']},
         # 'view': {'title': 'Bekijk een reservatie', 'buttons': ['edit', 'cancel']},
@@ -128,6 +158,7 @@ table_configuration = {
     'href': [],
     'pre_filter': mguest.pre_filter,
     'format_data': mguest.format_data,
+    'filter_data': mguest.filter_data,
     'search_data': mguest.search_data,
     'default_order': (1, 'asc'),
     'socketio_endpoint': 'celledit-reservation',

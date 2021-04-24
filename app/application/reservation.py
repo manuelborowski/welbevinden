@@ -85,6 +85,17 @@ mguest.subscribe_invite_email_sent(guest_property_change_cb, None)
 mguest.subscribe_email_send_retry(guest_property_change_cb, None)
 
 
+def get_reservation_counters():
+    reserved_guests = mguest.get_guests(enabled=True, timeslot_is_not_none=True)
+    open_guests = mguest.get_guests(enabled=True, timeslot_is_none=True)
+    child_names = [g.child_name for g in reserved_guests]
+    filtered_open_guest = [g for g in open_guests if g.child_name not in child_names]
+    nbr_open = len(filtered_open_guest)
+    nbr_reserved = len(reserved_guests)
+    nbr_total = nbr_open + nbr_reserved
+    return nbr_total, nbr_open, nbr_reserved
+
+
 def get_available_timeslots(default_date=None):
     try:
         timeslots = []

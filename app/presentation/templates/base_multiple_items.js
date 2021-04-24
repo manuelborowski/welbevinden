@@ -72,21 +72,8 @@ $(document).ready(function () {
 
     //if a filter is changed, then the filter is applied by simulating a click on the filter button
     $(".table-filter").change(function () {
-        $("#filter").click();
-    });
-    //The filter button of the filter is clicked
-    $('#filter').click(function () {
         store_filter_settings();
         table.ajax.reload();
-    });
-
-    //The clear button of the filter is clicked
-    $('#clear').click(function () {
-        for (i = 0; i < filters.length; i++) {
-            $("#" + filters[i].name).val(filters[i].default);
-        }
-        //emulate click on filter button
-        $('#filter').trigger('click');
     });
 
     //Store locally in the client-browser
@@ -121,7 +108,7 @@ $(document).ready(function () {
             url: Flask.url_for(table_config.table_ajax),
             type: 'POST',
             data: function (d) {
-                return $.extend({}, d, filter_settings);
+                return $.extend({}, d, {'filter': JSON.stringify(filter_settings)});
             }
         },
         pagingType: "full_numbers",

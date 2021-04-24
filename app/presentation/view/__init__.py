@@ -12,6 +12,8 @@ def prepare_registration_form(code):
         available_timeslots = ret.ret['available_timeslots']
         template = ret.ret['template']
         update_available_timeslots(available_timeslots, template, 'radio-timeslot')
+        if 'new' == ret.ret['mode']:
+            update_template(template)
     return ret
 
 
@@ -19,6 +21,17 @@ def prepare_settings_form(form):
     component = search_component(form, 'div-load-guest-file')
     template = msettings.get_configuration_setting('div-load-guest-file')
     component['html'] = template
+
+
+def update_template(template):
+    new_header = search_component(template, 'header-new')
+    new_header['hidden'] = False
+    update_header = search_component(template, 'header-update')
+    update_header['hidden'] = True
+    child_name = search_component(template, 'child_name')
+    child_name['disabled'] = False
+    email = search_component(template, 'email')
+    email['disabled'] = False
 
 
 def update_available_timeslots(timeslots, form, key):

@@ -1,4 +1,5 @@
 from app.application.util import datetime_to_dutch_datetime_string, formiodate_to_datetime, datetime_to_formiodate
+from app.application import guest as maguest
 from app.data import utils as mutils, guest as mguest, settings as msettings, timeslot_configuration as mtc
 from app import log
 import datetime, json, sys
@@ -6,17 +7,33 @@ import datetime, json, sys
 
 def prepare_reservation(code=None):
     try:
-        guest = mguest.get_first_guest(code=code)
-        if not guest:
-            return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
-        default_values = guest.flat()
-        if guest.timeslot:
-            default_values['update-reservation'] = 'true'
-        ret = {'default_values': default_values,
-               'template': json.loads(msettings.get_configuration_setting('register-template')),
-               'available_timeslots': get_available_timeslots(guest.timeslot)
-               }
-        return RegisterResult(RegisterResult.Result.E_OK, ret)
+        if 'new' == code:
+            empty_values = {
+            'phone': '',
+            'email': '',
+            'full_name': '',
+            'child_name': '',
+            'reservation-code': 'new',
+            }
+            ret = {'default_values': empty_values,
+                   'template': json.loads(msettings.get_configuration_setting('register-template')),
+                   'available_timeslots': get_available_timeslots(),
+                   'mode': 'new'
+                   }
+            return RegisterResult(RegisterResult.Result.E_OK, ret)
+        else:
+            guest = mguest.get_first_guest(code=code)
+            if not guest:
+                return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
+            default_values = guest.flat()
+            if guest.timeslot:
+                default_values['update-reservation'] = 'true'
+            ret = {'default_values': default_values,
+                   'template': json.loads(msettings.get_configuration_setting('register-template')),
+                   'available_timeslots': get_available_timeslots(guest.timeslot),
+                   'mode': 'update'
+                   }
+            return RegisterResult(RegisterResult.Result.E_OK, ret)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return RegisterResult(RegisterResult.Result.E_NOK)
@@ -35,11 +52,18 @@ def delete_reservation(code):
 def add_or_update_reservation(data, suppress_send_ack_email=False):
     try:
         code = data['reservation-code']
-        guest = mguest.get_first_guest(code=code)
         timeslot = formiodate_to_datetime(data['radio-timeslot'])
-        if timeslot != guest.timeslot and not check_requested_timeslot(timeslot):
-            return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, guest.flat())
-        guest = mguest.update_guest(guest, full_name=data['full_name'], phone=data['phone'], timeslot=timeslot)
+        if 'new' == code:
+            if not check_requested_timeslot(timeslot):
+                ret = {'reservation-code': 'new'}
+                return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, ret)
+            guest = maguest.add_guest(full_name=data['full_name'], email=data['email'])
+            guest = mguest.update_guest(guest, child_name=data['child_name'], phone=data['phone'], timeslot=timeslot)
+        else:
+            guest = mguest.get_first_guest(code=code)
+            if timeslot != guest.timeslot and not check_requested_timeslot(timeslot):
+                return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, guest.flat())
+            guest = mguest.update_guest(guest, full_name=data['full_name'], phone=data['phone'], timeslot=timeslot)
         if guest and not suppress_send_ack_email:
             guest.set_email_send_retry(0)
             guest.set_ack_email_sent(False)

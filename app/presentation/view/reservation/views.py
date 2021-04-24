@@ -30,9 +30,23 @@ def table_ajax():
 @login_required
 @supervisor_required
 def table_action():
-    pass
     if button_pressed('edit'):
         return item_edit()
+    if button_pressed('add'):
+        return item_add()
+    if button_pressed('delete'):
+        return item_delete()
+    return redirect(url_for('reservation.show'))
+
+
+def item_delete(done=False, id=-1):
+    try:
+        chbx_id_list = request.form.getlist('chbx')
+        ids = [int(i) for i in chbx_id_list]
+        mguest.delete_guest(ids)
+    except Exception as e:
+        log.error(f'could not delete guest {request.args}: {e}')
+    return redirect(url_for('reservation.show'))
 
 
 def item_edit(done=False, id=-1):
@@ -41,14 +55,18 @@ def item_edit(done=False, id=-1):
         if chbx_id_list:
             id = int(chbx_id_list[0])  # only the first one can be edited
         guest = mguest.get_first_guest(id=id)
-        ret = prepare_registration_form(guest.code)
-        if ret.result == ret.Result.E_COULD_NOT_REGISTER:
-            return render_template('guest/messages.html', type='could-not-register')
-        return render_template('guest/register.html', config_data=ret.ret,
-                               registration_endpoint='reservation.reservation_save')
+        return redirect(url_for('guest.register', code=guest.code))
     except Exception as e:
         log.error(f'could not edit reservation {request.args}: {e}')
-        return redirect(url_for('reservation.show'))
+    return redirect(url_for('reservation.show'))
+
+
+def item_add(done=False, id=-1):
+    try:
+        return redirect(url_for('guest.register', code='new'))
+    except Exception as e:
+        log.error(f'could not add reservation {request.args}: {e}')
+    return redirect(url_for('reservation.show'))
 
 
 @reservation.route('/reservation_save/<string:form_data>', methods=['POST', 'GET'])
@@ -125,12 +143,9 @@ def get_show_info():
 
 table_configuration = {
     'view': 'reservation',
-    'title': 'Reservaties',
-    'buttons': [
-        # 'delete', 'add', 'edit', 'view'
-        'edit'
-    ],
-    'delete_message': u'Wilt u deze reservatie(s) verwijderen?',
+    'title': 'Gasten',
+    'buttons': ['edit', 'add', 'delete'],
+    'delete_message': u'Wilt u deze gaste(en) verwijderen?',
     'template': [
         {'name': 'row_action', 'data': 'row_action', 'width': '2%'},
         {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True, 'width': '15%'},

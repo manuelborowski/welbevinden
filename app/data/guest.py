@@ -99,6 +99,16 @@ def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, timesl
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
+def delete_guest(id_list=None):
+    try:
+        for id in id_list:
+            guest = get_first_guest(id)
+            db.session.delete(guest)
+        db.session.commit()
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
 
 def update_timeslot(guest, timeslot):
     try:

@@ -62,6 +62,7 @@ function view_item() {
 
 function edit_item() {
     if (is_exactly_one_checkbox_selected()) {
+        $("#action_form").attr('target', '_blank')
         $("#button-pressed").val("edit");
         $("#action_form").submit();
     }

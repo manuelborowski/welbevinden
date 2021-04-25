@@ -105,13 +105,13 @@ def prepare_data_for_ajax(table_configuration, paginate=True):
                     filtered_list, total_count, filtered_count = composed_query(sql_query.all(),
                                                                                 search_string=stripped_search_value)
                 else:
-                    if paginate_start:
+                    if paginate:
                         sql_query = sql_query.slice(paginate_start, paginate_start + paginate_length)
                     filtered_list = sql_query.all()
                 # format the list
                 formatted_list = table_configuration['format_data'](filtered_list)
                 # if it is a composed query, it is still required to paginate
-                if composed_query and paginate_start:
+                if composed_query and paginate:
                     formatted_list = formatted_list[paginate_start:paginate_start + paginate_length]
             else:
                 # order the list based on a user specified lambda function
@@ -127,7 +127,7 @@ def prepare_data_for_ajax(table_configuration, paginate=True):
                 formatted_list = table_configuration['format_data'](filtered_list)
                 reverse = False if check_string_in_form('order[0][dir]', request.values) == 'desc' else True
                 formatted_list = sorted(formatted_list, key=order_by, reverse=reverse)
-                if paginate_start:
+                if paginate:
                     formatted_list = formatted_list[paginate_start:paginate_start + paginate_length]
         else:
             formatted_list = table_configuration['format_data']()

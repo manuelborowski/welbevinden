@@ -133,6 +133,7 @@ def get_filters():
         },
     ]
 
+
 def get_show_info():
     nbr_total, nbr_open, nbr_reserved = mreservation.get_reservation_counters()
     return [
@@ -146,7 +147,7 @@ table_configuration = {
     'view': 'reservation',
     'title': 'Gasten',
     'buttons': ['edit', 'add', 'delete'],
-    'delete_message': u'Wilt u deze gaste(en) verwijderen?',
+    'delete_message': 'Opgelet!!<br>Bent u zeker om deze gast(en) verwijderen?',
     'template': [
         {'name': 'row_action', 'data': 'row_action', 'width': '1%'},
         {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True, 'width': '10%'},

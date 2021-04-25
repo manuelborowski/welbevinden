@@ -153,6 +153,12 @@ class Guest(db.Model):
     code = db.Column(db.String(256), default='')
     timeslot = db.Column(db.DateTime())
 
+    def row_color(self):
+        if self.enabled:
+            return ''
+        else:
+            return 'lightsalmon'
+
     def flat(self):
         return {
             'id': self.id,
@@ -173,6 +179,7 @@ class Guest(db.Model):
             'email_send_retry': self.email_send_retry,
             'enabled': self.enabled,
             'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
+            'overwrite_row_color': self.row_color(),
         }
 
     ack_email_sent_cb = []

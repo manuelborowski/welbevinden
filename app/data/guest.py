@@ -71,7 +71,7 @@ def get_first_guest(id=None, email=None, code=None):
 
 def get_guest_count(timeslot=None):
     try:
-        count = get_guests(timeslot=timeslot, count=True)
+        count = get_guests(timeslot=timeslot, enabled=True, count=True)
         return count
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -94,7 +94,7 @@ def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, timesl
             guest.phone = phone
         if timeslot:
             guest.timeslot = timeslot
-        if note:
+        if note is not None:
             guest.note = note
         return guest
     except Exception as e:

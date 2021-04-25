@@ -173,7 +173,7 @@ $(document).ready(function () {
     if (current_user_is_at_least_admin) {
         datatable_config["lengthMenu"] = [50, 100, 200, 500, 1000];
     } else {
-        datatable_config["lengthMenu"] = [50, 100, 200];
+        datatable_config["lengthMenu"] = [50, 100, 200, 500];
     }
 
     if ("default_order" in table_config) {
@@ -273,6 +273,7 @@ $(document).ready(function () {
             confirmationButton: {listenToKeys: true},
             columns: celledit_columns,
             inputTypes: celledit_inputtypes,
+            inputCss: "celledit-input"
         });
     }
 

@@ -204,3 +204,8 @@ table, th, td {
 table.dataTable tbody td {
     padding: 0px;
 }
+
+.celledit-input {
+    width: 100%;
+    margin: 0px;
+}

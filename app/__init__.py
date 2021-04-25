@@ -29,10 +29,11 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 #  V0.13: added filter, added reservation counter
 #  V0.14: add reservations, delete guests
 #  V0.15: added note and key to guests
+#  V0.16: cosmetic update
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.15')
+    return dict(version='V0.16')
 
 
 #  enable logging

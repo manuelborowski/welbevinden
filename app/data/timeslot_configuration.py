@@ -84,9 +84,13 @@ def search_data(search_string):
 def format_data(db_list):
     out = []
     for i in db_list:
-        em = i.ret_dict()
-        em['row_action'] = f"{i.id}"
-        out.append(em)
+        em = i.flat()
+        em.update({
+            'row_action': f"{i.id}",
+            'id': i.id,
+            'DT_RowId': i.id
+        })
+    out.append(em)
     return out
 
 

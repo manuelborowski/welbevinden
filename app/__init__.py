@@ -30,10 +30,11 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 #  V0.14: add reservations, delete guests
 #  V0.15: added note and key to guests
 #  V0.16: cosmetic update
+#  V0.17: added overview of timeslots
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.16')
+    return dict(version='V0.17')
 
 
 #  enable logging
@@ -138,12 +139,13 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings, guest, reservation
+    from app.presentation.view import auth, user, settings, guest, reservation, timeslot
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(guest.guest)
     flask_app.register_blueprint(settings.settings)
     flask_app.register_blueprint(reservation.reservation)
+    flask_app.register_blueprint(timeslot.timeslot)
 
     @flask_app.errorhandler(403)
     def forbidden(error):

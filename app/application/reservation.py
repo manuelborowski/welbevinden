@@ -138,13 +138,32 @@ def get_available_timeslots(default_date=None):
                     'label':  f"({available}) {datetime_to_dutch_datetime_string(date)}",
                     'value': datetime_to_formiodate(date),
                     'available': available,
-                    'default': default_flag
+                    'default': default_flag,
+                    'maximum': timeslot_config.items_per_timeslot,
                 })
                 date += datetime.timedelta(minutes=timeslot_config.length)
         return timeslots
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return []
+
+
+def datatable_get_timeslots():
+    out = []
+    timeslots = get_available_timeslots()
+    for timeslot in timeslots:
+        em = {
+            'row_action': "0",
+            'id': 0,
+            'DT_RowId': 0,
+            'timeslot': timeslot['label'],
+            'nbr_total': timeslot['maximum'],
+            'nbr_open': timeslot['available'],
+            'nbr_reserved': timeslot['maximum'] - timeslot['available']
+        }
+        out.append(em)
+    return out
+
 
 
 def check_requested_timeslot(date):

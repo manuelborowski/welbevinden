@@ -180,6 +180,10 @@ $(document).ready(function () {
         datatable_config["order"] = [[table_config.default_order[0], table_config.default_order[1]]];
     }
 
+    if("width" in table_config) {
+        $("#datatable").attr("width", table_config.width);
+    }
+
     var table = $('#datatable').DataTable(datatable_config);
 
     function cell_edit_cb(type, data) {

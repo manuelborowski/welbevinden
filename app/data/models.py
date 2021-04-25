@@ -277,7 +277,11 @@ class TimeslotConfiguration(db.Model):
     items_per_timeslot = db.Column(db.Integer, default=8)
     active = db.Column(db.Boolean, default=True)
 
-    def period_string(self):
-        start_date = self.date.strftime('%d/%m/%Y')
-        end_date = (self.date + datetime.timedelta(days=self.length - 1)).strftime('%d/%m/%Y')
-        return f'{start_date} tem {end_date}'
+    def flat(self):
+        return {
+            'id': self.id,
+            'active': self.active,
+            'date': datetime_to_dutch_datetime_string(self.date),
+            'overwrite_row_color': self.row_color(),
+        }
+

@@ -141,6 +141,8 @@ class Guest(db.Model):
     last_name = db.Column(db.String(256))
     full_name = db.Column(db.String(256))
     child_name = db.Column(db.String(256))
+    key = db.Column(db.String(256))
+    note = db.Column(db.Text)
     last_login = db.Column(db.DateTime())
     invite_email_sent = db.Column(db.Boolean, default=True)
     ack_email_sent = db.Column(db.Boolean, default=True)
@@ -160,6 +162,8 @@ class Guest(db.Model):
             'last-name': self.last_name,
             'full_name': self.full_name,
             'child_name': self.child_name,
+            'key': self.key,
+            'note': self.note,
             'last_login': self.last_login,
             'reservation-code': self.code,
             'invite_email_sent': self.invite_email_sent,

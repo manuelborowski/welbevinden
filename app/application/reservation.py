@@ -76,6 +76,8 @@ def add_or_update_reservation(data, suppress_send_ack_email=False):
 def update_reservation(property, id, value):
     try:
         guest = mguest.get_first_guest(id=id)
+        if 'note' == property:
+            mguest.update_guest(guest, note=value)
         if 'invite_email_sent' == property:
             guest.set_invite_email_sent(value)
         elif 'ack_email_sent' == property:

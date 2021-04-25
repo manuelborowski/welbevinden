@@ -78,13 +78,13 @@ def get_guest_count(timeslot=None):
     return -1
 
 
-def update_guest(guest, full_name=None, child_name=None, phone=None, timeslot=None):
-    guest = update_guest_bulk(guest, full_name=full_name, child_name=child_name, phone=phone, timeslot=timeslot)
+def update_guest(guest, full_name=None, child_name=None, phone=None, timeslot=None, note=None):
+    guest = update_guest_bulk(guest, full_name=full_name, child_name=child_name, phone=phone, timeslot=timeslot, note=note)
     guest_bulk_commit()
     return guest
 
 
-def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, timeslot=None):
+def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, timeslot=None, note=None):
     try:
         if full_name:
             guest.full_name = full_name
@@ -94,6 +94,8 @@ def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, timesl
             guest.phone = phone
         if timeslot:
             guest.timeslot = timeslot
+        if note:
+            guest.note = note
         return guest
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

@@ -102,13 +102,15 @@ mreservation.subscribe_reservation_changed(reservation_update_cb, None)
 
 
 def celledit_event_cb(msg, client_sid=None):
-    if msg['data']['column'] == 5:
-        mreservation.update_reservation('invite_email_sent', msg['data']['id'], msg['data']['value'])
+    if msg['data']['column'] == 6:
+        mreservation.update_reservation('note', msg['data']['id'], msg['data']['value'])
     if msg['data']['column'] == 7:
-        mreservation.update_reservation('ack_email_sent', msg['data']['id'], msg['data']['value'])
+        mreservation.update_reservation('invite_email_sent', msg['data']['id'], msg['data']['value'])
     if msg['data']['column'] == 9:
+        mreservation.update_reservation('ack_email_sent', msg['data']['id'], msg['data']['value'])
+    if msg['data']['column'] == 11:
         mreservation.update_reservation('enabled', msg['data']['id'], msg['data']['value'])
-    if msg['data']['column'] == 10:
+    if msg['data']['column'] == 12:
         mreservation.update_reservation('email_send_retry', msg['data']['id'], msg['data']['value'])
     msocketio.send_to_room({'type': 'celledit-reservation', 'data': {'status': True}}, client_sid)
 
@@ -146,21 +148,22 @@ table_configuration = {
     'buttons': ['edit', 'add', 'delete'],
     'delete_message': u'Wilt u deze gaste(en) verwijderen?',
     'template': [
-        {'name': 'row_action', 'data': 'row_action', 'width': '2%'},
-        {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True, 'width': '15%'},
-        {'name': 'Email', 'data': 'email', 'order_by': Guest.email, 'orderable': True},
-        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.full_name, 'orderable': True, 'width': '20%'},
-        {'name': 'Kind', 'data': 'child_name', 'order_by': Guest.child_name, 'orderable': True, 'width': '20%'},
-        {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True},
-        {'name': 'Uitndg', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_sent, 'width': '2%',
+        {'name': 'row_action', 'data': 'row_action', 'width': '1%'},
+        {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True, 'width': '10%'},
+        {'name': 'Email', 'data': 'email', 'order_by': Guest.email, 'orderable': True, 'width': '12%'},
+        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.full_name, 'orderable': True, 'width': '12%'},
+        {'name': 'Kind', 'data': 'child_name', 'order_by': Guest.child_name, 'orderable': True, 'width': '12%'},
+        {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True, 'width': '8%'},
+        {'name': 'Notitie', 'data': 'note', 'order_by': Guest.note, 'orderable': True, 'width': '25%', 'celledit': 'text'},
+        {'name': 'U', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_sent, 'width': '1%',
          'celltoggle': 'standard'},
-        {'name': 'Uitndg', 'data': 'nbr_invite_sent', 'order_by': Guest.nbr_invite_sent, 'width': '2%'},
-        {'name': 'Bevtg', 'data': 'ack_email_sent', 'order_by': Guest.ack_email_sent, 'width': '2%',
+        {'name': 'U', 'data': 'nbr_invite_sent', 'order_by': Guest.nbr_invite_sent, 'width': '1%'},
+        {'name': 'B', 'data': 'ack_email_sent', 'order_by': Guest.ack_email_sent, 'width': '1%',
          'celltoggle': 'standard'},
-        {'name': 'Bevtg', 'data': 'nbr_ack_sent', 'order_by': Guest.nbr_ack_sent, 'width': '2%'},
-        {'name': 'Actief', 'data': 'enabled', 'order_by': Guest.enabled, 'width': '2%', 'celltoggle': 'standard'},
-        {'name': 'Retry', 'data': 'email_send_retry', 'order_by': Guest.email_send_retry, 'orderable': True,
-         'celledit': 'text'},
+        {'name': 'B', 'data': 'nbr_ack_sent', 'order_by': Guest.nbr_ack_sent, 'width': '1%'},
+        {'name': 'A', 'data': 'enabled', 'order_by': Guest.enabled, 'width': '1%', 'celltoggle': 'standard'},
+        {'name': 'R', 'data': 'email_send_retry', 'order_by': Guest.email_send_retry, 'orderable': True,
+         'celledit': 'text', 'width': '1%'},
     ],
     'get_filters': get_filters,
     'get_show_info': get_show_info,

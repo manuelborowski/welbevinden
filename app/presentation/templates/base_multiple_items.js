@@ -49,6 +49,7 @@ function delete_item() {
 }
 
 function add_item() {
+    $("#action_form").attr('target', '_blank')
     $("#button-pressed").val("add");
     $("#action_form").submit();
 }

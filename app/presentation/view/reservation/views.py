@@ -7,7 +7,6 @@ from app.presentation.layout.utils import flash_plus, button_pressed
 from app.data import guest as mguest
 from app.application import socketio as msocketio, reservation as mreservation
 from app.data.models import Guest
-from app.presentation.view import prepare_registration_form
 
 import json
 

@@ -7,14 +7,18 @@ from app.application import socketio as msocketio, event as mevent, guest as mgu
 from . import settings
 from app.application import settings as msettings
 from app.presentation.layout.utils import flash_plus, button_pressed
+import json
 
 @settings.route('/settings', methods=['GET', 'POST'])
 @admin_required
 @login_required
 def show():
     default_settings = msettings.get_configuration_settings()
-    return render_template('/settings/settings.html',
-                           settings_form=settings_formio, default_settings=default_settings)
+    data = {
+        'default': default_settings,
+        'template': settings_formio,
+    }
+    return render_template('/settings/settings.html', data=data)
 
 
 @settings.route('/settings/upload_guest_info', methods=['GET', 'POST'])
@@ -30,9 +34,15 @@ def upload_guest_info():
         flash_plus('Could not import guest file', e)
 
 
-
 def update_settings_cb(msg, client_sid=None):
-    msettings.set_configuration_setting(msg['data']['setting'], msg['data']['value'])
+  try:
+    data = msg['data']
+    settings = json.loads(data['value'])
+    msettings.set_setting_topic(settings)
+    msettings.set_configuration_setting(data['setting'], data['value'])
+    msocketio.send_to_room({'type': 'settings', 'data': {'status': True}}, client_sid)
+  except Exception as e:
+    msocketio.send_to_room({'type': 'settings', 'data': {'status': False, 'message': str(e)}}, client_sid)
 
 
 def event_received_cb(msg, client_sid=None):
@@ -50,245 +60,317 @@ settings_formio = \
     "display": "form",
     "components": [
       {
-        "title": "Algemeen",
-        "theme": "primary",
-        "collapsible": true,
-        "key": "algemeen",
-        "type": "panel",
-        "label": "Algemeen",
-        "input": false,
+        "label": "General",
         "tableView": false,
+        "key": "container",
+        "type": "container",
+        "input": true,
         "components": [
           {
-            "label": "Uitnodigingse-mails worden verzonden",
+            "title": "Algemeen",
+            "theme": "primary",
+            "collapsible": true,
+            "key": "algemeen",
+            "type": "panel",
+            "label": "Algemeen",
+            "input": false,
             "tableView": false,
-            "defaultValue": false,
-            "persistent": false,
-            "key": "enable-send-invite-email",
-            "type": "checkbox",
-            "input": true
-          },
-          {
-            "label": "Bevestigingse-mails worden verzonden",
-            "tableView": false,
-            "defaultValue": false,
-            "persistent": false,
-            "key": "enable-send-ack-email",
-            "type": "checkbox",
-            "input": true
-          },
-          {
-            "label": "Columns",
-            "columns": [
+            "components": [
               {
-                "components": [
-                  {
-                    "label": "Opgepast: stuur een uitnodiging naar alle gasten",
-                    "tableView": false,
-                    "key": "checkbox-enable-send-invite",
-                    "type": "checkbox",
-                    "input": true,
-                    "defaultValue": false,
-                    "hideOnChildrenHidden": false
-                  }
-                ],
-                "width": 6,
-                "offset": 0,
-                "push": 0,
-                "pull": 0,
-                "size": "md"
+                "label": "Submit",
+                "showValidations": false,
+                "theme": "warning",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
               },
               {
-                "components": [
+                "label": "Uitnodigingse-mails worden verzonden",
+                "tableView": false,
+                "defaultValue": false,
+                "persistent": false,
+                "key": "enable-send-invite-email",
+                "type": "checkbox",
+                "input": true
+              },
+              {
+                "label": "Bevestigingse-mails worden verzonden",
+                "tableView": false,
+                "defaultValue": false,
+                "persistent": false,
+                "key": "enable-send-ack-email",
+                "type": "checkbox",
+                "input": true
+              },
+              {
+                "label": "Columns",
+                "columns": [
                   {
-                    "label": "Stuur uitnodigingse-mails naar alle gasten",
-                    "action": "event",
-                    "showValidations": false,
-                    "theme": "danger",
-                    "tableView": false,
-                    "key": "button-send-invite-emails",
-                    "conditional": {
-                      "show": true,
-                      "when": "checkbox-enable-send-invite",
-                      "eq": "true"
-                    },
-                    "type": "button",
-                    "input": true,
-                    "event": "button-send-invite-emails",
-                    "hideOnChildrenHidden": false
+                    "components": [
+                      {
+                        "label": "Opgepast: stuur een uitnodiging naar alle gasten",
+                        "tableView": false,
+                        "key": "checkbox-enable-send-invite",
+                        "type": "checkbox",
+                        "input": true,
+                        "defaultValue": false,
+                        "hideOnChildrenHidden": false
+                      }
+                    ],
+                    "width": 6,
+                    "offset": 0,
+                    "push": 0,
+                    "pull": 0,
+                    "size": "md"
+                  },
+                  {
+                    "components": [
+                      {
+                        "label": "Stuur uitnodigingse-mails naar alle gasten",
+                        "action": "event",
+                        "showValidations": false,
+                        "theme": "danger",
+                        "tableView": false,
+                        "key": "button-send-invite-emails",
+                        "conditional": {
+                          "show": true,
+                          "when": "checkbox-enable-send-invite",
+                          "eq": "true"
+                        },
+                        "type": "button",
+                        "input": true,
+                        "event": "button-send-invite-emails",
+                        "hideOnChildrenHidden": false
+                      }
+                    ],
+                    "width": 6,
+                    "offset": 0,
+                    "push": 0,
+                    "pull": 0,
+                    "size": "md"
                   }
                 ],
-                "width": 6,
-                "offset": 0,
-                "push": 0,
-                "pull": 0,
-                "size": "md"
+                "key": "columns",
+                "type": "columns",
+                "input": false,
+                "tableView": false
               }
             ],
-            "key": "columns",
-            "type": "columns",
+            "collapsed": true
+          }
+        ]
+      },
+      {
+        "label": "Visitors",
+        "tableView": false,
+        "key": "visitors",
+        "type": "container",
+        "input": true,
+        "components": [
+          {
+            "title": "BEZOEKERS : Registratie template en e-mail",
+            "theme": "primary",
+            "collapsible": true,
+            "key": "RegistratieTemplate1",
+            "type": "panel",
+            "label": "BEZOEKERS : Registratie template en e-mail",
             "input": false,
-            "tableView": false
+            "tableView": false,
+            "components": [
+              {
+                "label": "Submit",
+                "showValidations": false,
+                "theme": "warning",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              },
+              {
+                "label": "Uitnodigings email: onderwerp",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "invite-mail-subject-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "Uitnodigings email: inhoud",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "invite-mail-content-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "Web registratie template",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "register-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "Registratie bevestigingse-mail: onderwerp",
+                "autoExpand": false,
+                "tableView": true,
+                "persistent": false,
+                "key": "register-mail-ack-subject-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "Registratie bevestigingse-mail: inhoud",
+                "autoExpand": false,
+                "tableView": true,
+                "persistent": false,
+                "key": "register-mail-ack-content-template",
+                "type": "textarea",
+                "input": true
+              }
+            ],
+            "collapsed": true
           }
-        ],
-        "collapsed": true
+        ]
       },
       {
-        "title": "BEZOEKERS : Registratie template en e-mail",
-        "theme": "primary",
-        "collapsible": true,
-        "key": "RegistratieTemplate1",
-        "type": "panel",
-        "label": "BEZOEKERS : Registratie template en e-mail",
-        "input": false,
+        "label": "Timeslot",
         "tableView": false,
+        "key": "timeslot",
+        "type": "container",
+        "input": true,
         "components": [
           {
-            "label": "Uitnodigings email: onderwerp",
-            "autoExpand": false,
-            "tableView": true,
-            "key": "invite-mail-subject-template",
-            "type": "textarea",
-            "input": true
-          },
-          {
-            "label": "Uitnodigings email: inhoud",
-            "autoExpand": false,
-            "tableView": true,
-            "key": "invite-mail-content-template",
-            "type": "textarea",
-            "input": true
-          },
-          {
-            "label": "Web registratie template",
-            "autoExpand": false,
-            "tableView": true,
-            "key": "register-template",
-            "type": "textarea",
-            "input": true
-          },
-          {
-            "label": "Registratie bevestigingse-mail: onderwerp",
-            "autoExpand": false,
-            "tableView": true,
-            "persistent": false,
-            "key": "register-mail-ack-subject-template",
-            "type": "textarea",
-            "input": true
-          },
-          {
-            "label": "Registratie bevestigingse-mail: inhoud",
-            "autoExpand": false,
-            "tableView": true,
-            "persistent": false,
-            "key": "register-mail-ack-content-template",
-            "type": "textarea",
-            "input": true
-          }
-        ],
-        "collapsed": true
-      },
-      {
-        "title": "Tijdslot configuratie",
-        "theme": "primary",
-        "collapsible": true,
-        "key": "RegistratieTemplate2",
-        "type": "panel",
-        "label": "BEZOEKERS : Registratie template en e-mail",
-        "input": false,
-        "tableView": false,
-        "components": [
-          {
-            "html": "<p>Configureer tijdsloten:&nbsp;<br>[<br>&nbsp; {\"jaar\": 2021, \"maand\": 5, \"dag\": 1, \"uur\": 9, \"minuut\": 0, \"lengte\": 15, \"aantal\": 12, \"plaatsen\": 8},<br>&nbsp; {\"jaar\": 2021, \"maand\": 5, \"dag\": 1, \"uur\": 12, \"minuut\": 0, \"lengte\": 15, \"aantal\": 4, \"plaatsen\": 5},<br>]</p>",
-            "label": "Content",
-            "refreshOnChange": false,
-            "key": "content",
-            "type": "content",
+            "title": "Tijdslot configuratie",
+            "theme": "primary",
+            "collapsible": true,
+            "key": "RegistratieTemplate2",
+            "type": "panel",
+            "label": "BEZOEKERS : Registratie template en e-mail",
             "input": false,
-            "tableView": false
-          },
-          {
-            "label": "Tijdslot configuratie",
-            "autoExpand": false,
-            "tableView": true,
-            "persistent": false,
-            "key": "timeslot-config-template",
-            "type": "textarea",
-            "input": true
+            "tableView": false,
+            "components": [
+              {
+                "label": "Submit",
+                "showValidations": false,
+                "theme": "warning",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              },
+              {
+                "html": "<p>Configureer tijdsloten:&nbsp;<br>[<br>&nbsp; {\"jaar\": 2021, \"maand\": 5, \"dag\": 1, \"uur\": 9, \"minuut\": 0, \"lengte\": 15, \"aantal\": 12, \"plaatsen\": 8},<br>&nbsp; {\"jaar\": 2021, \"maand\": 5, \"dag\": 1, \"uur\": 12, \"minuut\": 0, \"lengte\": 15, \"aantal\": 4, \"plaatsen\": 5},<br>]</p>",
+                "label": "Content",
+                "refreshOnChange": false,
+                "key": "content",
+                "type": "content",
+                "input": false,
+                "tableView": false
+              },
+              {
+                "label": "Tijdslot configuratie",
+                "autoExpand": false,
+                "tableView": true,
+                "persistent": false,
+                "key": "timeslot-config-template",
+                "type": "textarea",
+                "input": true
+              }
+            ],
+            "collapsed": true
           }
-        ],
-        "collapsed": true
+        ]
       },
       {
-        "title": "E-mail server settings",
-        "theme": "primary",
-        "collapsible": true,
-        "key": "eMailServerSettings",
-        "type": "panel",
-        "label": "E-mail server settings",
-        "input": false,
+        "label": "Emailserver",
         "tableView": false,
+        "key": "emailserver",
+        "type": "container",
+        "input": true,
         "components": [
           {
-            "label": "Aantal keer dat een e-mail geprobeerd wordt te verzenden",
-            "labelPosition": "left-left",
-            "mask": false,
-            "spellcheck": false,
+            "title": "E-mail server settings",
+            "theme": "primary",
+            "collapsible": true,
+            "key": "eMailServerSettings",
+            "type": "panel",
+            "label": "E-mail server settings",
+            "input": false,
             "tableView": false,
-            "delimiter": false,
-            "requireDecimal": false,
-            "inputFormat": "plain",
-            "key": "email-send-max-retries",
-            "type": "number",
-            "input": true
-          },
-          {
-            "label": "Tijd (seconden) tussen het verzenden van e-mails",
-            "labelPosition": "left-left",
-            "mask": false,
-            "spellcheck": true,
-            "tableView": false,
-            "persistent": false,
-            "delimiter": false,
-            "requireDecimal": false,
-            "inputFormat": "plain",
-            "key": "email-task-interval",
-            "type": "number",
-            "input": true
-          },
-          {
-            "label": "Max aantal e-mails per minuut",
-            "labelPosition": "left-left",
-            "mask": false,
-            "spellcheck": true,
-            "tableView": false,
-            "persistent": false,
-            "delimiter": false,
-            "requireDecimal": false,
-            "inputFormat": "plain",
-            "key": "emails-per-minute",
-            "type": "number",
-            "input": true
-          },
-          {
-            "label": "Basis URL",
-            "labelPosition": "left-left",
-            "tableView": true,
-            "key": "base-url",
-            "type": "textfield",
-            "input": true
-          },
-          {
-            "label": "E-mails mogen worden verzonden",
-            "tableView": false,
-            "persistent": false,
-            "key": "enable-send-email",
-            "type": "checkbox",
-            "input": true,
-            "defaultValue": false
+            "components": [
+              {
+                "label": "Submit",
+                "showValidations": false,
+                "theme": "warning",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              },
+              {
+                "label": "Aantal keer dat een e-mail geprobeerd wordt te verzenden",
+                "labelPosition": "left-left",
+                "mask": false,
+                "spellcheck": false,
+                "tableView": false,
+                "delimiter": false,
+                "requireDecimal": false,
+                "inputFormat": "plain",
+                "key": "email-send-max-retries",
+                "type": "number",
+                "input": true
+              },
+              {
+                "label": "Tijd (seconden) tussen het verzenden van e-mails",
+                "labelPosition": "left-left",
+                "mask": false,
+                "spellcheck": true,
+                "tableView": false,
+                "persistent": false,
+                "delimiter": false,
+                "requireDecimal": false,
+                "inputFormat": "plain",
+                "key": "email-task-interval",
+                "type": "number",
+                "input": true
+              },
+              {
+                "label": "Max aantal e-mails per minuut",
+                "labelPosition": "left-left",
+                "mask": false,
+                "spellcheck": true,
+                "tableView": false,
+                "persistent": false,
+                "delimiter": false,
+                "requireDecimal": false,
+                "inputFormat": "plain",
+                "key": "emails-per-minute",
+                "type": "number",
+                "input": true
+              },
+              {
+                "label": "Basis URL",
+                "labelPosition": "left-left",
+                "tableView": true,
+                "key": "base-url",
+                "type": "textfield",
+                "input": true
+              },
+              {
+                "label": "E-mails mogen worden verzonden",
+                "tableView": false,
+                "persistent": false,
+                "key": "enable-send-email",
+                "type": "checkbox",
+                "input": true,
+                "defaultValue": false
+              }
+            ],
+            "collapsed": true
           }
-        ],
-        "collapsed": true
+        ]
       }
     ]
   }

@@ -31,10 +31,11 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 #  V0.15: added note and key to guests
 #  V0.16: cosmetic update
 #  V0.17: added overview of timeslots
+#  V0.18: added submit buttons to settings.  Timeslot can be configured via settings
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.17')
+    return dict(version='V0.18')
 
 
 #  enable logging

@@ -39,6 +39,7 @@ def get_timeslot_configurations(date=None, length=None, nbr_of_timeslots=None, i
           tcs = tcs.filter(TimeslotConfiguration.nbr_of_timeslots == nbr_of_timeslots)
         if items_per_timeslot:
           tcs = tcs.filter(TimeslotConfiguration.items_per_timeslot == items_per_timeslot)
+        tcs = tcs.order_by(TimeslotConfiguration.date)
         if first:
             tc = tcs.first()
             return tc

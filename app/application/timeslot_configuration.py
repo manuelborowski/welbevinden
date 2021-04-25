@@ -29,7 +29,7 @@ def timeslot_configuration_changed_cb(value, opaque):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-# msettings.subscribe_setting_changed('timeslot-config-template', timeslot_configuration_changed_cb, None)
+msettings.subscribe_setting_changed('timeslot-config-template', timeslot_configuration_changed_cb, None)
 
 
 

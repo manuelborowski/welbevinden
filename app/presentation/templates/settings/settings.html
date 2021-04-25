@@ -28,10 +28,7 @@
 {% block scripts %}
    {{ super() }}
     <script>
-        var settings_form =
-        {{ settings_form | tojson }}
-        var default_settings =
-        {{ default_settings | tojson }}
+    var data = {{ data | tojson }}
     </script>
     <script type="module"> {% include "settings/settings.js" %}</script>
 {% endblock %}

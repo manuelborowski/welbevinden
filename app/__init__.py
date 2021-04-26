@@ -33,10 +33,11 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 #  V0.17: added overview of timeslots
 #  V0.18: added submit buttons to settings.  Timeslot can be configured via settings
 #  V0.19: bugfixed pagination
+#  V0.20: cosmetic update
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.19')
+    return dict(version='V0.20')
 
 
 #  enable logging

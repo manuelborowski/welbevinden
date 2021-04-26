@@ -147,7 +147,11 @@ table_configuration = {
     'view': 'reservation',
     'title': 'Gasten',
     'buttons': ['edit', 'add', 'delete'],
-    'delete_message': 'Opgelet!!<br>Bent u zeker om deze gast(en) verwijderen?',
+    'delete_message': 'Opgelet!!<br>'
+                      'Bent u zeker om deze gast(en) verwijderen?<br>'
+                      'Eens verwijderd kunnen ze niet meer worden terug gehaald.<br>'
+                      'Indien u de reservatie wilt verwijderen, kies dan <b>Wijzig</'
+                      'b> en annuleer dan de reservatie.',
     'template': [
         {'name': 'row_action', 'data': 'row_action', 'width': '1%'},
         {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True, 'width': '10%'},

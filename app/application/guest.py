@@ -42,28 +42,29 @@ mevent.subscribe_event('button-send-invite-emails', event_send_invite_emails, No
 
 
 def import_guest_info(file_storeage):
-    def add_or_update(email, guest, guest_emails):
+    def add_or_update(email, guest, guest_child_emails):
         if email:
+            child_name = guest['naam kind']
             phone = str(guest['telefoonnummer'])
             if phone[0] != '0':
                 phone = f'0{phone}'
             if phone[0:3] == '032':
                 phone = f'0{phone}'
-            if email in guest_emails:
-                dbguest = guest_emails[email]
-                mguest.update_guest_bulk(dbguest, full_name=guest['naam ouder'], child_name=guest['naam kind'], phone=phone)
+            if child_name + email in guest_child_emails:
+                dbguest = guest_child_emails[child_name + email]
+                mguest.update_guest_bulk(dbguest, full_name=guest['naam ouder'], phone=phone)
             else:
                 code = create_random_string()
-                dbguest = mguest.add_guest_bulk(full_name=guest['naam ouder'], child_name=guest['naam kind'], phone=phone, email=email, code=code)
-                guest_emails[email] = dbguest
+                dbguest = mguest.add_guest_bulk(full_name=guest['naam ouder'], child_name=child_name, phone=phone, email=email, code=code)
+                guest_child_emails[child_name + email] = dbguest
 
     try:
         guests = mguest.get_guests(enabled=True)
-        guest_emails = {g.email: g for g in guests}
+        guest_child_emails = {g.child_name + g.email: g for g in guests}
         guest_dict = XLSXDictReader(BytesIO(file_storeage.read()))
         for guest in guest_dict:
-            add_or_update(guest['e-mailadres'], guest, guest_emails)
-            add_or_update(guest['e-mailadres begeleidende organisatie'], guest, guest_emails)
+            add_or_update(guest['e-mailadres'], guest, guest_child_emails)
+            add_or_update(guest['e-mailadres begeleidende organisatie'], guest, guest_child_emails)
         mguest.guest_bulk_commit()
     except Exception as e:
         mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)

@@ -155,7 +155,10 @@ class Guest(db.Model):
 
     def row_color(self):
         if self.enabled:
-            return ''
+            if 0 == self.nbr_invite_sent:
+                return 'yellow'
+            else:
+                return ''
         else:
             return 'lightsalmon'
 

@@ -34,10 +34,11 @@ flask_app = Flask(__name__, instance_relative_config=True, template_folder='pres
 #  V0.18: added submit buttons to settings.  Timeslot can be configured via settings
 #  V0.19: bugfixed pagination
 #  V0.20: cosmetic update
+#  V0.21: import guest info: one email address can be used for multiple children
 
 @flask_app.context_processor
 def inject_version():
-    return dict(version='V0.20')
+    return dict(version='V0.21')
 
 
 #  enable logging

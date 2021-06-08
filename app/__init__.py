@@ -22,11 +22,12 @@ flask_app.config.from_pyfile('config.py')
 
 # V0.1: copy from redeem-voucher V0.21
 # V0.2: made generic adaptations
+# V0.3: update systemfiles
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='V0.2', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='V0.3', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

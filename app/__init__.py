@@ -7,46 +7,31 @@ from werkzeug.routing import IntegerConverter as OrigIntegerConvertor
 import logging.handlers, os, sys
 from functools import wraps
 from flask_socketio import SocketIO
-#  from smtplib import SMTP
 from flask_apscheduler import APScheduler
 from flask_mail import Mail
 
 
 flask_app = Flask(__name__, instance_relative_config=True, template_folder='presentation/templates/')
 
-#  V0.1: copy from suminabox V0.19
-#  V0.2: send invite mail, guest can register and update, ack email send
-#  V0.3: update requirements.txt
-#  V0.4: do not add default guests
-#  V0.5: bugfix sending of invite mail
-#  V0.6: added reservation overview
-#  V0.7: import guest info file
-#  V0.8: update requirements.txt
-#  V0.9: update timeslot configuration
-#  V0.10: add leading 0 when importing phone number
-#  V0.11: bugfixed registration form
-#  V0.12: added child name
-#  V0.13: added filter, added reservation counter
-#  V0.14: add reservations, delete guests
-#  V0.15: added note and key to guests
-#  V0.16: cosmetic update
-#  V0.17: added overview of timeslots
-#  V0.18: added submit buttons to settings.  Timeslot can be configured via settings
-#  V0.19: bugfixed pagination
-#  V0.20: cosmetic update
-#  V0.21: import guest info: one email address can be used for multiple children
+# Configuration files...
+from config import app_config
+config_name = os.getenv('FLASK_CONFIG')
+config_name = config_name if config_name else 'production'
+flask_app.config.from_object(app_config[config_name])
+flask_app.config.from_pyfile('config.py')
+
+# V0.1: copy from redeem-voucher V0.21
+# V0.2: made generic adaptations
+
 
 @flask_app.context_processor
-def inject_version():
-    return dict(version='V0.21')
+def inject_defaults():
+    return dict(version='V0.2', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
-LOG_HANDLE = 'RDV'
-log = logging.getLogger(LOG_HANDLE)
+log = logging.getLogger(flask_app.config['LOG_HANDLE'])
 
-#  local imports
-from config import app_config
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -65,26 +50,20 @@ class MyLogFilter(logging.Filter):
         return True
 
 
-config_name = os.getenv('FLASK_CONFIG')
-config_name = config_name if config_name else 'production'
-
 # set up logging
-LOG_FILENAME = os.path.join(sys.path[0], app_config[config_name].STATIC_PATH, 'log/rdv-log.txt')
+LOG_FILENAME = os.path.join(sys.path[0], app_config[config_name].STATIC_PATH, f'log/{flask_app.config["LOG_FILE"]}.txt')
 try:
     log_level = getattr(logging, app_config[config_name].LOG_LEVEL)
 except:
     log_level = getattr(logging, 'INFO')
 log.setLevel(log_level)
 log.addFilter(MyLogFilter())
-log_handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=10 * 1024, backupCount=5)
+log_handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=60 * 1024, backupCount=5)
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(username)s - %(message)s')
 log_handler.setFormatter(log_formatter)
 log.addHandler(log_handler)
 
 log.info('start RDV')
-
-flask_app.config.from_object(app_config[config_name])
-flask_app.config.from_pyfile('config.py')
 
 jsglue = JSGlue(flask_app)
 db.app=flask_app  #  hack:-(

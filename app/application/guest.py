@@ -1,4 +1,4 @@
-from app.data import utils as mutils, guest as mguest
+from app.data import utils as mutils, guest as mguest, settings as msettings
 from app.application import event as mevent
 import random, string, datetime
 from app import log, db
@@ -42,29 +42,38 @@ mevent.subscribe_event('button-send-invite-emails', event_send_invite_emails, No
 
 
 def import_guest_info(file_storeage):
-    def add_or_update(email, guest, guest_child_emails):
+    def add_or_update(email, guest, key_cache):
         if email:
-            child_name = guest['naam kind']
-            phone = str(guest['telefoonnummer'])
-            if phone[0] != '0':
-                phone = f'0{phone}'
-            if phone[0:3] == '032':
-                phone = f'0{phone}'
-            if child_name + email in guest_child_emails:
-                dbguest = guest_child_emails[child_name + email]
-                mguest.update_guest_bulk(dbguest, full_name=guest['naam ouder'], phone=phone)
+            childname = guest[childname_field] if childname_field != '' else ''
+            parentname = guest[parentname_field] if parentname_field != '' else ''
+            phone = str(guest[phone_field]) if phone_field != '' else ''
+            if phone != '':
+                if phone[0] != '0':
+                    phone = f'0{phone}'
+                if phone[0:3] == '032':
+                    phone = f'0{phone}'
+            if childname + email in key_cache:
+                dbguest = key_cache[childname + email]
+                mguest.update_guest_bulk(dbguest, full_name=parentname, phone=phone)
             else:
                 code = create_random_string()
-                dbguest = mguest.add_guest_bulk(full_name=guest['naam ouder'], child_name=child_name, phone=phone, email=email, code=code)
-                guest_child_emails[child_name + email] = dbguest
+                dbguest = mguest.add_guest_bulk(full_name=parentname, child_name=childname, phone=phone, email=email, code=code)
+                key_cache[childname + email] = dbguest
 
     try:
+        parentname_field = msettings.get_configuration_setting('import-parentname-field')
+        childname_field = msettings.get_configuration_setting('import-childname-field')
+        phone_field = msettings.get_configuration_setting('import-phone-field')
+        email1_field = msettings.get_configuration_setting('import-email1-field')
+        email2_field = msettings.get_configuration_setting('import-email2-field')
         guests = mguest.get_guests(enabled=True)
-        guest_child_emails = {g.child_name + g.email: g for g in guests}
+        key_cache = {g.child_name + g.email: g for g in guests}
         guest_dict = XLSXDictReader(BytesIO(file_storeage.read()))
         for guest in guest_dict:
-            add_or_update(guest['e-mailadres'], guest, guest_child_emails)
-            add_or_update(guest['e-mailadres begeleidende organisatie'], guest, guest_child_emails)
+            if email1_field != '':
+                add_or_update(guest[email1_field], guest, key_cache)
+            if email2_field:
+                add_or_update(guest[email2_field], guest, key_cache)
         mguest.guest_bulk_commit()
     except Exception as e:
         mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)
@@ -72,7 +81,7 @@ def import_guest_info(file_storeage):
 
 
 def XLSXDictReader(f):
-    book = load_workbook(f)
+    book = load_workbook(f, data_only=True)
     sheet = book.active
     rows = sheet.max_row
     cols = sheet.max_column

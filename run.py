@@ -1,9 +1,5 @@
-import os
-
 from app import flask_app, socketio
 
 if __name__ == '__main__':
-
-    # flask_app.run(**app_options)
-    socketio.run(flask_app, port=5028, host='127.0.0.1')
+    socketio.run(flask_app, port=flask_app.config['FLASK_PORT'], host='127.0.0.1')
 

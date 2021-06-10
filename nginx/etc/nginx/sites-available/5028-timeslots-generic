@@ -1,5 +1,5 @@
 server {
-    listen 5028;
+    listen 5000;
     server_name timeslots-generic.ict.campussintursula.be;
 
     location / {
@@ -8,7 +8,7 @@ server {
     }
 
     location /static {
-        alias /home/aboro/projects/ticket-verzilveren/app/static;
+        alias /home/aboro/projects/timeslots-generic/app/static;
         expires 30d;
     }
 

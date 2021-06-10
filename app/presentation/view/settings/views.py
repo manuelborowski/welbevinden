@@ -32,6 +32,7 @@ def upload_guest_info():
         return redirect(url_for('settings.show'))
     except Exception as e:
         flash_plus('Could not import guest file', e)
+        return redirect(url_for('settings.show'))
 
 
 def update_settings_cb(msg, client_sid=None):
@@ -122,7 +123,8 @@ settings_formio = \
                     "offset": 0,
                     "push": 0,
                     "pull": 0,
-                    "size": "md"
+                    "size": "md",
+                    "currentWidth": 6
                   },
                   {
                     "components": [
@@ -148,7 +150,8 @@ settings_formio = \
                     "offset": 0,
                     "push": 0,
                     "pull": 0,
-                    "size": "md"
+                    "size": "md",
+                    "currentWidth": 6
                   }
                 ],
                 "key": "columns",
@@ -366,6 +369,83 @@ settings_formio = \
                 "type": "checkbox",
                 "input": true,
                 "defaultValue": false
+              }
+            ],
+            "collapsed": true
+          }
+        ]
+      },
+      {
+        "label": "Import",
+        "tableView": false,
+        "key": "import",
+        "type": "container",
+        "input": true,
+        "components": [
+          {
+            "title": "Importeer gasten configuratie",
+            "theme": "primary",
+            "collapsible": true,
+            "key": "eMailServerSettings1",
+            "type": "panel",
+            "label": "E-mail server settings",
+            "input": false,
+            "tableView": false,
+            "components": [
+              {
+                "label": "Submit",
+                "showValidations": false,
+                "theme": "warning",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true,
+                "saveOnEnter": false
+              },
+              {
+                "label": "Voornaam en naam ouder",
+                "labelPosition": "left-left",
+                "tableView": true,
+                "persistent": false,
+                "key": "import-parentname-field",
+                "type": "textfield",
+                "input": true
+              },
+              {
+                "label": "Voornaam en naam kind",
+                "labelPosition": "left-left",
+                "tableView": true,
+                "persistent": false,
+                "key": "import-childname-field",
+                "type": "textfield",
+                "input": true
+              },
+              {
+                "label": "Telefoon",
+                "labelPosition": "left-left",
+                "tableView": true,
+                "persistent": false,
+                "key": "import-phone-field",
+                "type": "textfield",
+                "input": true
+              },
+              {
+                "label": "E-mailadres nummer 1",
+                "labelPosition": "left-left",
+                "tableView": true,
+                "persistent": false,
+                "key": "import-email1-field",
+                "type": "textfield",
+                "input": true
+              },
+              {
+                "label": "E-mailadres nummer 2",
+                "labelPosition": "left-left",
+                "tableView": true,
+                "persistent": false,
+                "key": "import-email2-field",
+                "type": "textfield",
+                "input": true
               }
             ],
             "collapsed": true

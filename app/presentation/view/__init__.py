@@ -12,8 +12,7 @@ def prepare_registration_form(code):
         available_timeslots = ret.ret['available_timeslots']
         template = ret.ret['template']
         update_available_timeslots(available_timeslots, template, 'radio-timeslot')
-        if 'new' == ret.ret['mode']:
-            update_template(template)
+        update_template(template, new='new' == ret.ret['mode'] )
     return ret
 
 
@@ -23,15 +22,21 @@ def prepare_settings_form(form):
     component['html'] = template
 
 
-def update_template(template):
+def update_template(template, new):
     new_header = search_component(template, 'header-new')
-    new_header['hidden'] = False
+    new_header['hidden'] = not new
     update_header = search_component(template, 'header-update')
-    update_header['hidden'] = True
+    update_header['hidden'] = new
     child_name = search_component(template, 'child_name')
-    child_name['disabled'] = False
+    child_name['disabled'] = not new
     email = search_component(template, 'email')
-    email['disabled'] = False
+    email['disabled'] = not new
+    show_phone = msettings.get_configuration_setting('import-phone-field') != ''
+    phone = search_component(template, 'phone')
+    phone['hidden'] = not show_phone
+    show_name = msettings.get_configuration_setting('import-parentname-field') != ''
+    parent_name = search_component(template, 'full_name')
+    parent_name['hidden'] = not show_name
 
 
 def update_available_timeslots(timeslots, form, key):

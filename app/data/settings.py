@@ -69,6 +69,12 @@ default_configuration_settings = {
     'enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'timeslot-config-template': ('', Settings.SETTING_TYPE.E_STRING),
+
+    'import-parentname-field': ('', Settings.SETTING_TYPE.E_STRING),
+    'import-childname-field': ('', Settings.SETTING_TYPE.E_STRING),
+    'import-phone-field': ('', Settings.SETTING_TYPE.E_STRING),
+    'import-email1-field': ('', Settings.SETTING_TYPE.E_STRING),
+    'import-email2-field': ('', Settings.SETTING_TYPE.E_STRING),
 }
 
 

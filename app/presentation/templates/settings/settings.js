@@ -35,6 +35,15 @@ $(document).ready(function () {
             socketio_transmit_event('event-clear-own-database')
             _form.getComponent("chk-clear-own-database").setValue(false);
         })
+        form.on('event-clear-own-database', function(submission) {
+            busy_indication_on();
+            socketio_transmit_event('event-clear-own-database')
+            _form.getComponent("chk-clear-own-database").setValue(false);
+        })
+        form.on('button-send-invite-emails', function(submission) {
+            socketio_transmit_event('button-send-invite-emails')
+            _form.getComponent("checkbox-enable-send-invite").setValue(false);
+        })
         $('.formio-component-panel [ref=header]').on('click', panel_header_clicked);
     });
 });

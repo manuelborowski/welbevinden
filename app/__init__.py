@@ -24,11 +24,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.2: made generic adaptations
 # V0.3: update systemfiles
 # V0.4: make more generic
+# V0.5: send all invite emails button did not work
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='V0.4', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='V0.5', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

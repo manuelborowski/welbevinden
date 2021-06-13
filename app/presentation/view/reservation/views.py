@@ -5,8 +5,10 @@ from flask_login import login_required
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus, button_pressed
 from app.data import guest as mguest
-from app.application import socketio as msocketio, reservation as mreservation
+from app.application import socketio as msocketio, reservation as mreservation, guest as maguest
 from app.data.models import Guest
+from app.application import tables
+from .forms import AddForm, EditForm
 
 import json
 
@@ -35,6 +37,27 @@ def table_action():
         return item_add()
     if button_pressed('delete'):
         return item_delete()
+    if button_pressed('update_reservation'):
+        return update_reservation()
+    return redirect(url_for('reservation.show'))
+
+
+@reservation.route('/reservation/item_action/<string:action>', methods=['GET', 'POST'])
+@login_required
+@supervisor_required
+def item_action(action=None):
+    try:
+        id = int(request.values['item-id'])
+    except:
+        id = -1
+    if button_pressed('save'):
+        if action == 'add':
+            return item_add(done=True)
+        if action == 'edit':
+            return item_edit(done=True, id=id)
+    if button_pressed('edit'):
+        if action == 'view':
+            return item_edit(False, id)
     return redirect(url_for('reservation.show'))
 
 
@@ -48,7 +71,7 @@ def item_delete(done=False, id=-1):
     return redirect(url_for('reservation.show'))
 
 
-def item_edit(done=False, id=-1):
+def update_reservation(done=False, id=-1):
     try:
         chbx_id_list = request.form.getlist('chbx')
         if chbx_id_list:
@@ -60,12 +83,56 @@ def item_edit(done=False, id=-1):
     return redirect(url_for('reservation.show'))
 
 
-def item_add(done=False, id=-1):
+def item_edit(done=False, id=-1):
     try:
-        return redirect(url_for('guest.register', code='new'))
+        common_details = tables.prepare_item_config_for_view(table_configuration, 'edit')
+        if done:
+            guest = mguest.get_first_guest(id=id)
+            form = EditForm(request.form)
+            if form.validate() and request.method == 'POST':
+                form.populate_obj(guest)
+                mguest.guest_bulk_commit()
+                return redirect(url_for('reservation.show'))
+            else:
+                return render_template('reservation/reservation.html', form_details=form, common_details=common_details)
+        else:
+            chbx_id_list = request.form.getlist('chbx')
+            if chbx_id_list:
+                id = int(chbx_id_list[0])  # only the first one can be edited
+            if id > -1:
+                guest = mguest.get_first_guest(id=id)
+                form = EditForm(obj=guest, formdata=None)
+                common_details['item_id'] = id
+            else:
+                return redirect(url_for('reservation.show'))
+            return render_template('reservation/reservation.html', form_details=form, common_details=common_details)
     except Exception as e:
-        log.error(f'could not add reservation {request.args}: {e}')
+        log.error(f'Could not edit guest {e}')
+        flash_plus('Kan gebruiker niet aanpassen', e)
     return redirect(url_for('reservation.show'))
+
+
+def item_add(done=False):
+    try:
+        common_details = tables.prepare_item_config_for_view(table_configuration, 'add')
+        if done:
+            form = AddForm(request.form)
+            if form.validate() and request.method == 'POST':
+                guest = maguest.add_guest(full_name=form.full_name.data, email=form.email.data)
+                guest = mguest.update_guest(guest, child_name=form.child_name.data, phone=form.phone.data)
+                log.info(f'add: {guest.email}')
+                return redirect(url_for('reservation.show'))
+            else:
+                return render_template('reservation/reservation.html', form_details=form, common_details=common_details)
+        else:
+            form = AddForm()
+            return render_template('reservation/reservation.html', form_details=form, common_details=common_details)
+    except Exception as e:
+        log.error(f'Could not add guest {e}')
+        flash_plus(f'Kan gebruiker niet toevoegen: {e}')
+    return redirect(url_for('reservation.show'))
+
+
 
 
 @reservation.route('/reservation_save/<string:form_data>', methods=['POST', 'GET'])
@@ -146,7 +213,7 @@ def get_show_info():
 table_configuration = {
     'view': 'reservation',
     'title': 'Gasten',
-    'buttons': ['edit', 'add', 'delete'],
+    'buttons': ['edit', 'add', 'delete', 'update_reservation'],
     'delete_message': 'Opgelet!!<br>'
                       'Bent u zeker om deze gast(en) verwijderen?<br>'
                       'Eens verwijderd kunnen ze niet meer worden terug gehaald.<br>'
@@ -173,9 +240,9 @@ table_configuration = {
     'get_filters': get_filters,
     'get_show_info': get_show_info,
     'item': {
-        # 'edit': {'title': 'Wijzig een reservatie', 'buttons': ['save', 'cancel']},
+        'edit': {'title': 'Wijzig een gast', 'buttons': ['save', 'cancel']},
         # 'view': {'title': 'Bekijk een reservatie', 'buttons': ['edit', 'cancel']},
-        # 'add': {'title': 'Voeg een reservatie toe', 'buttons': ['save', 'cancel']},
+        'add': {'title': 'Voeg een gast toe', 'buttons': ['save', 'cancel']},
     },
     'href': [],
     'pre_filter': mguest.pre_filter,

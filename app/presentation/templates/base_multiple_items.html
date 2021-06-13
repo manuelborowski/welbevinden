@@ -49,6 +49,9 @@
                 {% if 'add' in table_config.buttons %}
                 <button class="btn btn-default" type="button" onclick="add_item()">Nieuw</button>
                 {% endif %}
+                {% if 'update_reservation' in table_config.buttons %}
+                <button class="btn btn-default" type="button" onclick="update_reservation_item()">Reservatie aanpassen</button>
+                {% endif %}
                 {% if 'delete' in table_config.buttons %}
                 <button class="btn btn-danger" type="button" onclick="delete_item()">Verwijder</button>
                 {% endif %}

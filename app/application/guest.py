@@ -44,10 +44,11 @@ mevent.subscribe_event('button-send-invite-emails', event_send_invite_emails, No
 def import_guest_info(file_storeage):
     def add_or_update(email, guest, key_cache):
         if email:
-            childname = guest[childname_field] if childname_field != '' else ''
-            parentname = guest[parentname_field] if parentname_field != '' else ''
+            childname = guest[childname_field].strip() if childname_field != '' else ''
+            parentname = guest[parentname_field].strip() if parentname_field != '' else ''
             phone = str(guest[phone_field]) if phone_field != '' else ''
             if phone != '':
+                phone = phone.replace('/', '').strip()
                 if phone[0] != '0':
                     phone = f'0{phone}'
                 if phone[0:3] == '032':
@@ -70,10 +71,11 @@ def import_guest_info(file_storeage):
         key_cache = {g.child_name + g.email: g for g in guests}
         guest_dict = XLSXDictReader(BytesIO(file_storeage.read()))
         for guest in guest_dict:
+            if not guest[childname_field] or guest[childname_field] == '' or not guest[email1_field]: continue
             if email1_field != '':
-                add_or_update(guest[email1_field], guest, key_cache)
+                add_or_update(guest[email1_field].strip(), guest, key_cache)
             if email2_field:
-                add_or_update(guest[email2_field], guest, key_cache)
+                add_or_update(guest[email2_field].strip(), guest, key_cache)
         mguest.guest_bulk_commit()
     except Exception as e:
         mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)

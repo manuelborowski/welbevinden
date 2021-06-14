@@ -152,6 +152,7 @@ class Guest(db.Model):
     enabled = db.Column(db.Boolean, default=True)
     code = db.Column(db.String(256), default='')
     timeslot = db.Column(db.DateTime())
+    misc_field = db.Column(db.Text)
 
     def row_color(self):
         if self.enabled:

@@ -1,12 +1,12 @@
 from app.data.models import Guest
 from sqlalchemy import not_
 from app import log, db
-import sys
+import sys, json
 
 
-def add_guest_bulk(full_name=None, child_name=None, phone=None, email=None, code=None):
+def add_guest_bulk(full_name=None, child_name=None, phone=None, email=None, code=None, misc_field=None):
     try:
-        guest = Guest(full_name=full_name, child_name=child_name, phone=phone, email=email, code=code)
+        guest = Guest(full_name=full_name, child_name=child_name, phone=phone, email=email, code=code, misc_field=misc_field)
         db.session.add(guest)
         return guest
     except Exception as e:
@@ -21,9 +21,9 @@ def guest_bulk_commit():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def add_guest(full_name=None, child_name=None,phone=None, email=None, code=None):
+def add_guest(full_name=None, child_name=None,phone=None, email=None, code=None, misc_field=None):
     try:
-        guest = add_guest_bulk(full_name=full_name, child_name=child_name, phone=phone, email=email, code=code)
+        guest = add_guest_bulk(full_name=full_name, child_name=child_name, phone=phone, email=email, code=code, misc_field=misc_field)
         guest_bulk_commit()
         return guest
     except Exception as e:
@@ -78,13 +78,13 @@ def get_guest_count(timeslot=None):
     return -1
 
 
-def update_guest(guest, full_name=None, child_name=None, phone=None, timeslot=None, note=None):
-    guest = update_guest_bulk(guest, full_name=full_name, child_name=child_name, phone=phone, timeslot=timeslot, note=note)
+def update_guest(guest, full_name=None, child_name=None, phone=None, timeslot=None, note=None, misc_field=None):
+    guest = update_guest_bulk(guest, full_name=full_name, child_name=child_name, phone=phone, timeslot=timeslot, note=note, misc_field=misc_field)
     guest_bulk_commit()
     return guest
 
 
-def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, timeslot=None, note=None):
+def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, timeslot=None, note=None, misc_field=None):
     try:
         if full_name:
             guest.full_name = full_name
@@ -96,6 +96,8 @@ def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, timesl
             guest.timeslot = timeslot
         if note is not None:
             guest.note = note
+        if misc_field is not None:
+            guest.misc_field = misc_field
         return guest
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -188,6 +190,10 @@ def format_data(db_list):
             'id': i.id,
             'DT_RowId': i.id
         })
+        misc_config = json.loads(i.misc_field)
+        if misc_config:
+            for name, value in misc_config.items():
+                em[name] = value if value else ''
         out.append(em)
     return out
 

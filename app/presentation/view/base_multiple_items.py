@@ -14,6 +14,12 @@ def ajax(table_configuration):
     return datatable
 
 
+def update(table_configuration, fields):
+    for field in fields:
+        extra_field = {'name': field, 'data': field}
+        table_configuration['template'].append(extra_field)
+
+
 def show(table_configuration):
     filters = []
     show_info = []

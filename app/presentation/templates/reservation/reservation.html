@@ -2,13 +2,13 @@
 
 {% block body_single_item %}
     {{ super() }}
-    <div class="row"><div class="col-sm-2">{{ form_details.full_name.label}}</div><div class="col-sm-3"> {{ form_details.full_name() }}</div></div>
-    <div class="row"><div class="col-sm-2">{{ form_details.child_name.label}}</div><div class="col-sm-3"> {{ form_details.child_name() }}</div></div>
-    <div class="row"><div class="col-sm-2">{{ form_details.email.label}}</div><div class="col-sm-3"> {{ form_details.email() }}</div></div>
-    <div class="row"><div class="col-sm-2">{{ form_details.phone.label}}</div><div class="col-sm-3"> {{ form_details.phone() }}</div></div>
+    <table id="table"></table> `
 {% endblock %}
 
 {% block scripts %}
     {{ super() }}
+    <script>
+        let form_details = {{ form_details | tojson}};
+    </script>
     <script type="text/javascript"> {% include "reservation/reservation.js" %}</script>
 {% endblock %}

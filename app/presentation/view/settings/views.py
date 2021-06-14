@@ -446,6 +446,23 @@ settings_formio = \
                 "key": "import-email2-field",
                 "type": "textfield",
                 "input": true
+              },
+              {
+                "html": "<p>Configureer extra velden:&nbsp;<br>[<br>&nbsp; {<br>&nbsp; &nbsp; \"veldnaam\": \"studierichting\",<br>&nbsp; &nbsp; \"kolomnamen\": [\"kolom A\", \"kolom B\", \"kolom C\"]<br>&nbsp; }<br>]</p>",
+                "label": "Content",
+                "refreshOnChange": false,
+                "key": "content",
+                "type": "content",
+                "input": false,
+                "tableView": false
+              },
+              {
+                "label": "Extra velden",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "import-misc-fields",
+                "type": "textarea",
+                "input": true
               }
             ],
             "collapsed": true
@@ -454,4 +471,3 @@ settings_formio = \
       }
     ]
   }
-

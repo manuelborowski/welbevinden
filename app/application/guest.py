@@ -1,6 +1,6 @@
 from app.data import utils as mutils, guest as mguest, settings as msettings
 from app.application import event as mevent
-import random, string, datetime
+import random, string, datetime, json
 from app import log, db
 import sys
 from openpyxl import load_workbook
@@ -42,24 +42,31 @@ mevent.subscribe_event('button-send-invite-emails', event_send_invite_emails, No
 
 
 def import_guest_info(file_storeage):
-    def add_or_update(email, guest, key_cache):
-        if email:
-            childname = guest[childname_field].strip() if childname_field != '' else ''
-            parentname = guest[parentname_field].strip() if parentname_field != '' else ''
-            phone = str(guest[phone_field]) if phone_field != '' else ''
-            if phone != '':
-                phone = phone.replace('/', '').strip()
-                if phone[0] != '0':
-                    phone = f'0{phone}'
-                if phone[0:3] == '032':
-                    phone = f'0{phone}'
-            if childname + email in key_cache:
-                dbguest = key_cache[childname + email]
-                mguest.update_guest_bulk(dbguest, full_name=parentname, phone=phone)
-            else:
-                code = create_random_string()
-                dbguest = mguest.add_guest_bulk(full_name=parentname, child_name=childname, phone=phone, email=email, code=code)
-                key_cache[childname + email] = dbguest
+    def add_or_update(email_field, guest, key_cache, misc_config):
+        if email_field != '':
+            email = guest[email_field].strip()
+            if email:
+                childname = guest[childname_field].strip() if childname_field != '' else ''
+                parentname = guest[parentname_field].strip() if parentname_field != '' else ''
+                phone = str(guest[phone_field]) if phone_field != '' else ''
+                if phone != '':
+                    phone = phone.replace('/', '').strip()
+                    if phone[0] != '0':
+                        phone = f'0{phone}'
+                    if phone[0:3] == '032':
+                        phone = f'0{phone}'
+                misc_field = {}
+                for config in misc_config:
+                    val = ' '.join([guest[c] for c in config['kolomnamen'] if guest[c]])
+                    misc_field[config['veldnaam']] = val
+                if childname + email in key_cache:
+                    dbguest = key_cache[childname + email]
+                    mguest.update_guest_bulk(dbguest, full_name=parentname, phone=phone, misc_field=json.dumps(misc_field))
+                else:
+                    code = create_random_string()
+                    dbguest = mguest.add_guest_bulk(full_name=parentname, child_name=childname, phone=phone,
+                                                    email=email, code=code, misc_field=json.dumps(misc_field))
+                    key_cache[childname + email] = dbguest
 
     try:
         parentname_field = msettings.get_configuration_setting('import-parentname-field')
@@ -67,15 +74,14 @@ def import_guest_info(file_storeage):
         phone_field = msettings.get_configuration_setting('import-phone-field')
         email1_field = msettings.get_configuration_setting('import-email1-field')
         email2_field = msettings.get_configuration_setting('import-email2-field')
+        misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
         guests = mguest.get_guests(enabled=True)
         key_cache = {g.child_name + g.email: g for g in guests}
         guest_dict = XLSXDictReader(BytesIO(file_storeage.read()))
         for guest in guest_dict:
             if not guest[childname_field] or guest[childname_field] == '' or not guest[email1_field]: continue
-            if email1_field != '':
-                add_or_update(guest[email1_field].strip(), guest, key_cache)
-            if email2_field:
-                add_or_update(guest[email2_field].strip(), guest, key_cache)
+            add_or_update(email1_field, guest, key_cache, misc_config)
+            add_or_update(email2_field, guest, key_cache, misc_config)
         mguest.guest_bulk_commit()
     except Exception as e:
         mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)

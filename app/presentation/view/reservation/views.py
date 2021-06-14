@@ -5,7 +5,7 @@ from flask_login import login_required
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus, button_pressed
 from app.data import guest as mguest
-from app.application import socketio as msocketio, reservation as mreservation, guest as maguest
+from app.application import socketio as msocketio, reservation as mreservation, guest as maguest, settings as msettings
 from app.data.models import Guest
 from app.application import tables
 from .forms import AddForm, EditForm
@@ -17,6 +17,9 @@ import json
 @login_required
 @supervisor_required
 def show():
+    misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
+    misc_fields = [c['veldnaam'] for c in misc_config]
+    base_multiple_items.update(table_configuration, misc_fields)
     return base_multiple_items.show(table_configuration)
 
 
@@ -24,6 +27,9 @@ def show():
 @login_required
 @supervisor_required
 def table_ajax():
+    misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
+    misc_fields = [c['veldnaam'] for c in misc_config]
+    base_multiple_items.update(table_configuration, misc_fields)
     return base_multiple_items.ajax(table_configuration)
 
 
@@ -111,22 +117,33 @@ def item_edit(done=False, id=-1):
         flash_plus('Kan gebruiker niet aanpassen', e)
     return redirect(url_for('reservation.show'))
 
+form_config = [
+    ['Naam ouder', 'full_name'],
+    ['Naam kind', 'child_name'],
+    ['E-mail', 'email'],
+    ['Telefoon', 'phone'],
+]
+
 
 def item_add(done=False):
     try:
-        common_details = tables.prepare_item_config_for_view(table_configuration, 'add')
+        misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
+        misc_fields = [c['veldnaam'] for c in misc_config]
         if done:
-            form = AddForm(request.form)
-            if form.validate() and request.method == 'POST':
-                guest = maguest.add_guest(full_name=form.full_name.data, email=form.email.data)
-                guest = mguest.update_guest(guest, child_name=form.child_name.data, phone=form.phone.data)
-                log.info(f'add: {guest.email}')
-                return redirect(url_for('reservation.show'))
-            else:
-                return render_template('reservation/reservation.html', form_details=form, common_details=common_details)
+            misc_field_add = {}
+            for field in misc_fields:
+                if field in request.form:
+                    misc_field_add[field] = request.form[field]
+
+            guest = maguest.add_guest(full_name=request.form['full_name'], email=request.form['email'])
+            guest = mguest.update_guest(guest, child_name=request.form['child_name'], phone=request.form['phone'], misc_field=json.dumps(misc_field_add))
+            log.info(f'add: {guest.email}')
+            return redirect(url_for('reservation.show'))
         else:
-            form = AddForm()
-            return render_template('reservation/reservation.html', form_details=form, common_details=common_details)
+            common_details = tables.prepare_item_config_for_view(table_configuration, 'add')
+            for field in misc_fields:
+                form_config.append([field, field])
+            return render_template('reservation/reservation.html', form_details=form_config, common_details=common_details)
     except Exception as e:
         log.error(f'Could not add guest {e}')
         flash_plus(f'Kan gebruiker niet toevoegen: {e}')

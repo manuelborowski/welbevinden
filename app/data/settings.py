@@ -75,6 +75,15 @@ default_configuration_settings = {
     'import-phone-field': ('', Settings.SETTING_TYPE.E_STRING),
     'import-email1-field': ('', Settings.SETTING_TYPE.E_STRING),
     'import-email2-field': ('', Settings.SETTING_TYPE.E_STRING),
+
+    'enable-import-misc-field': (False, Settings.SETTING_TYPE.E_BOOL),
+    'import-misc-field': ('', Settings.SETTING_TYPE.E_STRING),
+    'import-misc-column-0': ('', Settings.SETTING_TYPE.E_STRING),
+    'import-misc-column-1': ('', Settings.SETTING_TYPE.E_STRING),
+    'import-misc-column-2': ('', Settings.SETTING_TYPE.E_STRING),
+    'import-misc-column-3': ('', Settings.SETTING_TYPE.E_STRING),
+
+    'import-misc-fields': ('', Settings.SETTING_TYPE.E_STRING),
 }
 
 

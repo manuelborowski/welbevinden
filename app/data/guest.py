@@ -78,13 +78,13 @@ def get_guest_count(timeslot=None):
     return -1
 
 
-def update_guest(guest, full_name=None, child_name=None, phone=None, timeslot=None, note=None, misc_field=None):
-    guest = update_guest_bulk(guest, full_name=full_name, child_name=child_name, phone=phone, timeslot=timeslot, note=note, misc_field=misc_field)
+def update_guest(guest, full_name=None, child_name=None, phone=None, email=None, timeslot=None, note=None, misc_field=None):
+    guest = update_guest_bulk(guest, full_name=full_name, child_name=child_name, phone=phone, email=email, timeslot=timeslot, note=note, misc_field=misc_field)
     guest_bulk_commit()
     return guest
 
 
-def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, timeslot=None, note=None, misc_field=None):
+def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, email=None, timeslot=None, note=None, misc_field=None):
     try:
         if full_name:
             guest.full_name = full_name
@@ -92,6 +92,8 @@ def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, timesl
             guest.child_name = child_name
         if phone:
             guest.phone = phone
+        if email:
+            guest.email = email
         if timeslot:
             guest.timeslot = timeslot
         if note is not None:
@@ -190,10 +192,6 @@ def format_data(db_list):
             'id': i.id,
             'DT_RowId': i.id
         })
-        misc_config = json.loads(i.misc_field)
-        if misc_config:
-            for name, value in misc_config.items():
-                em[name] = value if value else ''
         out.append(em)
     return out
 

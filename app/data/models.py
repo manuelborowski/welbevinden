@@ -2,7 +2,7 @@ from app import log, db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import UniqueConstraint
-import datetime
+import datetime, json
 from babel.dates import get_day_names, get_month_names
 
 
@@ -164,7 +164,7 @@ class Guest(db.Model):
             return 'lightsalmon'
 
     def flat(self):
-        return {
+        flat = {
             'id': self.id,
             'phone': self.phone,
             'email': self.email,
@@ -185,6 +185,9 @@ class Guest(db.Model):
             'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
             'overwrite_row_color': self.row_color(),
         }
+        misc_field = json.loads(self.misc_field)
+        flat.update(misc_field)
+        return flat
 
     ack_email_sent_cb = []
 

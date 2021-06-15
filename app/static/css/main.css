@@ -185,7 +185,6 @@ table, th, td {
     border: 1px solid black;
     border-collapse: collapse;
     padding: 5px;
-
 }
 
 .icon-button {
@@ -209,3 +208,8 @@ table.dataTable tbody td {
     width: 100%;
     margin: 0px;
 }
+
+.noborder {
+    border: none;
+}
+

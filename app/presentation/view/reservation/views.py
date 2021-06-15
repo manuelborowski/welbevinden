@@ -89,25 +89,52 @@ def update_reservation(done=False, id=-1):
     return redirect(url_for('reservation.show'))
 
 
+def get_form(extra_fields, default_values={}):
+    form = {
+        'fields': ['full_name', 'child_name', 'email', 'phone'],
+        'config': {
+            'full_name': {'label': 'Naam ouder', 'default': ''},
+            'child_name': {'label': 'Naam kind', 'default': ''},
+            'email': {'label': 'E-mail', 'default': ''},
+            'phone': {'label': 'Telefoon', 'default': ''},
+        }
+    }
+    for field in extra_fields:
+        form['fields'].append(field)
+        form['config'][field] = {'label': field, 'default': ''}
+    if default_values:
+        for field in form['fields']:
+            form['config'][field]['default'] = default_values[field]
+    return form
+
+
+def get_misc_fields(extra_fields, form):
+    misc_field = {}
+    for field in extra_fields:
+        if field in form:
+            misc_field[field] = form[field]
+    return misc_field
+
+
 def item_edit(done=False, id=-1):
     try:
+        misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
+        extra_fields = [c['veldnaam'] for c in misc_config]
         common_details = tables.prepare_item_config_for_view(table_configuration, 'edit')
         if done:
+            misc_field = get_misc_fields(extra_fields, request.form)
             guest = mguest.get_first_guest(id=id)
-            form = EditForm(request.form)
-            if form.validate() and request.method == 'POST':
-                form.populate_obj(guest)
-                mguest.guest_bulk_commit()
-                return redirect(url_for('reservation.show'))
-            else:
-                return render_template('reservation/reservation.html', form_details=form, common_details=common_details)
+            guest = mguest.update_guest(guest, full_name=request.form['full_name'], email=request.form['email'],
+                                        child_name=request.form['child_name'], phone=request.form['phone'],
+                                        misc_field=json.dumps(misc_field))
+            return redirect(url_for('reservation.show'))
         else:
             chbx_id_list = request.form.getlist('chbx')
             if chbx_id_list:
                 id = int(chbx_id_list[0])  # only the first one can be edited
             if id > -1:
                 guest = mguest.get_first_guest(id=id)
-                form = EditForm(obj=guest, formdata=None)
+                form = get_form(extra_fields, guest.flat())
                 common_details['item_id'] = id
             else:
                 return redirect(url_for('reservation.show'))
@@ -117,39 +144,27 @@ def item_edit(done=False, id=-1):
         flash_plus('Kan gebruiker niet aanpassen', e)
     return redirect(url_for('reservation.show'))
 
-form_config = [
-    ['Naam ouder', 'full_name'],
-    ['Naam kind', 'child_name'],
-    ['E-mail', 'email'],
-    ['Telefoon', 'phone'],
-]
-
 
 def item_add(done=False):
     try:
         misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
-        misc_fields = [c['veldnaam'] for c in misc_config]
+        extra_fields = [c['veldnaam'] for c in misc_config]
         if done:
-            misc_field_add = {}
-            for field in misc_fields:
-                if field in request.form:
-                    misc_field_add[field] = request.form[field]
-
+            misc_field = get_misc_fields(extra_fields, request.form)
             guest = maguest.add_guest(full_name=request.form['full_name'], email=request.form['email'])
-            guest = mguest.update_guest(guest, child_name=request.form['child_name'], phone=request.form['phone'], misc_field=json.dumps(misc_field_add))
+            guest = mguest.update_guest(guest, child_name=request.form['child_name'], phone=request.form['phone'],
+                                        misc_field=json.dumps(misc_field))
             log.info(f'add: {guest.email}')
             return redirect(url_for('reservation.show'))
         else:
             common_details = tables.prepare_item_config_for_view(table_configuration, 'add')
-            for field in misc_fields:
-                form_config.append([field, field])
-            return render_template('reservation/reservation.html', form_details=form_config, common_details=common_details)
+            form = get_form(extra_fields)
+            return render_template('reservation/reservation.html', form_details=form,
+                                   common_details=common_details)
     except Exception as e:
         log.error(f'Could not add guest {e}')
         flash_plus(f'Kan gebruiker niet toevoegen: {e}')
     return redirect(url_for('reservation.show'))
-
-
 
 
 @reservation.route('/reservation_save/<string:form_data>', methods=['POST', 'GET'])
@@ -240,10 +255,11 @@ table_configuration = {
         {'name': 'row_action', 'data': 'row_action', 'width': '1%'},
         {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True, 'width': '10%'},
         {'name': 'Email', 'data': 'email', 'order_by': Guest.email, 'orderable': True, 'width': '12%'},
-        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.full_name, 'orderable': True, 'width': '12%'},
-        {'name': 'Kind', 'data': 'child_name', 'order_by': Guest.child_name, 'orderable': True, 'width': '12%'},
-        {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True, 'width': '8%'},
-        {'name': 'Notitie', 'data': 'note', 'order_by': Guest.note, 'orderable': True, 'width': '25%', 'celledit': 'text'},
+        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.full_name, 'orderable': True, 'width': '6%'},
+        {'name': 'Kind', 'data': 'child_name', 'order_by': Guest.child_name, 'orderable': True, 'width': '6%'},
+        {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True, 'width': '6%'},
+        {'name': 'Notitie', 'data': 'note', 'order_by': Guest.note, 'orderable': True, 'width': '20%',
+         'celledit': 'text'},
         {'name': 'U', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_sent, 'width': '1%',
          'celltoggle': 'standard'},
         {'name': 'U', 'data': 'nbr_invite_sent', 'order_by': Guest.nbr_invite_sent, 'width': '1%'},

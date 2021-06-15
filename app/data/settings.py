@@ -83,7 +83,7 @@ default_configuration_settings = {
     'import-misc-column-2': ('', Settings.SETTING_TYPE.E_STRING),
     'import-misc-column-3': ('', Settings.SETTING_TYPE.E_STRING),
 
-    'import-misc-fields': ('', Settings.SETTING_TYPE.E_STRING),
+    'import-misc-fields': ('{}', Settings.SETTING_TYPE.E_STRING),
 }
 
 

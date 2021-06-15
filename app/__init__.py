@@ -28,11 +28,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.6: reworked the reservations-list
 # V0.7: small bugfix
 # V0.8: added miscellaneous fields
+# V0.9: small bugfix, default JSON value should be {}
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='V0.8', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='V0.9', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

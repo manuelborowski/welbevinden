@@ -30,11 +30,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.8: added miscellaneous fields
 # V0.9: small bugfix, default JSON value should be {}
 # V0.10: enable search in misc_field
+# V0.11: bugfix to make new reservations possible
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='V0.10', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='V0.11', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

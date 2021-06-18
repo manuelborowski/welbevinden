@@ -57,13 +57,18 @@ def add_or_update_reservation(data, suppress_send_ack_email=False):
             if not check_requested_timeslot(timeslot):
                 ret = {'reservation-code': 'new'}
                 return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, ret)
-            guest = maguest.add_guest(full_name=data['full_name'], email=data['email'])
-            guest = mguest.update_guest(guest, child_name=data['child_name'], phone=data['phone'], timeslot=timeslot)
+            misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
+            extra_fields = [c['veldnaam'] for c in misc_config]
+            extra_field = {f: '' for f in extra_fields}
+            guest = maguest.add_guest(full_name=data['full_name'].strip(), email=data['email'].strip())
+            guest = mguest.update_guest(guest, child_name=data['child_name'].strip(), phone=data['phone'].strip(),
+                                        timeslot=timeslot, misc_field=json.dumps(extra_field))
         else:
             guest = mguest.get_first_guest(code=code)
             if timeslot != guest.timeslot and not check_requested_timeslot(timeslot):
                 return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, guest.flat())
-            guest = mguest.update_guest(guest, full_name=data['full_name'], phone=data['phone'], timeslot=timeslot)
+            guest = mguest.update_guest(guest, full_name=data['full_name'].strip(), phone=data['phone'].strip(),
+                                        timeslot=timeslot)
         if guest and not suppress_send_ack_email:
             guest.set_email_send_retry(0)
             guest.set_ack_email_sent(False)

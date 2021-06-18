@@ -185,7 +185,7 @@ class Guest(db.Model):
             'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
             'overwrite_row_color': self.row_color(),
         }
-        misc_field = json.loads(self.misc_field)
+        misc_field = json.loads(self.misc_field) if self.misc_field else ''
         flat.update(misc_field)
         return flat
 

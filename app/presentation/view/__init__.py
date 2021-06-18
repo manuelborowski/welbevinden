@@ -36,7 +36,7 @@ def update_template(template, new):
     phone['hidden'] = not show_phone
     show_name = msettings.get_configuration_setting('import-parentname-field') != ''
     parent_name = search_component(template, 'full_name')
-    parent_name['hidden'] = not show_name
+    parent_name['hidden'] = not show_name and not new
 
 
 def update_available_timeslots(timeslots, form, key):

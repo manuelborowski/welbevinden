@@ -8,7 +8,6 @@ from app.data import guest as mguest
 from app.application import socketio as msocketio, reservation as mreservation, guest as maguest, settings as msettings
 from app.data.models import Guest
 from app.application import tables
-from .forms import AddForm, EditForm
 
 import json
 

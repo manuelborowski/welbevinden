@@ -180,6 +180,7 @@ def search_data(search_string):
     search_constraints.append(Guest.child_name.like(search_string))
     search_constraints.append(Guest.email.like(search_string))
     search_constraints.append(Guest.phone.like(search_string))
+    search_constraints.append(Guest.misc_field.like(search_string))
     return search_constraints
 
 

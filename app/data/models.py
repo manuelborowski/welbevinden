@@ -156,7 +156,7 @@ class Guest(db.Model):
 
     def row_color(self):
         if self.enabled:
-            if 0 == self.nbr_invite_sent:
+            if 0 == (self.nbr_invite_sent + self.nbr_ack_sent):
                 return 'yellow'
             else:
                 return ''

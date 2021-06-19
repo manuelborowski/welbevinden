@@ -1,5 +1,5 @@
 from app.application import reservation as mreservation, settings as msettings
-import json
+
 
 false = False
 true = True
@@ -33,7 +33,7 @@ def update_template(template, new):
     email['disabled'] = not new
     show_phone = msettings.get_configuration_setting('import-phone-field') != ''
     phone = search_component(template, 'phone')
-    phone['hidden'] = not show_phone
+    phone['hidden'] = not show_phone and not new
     show_name = msettings.get_configuration_setting('import-parentname-field') != ''
     parent_name = search_component(template, 'full_name')
     parent_name['hidden'] = not show_name and not new

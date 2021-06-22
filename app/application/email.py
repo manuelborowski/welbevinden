@@ -70,6 +70,9 @@ def send_invite(**kwargs):
         email_subject = msettings.get_configuration_setting('invite-mail-subject-template')
         email_content = msettings.get_configuration_setting('invite-mail-content-template')
 
+        if guest.nbr_invite_sent > 0:
+            email_reminder_subject_prefix = msettings.get_configuration_setting('invite-mail-subject-reminder-template')
+            email_subject = f'{email_reminder_subject_prefix}{email_subject}'
         url_tag = re.search('{{.*\|TAG_URL}}', email_content)
         url_text = url_tag.group(0).split('|')[0].split('{{')[1]
         url = f'{msettings.get_configuration_setting("base-url")}/register?code={guest.code}'

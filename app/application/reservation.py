@@ -112,7 +112,9 @@ def guest_property_change_cb(value, opaque):
 
 mguest.subscribe_enabled(guest_property_change_cb, None)
 mguest.subscribe_ack_email_sent(guest_property_change_cb, None)
+mguest.subscribe_nbr_ack_email_sent(guest_property_change_cb, None)
 mguest.subscribe_invite_email_sent(guest_property_change_cb, None)
+mguest.subscribe_nbr_invite_email_sent(guest_property_change_cb, None)
 mguest.subscribe_email_send_retry(guest_property_change_cb, None)
 
 

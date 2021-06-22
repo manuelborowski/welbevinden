@@ -199,6 +199,13 @@ settings_formio = \
                 "input": true
               },
               {
+                "label": "Uitnodigings email onderwerp : HERINNERING prefix",
+                "tableView": true,
+                "key": "invite-mail-subject-reminder-template",
+                "type": "textfield",
+                "input": true
+              },
+              {
                 "label": "Uitnodigings email: inhoud",
                 "autoExpand": false,
                 "tableView": true,

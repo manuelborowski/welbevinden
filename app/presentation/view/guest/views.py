@@ -4,7 +4,7 @@ from . import guest
 from app import log, socketio, admin_required
 from flask_socketio import emit, join_room, leave_room, close_room, rooms, disconnect
 from app.application import guest as mguest, email as memail, reservation as mreservation
-import json, re
+import json, re, urllib
 from app.presentation.view import update_available_timeslots, false, true, null, prepare_registration_form
 
 
@@ -28,7 +28,7 @@ def register():
 @guest.route('/register_save/<string:form_data>', methods=['POST', 'GET'])
 def register_save(form_data):
     try:
-        data = json.loads(form_data)
+        data = json.loads(urllib.parse.unquote(form_data))
         if 'cancel-reservation' in data and data['cancel-reservation']:
             try:
                 mreservation.delete_reservation(data['reservation-code'])

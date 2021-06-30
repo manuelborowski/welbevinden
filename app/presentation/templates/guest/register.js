@@ -11,7 +11,7 @@ $(document).ready(function () {
         formio_form = form
         form.on('change', form_changed);
         form.on('submit', function(submitted) {
-            window.location.href = Flask.url_for(registration_endpoint, {form_data: JSON.stringify(submitted.data)});
+            window.location.href = Flask.url_for(registration_endpoint, {form_data: encodeURIComponent(encodeURIComponent(JSON.stringify(submitted.data)))});
         });
     });
 });

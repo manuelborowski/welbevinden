@@ -35,11 +35,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.13: remove yellow row color when invite or ack mail is sent
 # V0.14: small bugfix with counters.  Added invitation reminder mail prefix
 # V0.15: escape url specific characters in data
+# V0.16: bugfix: when adding a new but empty reservation, show error
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='V0.15', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='V0.16', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

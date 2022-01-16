@@ -36,11 +36,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.14: small bugfix with counters.  Added invitation reminder mail prefix
 # V0.15: escape url specific characters in data
 # V0.16: bugfix: when adding a new but empty reservation, show error
+# V0.17: update in logging: add correct app name
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='V0.16', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='V0.17', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -77,7 +78,7 @@ log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(us
 log_handler.setFormatter(log_formatter)
 log.addHandler(log_handler)
 
-log.info('start RDV')
+log.info(f"start {flask_app.config['SITE_NAME']}")
 
 jsglue = JSGlue(flask_app)
 db.app=flask_app  #  hack:-(

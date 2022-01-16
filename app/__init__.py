@@ -38,11 +38,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.16: bugfix: when adding a new but empty reservation, show error
 # V0.17: update in logging: add correct app name
 # V0.18: update in title of registration form
+# V0.19: update in favicon of registration form
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='V0.18', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='V0.19', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

@@ -74,7 +74,10 @@ def add_or_update_reservation(data, suppress_send_ack_email=False):
         if guest and not suppress_send_ack_email:
             guest.set_email_send_retry(0)
             guest.set_ack_email_sent(False)
-        return RegisterResult(RegisterResult.Result.E_OK, guest.flat())
+        register_ack_template = msettings.get_configuration_setting('register-ack-template')
+        timeslot = datetime_to_dutch_datetime_string(guest.timeslot)
+        register_ack_template = register_ack_template.replace('{{TAG_TIMESLOT}}', timeslot)
+        return RegisterResult(RegisterResult.Result.E_OK, register_ack_template)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)

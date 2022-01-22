@@ -222,6 +222,14 @@ settings_formio = \
                 "input": true
               },
               {
+                "label": "Web registratie bevestiging template",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "register-ack-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
                 "label": "Registratie bevestigingse-mail: onderwerp",
                 "autoExpand": false,
                 "tableView": true,

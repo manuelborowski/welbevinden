@@ -20,6 +20,8 @@ def prepare_reservation(code=None):
                    'available_timeslots': get_available_timeslots(),
                    'mode': 'new'
                    }
+            if ret['available_timeslots'] == []:
+                return RegisterResult(RegisterResult.Result.E_NO_TIMESLOT, None)
             return RegisterResult(RegisterResult.Result.E_OK, ret)
         else:
             guest = mguest.get_first_guest(code=code)
@@ -80,6 +82,7 @@ def add_or_update_reservation(data, suppress_send_ack_email=False):
         return RegisterResult(RegisterResult.Result.E_OK, register_ack_template)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        log.error(data)
     return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
 
 
@@ -146,13 +149,14 @@ def get_available_timeslots(default_date=None):
                 default_flag = default_date and date == default_date
                 if default_flag:
                     available += 1
-                timeslots.append({
-                    'label':  f"({available}) {datetime_to_dutch_datetime_string(date)}",
-                    'value': datetime_to_formiodate(date),
-                    'available': available,
-                    'default': default_flag,
-                    'maximum': timeslot_config.items_per_timeslot,
-                })
+                if available > 0:
+                    timeslots.append({
+                        'label':  f"({available}) {datetime_to_dutch_datetime_string(date)}",
+                        'value': datetime_to_formiodate(date),
+                        'available': available,
+                        'default': default_flag,
+                        'maximum': timeslot_config.items_per_timeslot,
+                    })
                 date += datetime.timedelta(minutes=timeslot_config.length)
         return timeslots
     except Exception as e:
@@ -205,6 +209,7 @@ class RegisterResult:
         E_REGISTER_OK = 'guest-ok'
         E_COULD_NOT_REGISTER = 'could-not-register'
         E_TIMESLOT_FULL = 'timeslot-full'
+        E_NO_TIMESLOT = 'no-timeslot'
 
     result = Result.E_OK
     ret = {}

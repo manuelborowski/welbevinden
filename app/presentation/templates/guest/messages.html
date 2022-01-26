@@ -71,7 +71,13 @@
                         <h5>Het spijt ons, maar dit tijdslot is volzet.  Gelieve een ander tijdslot te kiezen.</h5>
                         <hr>
                         <a class="btn btn-success btn-lg" type="submit" href="{{ url_for('guest.register', code=info['reservation-code']) }}">Registreren</a>
-                        </p>
+                    </div>
+                {% endif %}
+
+                {% if type =='no-timeslot' %}
+                    <div class="alert alert-danger" role="alert">
+                        <h4 class="alert-heading">Foutmelding!</h4>
+                        <h5>Het spijt ons, maar alle tijdsloten zijn volzet.</h5>
                     </div>
                 {% endif %}
 
@@ -81,7 +87,6 @@
                         <h5>U hebt geen boxen geselecteerd, gelieve nogmaals te proberen.</h5>
                         <hr>
                         <a class="btn btn-success btn-lg" type="submit" href="{{ url_for('guest.register') }}">Registreren</a>
-                        </p>
                     </div>
                 {% endif %}
 

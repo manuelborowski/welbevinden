@@ -18,6 +18,8 @@ def register():
         ret = prepare_registration_form(code)
         if ret.result == ret.Result.E_COULD_NOT_REGISTER:
             return render_template('guest/messages.html', type='could-not-register')
+        if ret.result == ret.Result.E_NO_TIMESLOT:
+            return render_template('guest/messages.html', type='no-timeslot')
         return render_template('guest/register.html', config_data=ret.ret,
                                registration_endpoint='guest.register_save')
     except Exception as e:

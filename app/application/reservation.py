@@ -137,7 +137,7 @@ def get_reservation_counters():
     return nbr_total, nbr_open, nbr_reserved
 
 
-def get_available_timeslots(default_date=None):
+def get_available_timeslots(default_date=None, ignore_availability=False):
     try:
         timeslots = []
         timeslot_configs = mtc.get_timeslot_configurations()
@@ -149,7 +149,7 @@ def get_available_timeslots(default_date=None):
                 default_flag = default_date and date == default_date
                 if default_flag:
                     available += 1
-                if available > 0:
+                if available > 0 or ignore_availability:
                     timeslots.append({
                         'label':  f"({available}) {datetime_to_dutch_datetime_string(date)}",
                         'value': datetime_to_formiodate(date),
@@ -166,7 +166,7 @@ def get_available_timeslots(default_date=None):
 
 def datatable_get_timeslots():
     out = []
-    timeslots = get_available_timeslots()
+    timeslots = get_available_timeslots(ignore_availability=True)
     for timeslot in timeslots:
         em = {
             'row_action': "0",

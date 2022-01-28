@@ -45,6 +45,7 @@ def delete_reservation(code):
     try:
         guest = mguest.get_first_guest(code=code)
         mguest.update_timeslot(guest, None)
+        log.info(f'reservation cancelled: {guest.email}')
         return RegisterResult(result=RegisterResult.Result.E_OK)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

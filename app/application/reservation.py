@@ -46,6 +46,7 @@ def delete_reservation(code):
     try:
         guest = mguest.get_first_guest(code=code)
         mguest.update_timeslot(guest, None)
+        guest.set(Guest.SUBSCRIBE.EMAIL_CANCEL_SENT, False)
         log.info(f'reservation cancelled: {guest.email}')
         return RegisterResult(result=RegisterResult.Result.E_OK)
     except Exception as e:

@@ -1,4 +1,5 @@
 from app.data import utils as mutils, guest as mguest, settings as msettings
+from app.data.models import Guest
 from app.application import event as mevent
 import random, string, datetime, json
 from app import log, db
@@ -31,8 +32,8 @@ def event_send_invite_emails(opaque):
     try:
         guests = mguest.get_guests(enabled=True)
         for guest in guests:
-            guest.set_email_send_retry(0)
-            guest.set_invite_email_sent(False)
+            guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, 0)
+            guest.set(Guest.SUBSCRIBE.EMAIL_INVITE_SENT, False)
     except Exception as e:
         mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)
     return None

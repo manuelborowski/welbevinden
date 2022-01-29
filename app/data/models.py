@@ -134,6 +134,17 @@ class Settings(db.Model):
 class Guest(db.Model):
     __tablename__ = 'guests'
 
+    class SUBSCRIBE:
+        EMAIL_INVITE_SENT = 'email-invite-sent'
+        NBR_INVITE_SENT =   'nbr-invite-sent'
+        EMAIL_ACK_SENT =    'email-ack-sent'
+        NBR_ACK_SENT =      'nbr-ack-sent'
+        NBR_EMAIL_RETRY =   'nbr-email-retry'
+        ENABLED =           'enabled'
+        ALL =               'all'
+
+        cb = {}
+
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(256))
     phone = db.Column(db.String(256))
@@ -189,88 +200,37 @@ class Guest(db.Model):
         flat.update(misc_field)
         return flat
 
-    ack_email_sent_cb = []
 
-    def set_ack_email_sent(self, value):
-        self.ack_email_sent = value
+    def set(self, type, value):
+        if type == self.SUBSCRIBE.EMAIL_INVITE_SENT:
+            self.invite_email_sent = value
+        elif type == self.SUBSCRIBE.NBR_INVITE_SENT:
+            self.nbr_invite_sent = value
+        elif type == self.SUBSCRIBE.EMAIL_ACK_SENT:
+            self.ack_email_sent = value
+        elif type == self.SUBSCRIBE.NBR_ACK_SENT:
+            self.nbr_ack_sent = value
+        elif type == self.SUBSCRIBE.NBR_EMAIL_RETRY:
+            self.email_send_retry = value
+        elif type == self.SUBSCRIBE.ENABLED:
+            self.enabled = value
+        else:
+            return False
         db.session.commit()
-        for cb in Guest.ack_email_sent_cb:
-            cb[0](value, cb[1])
+        if type in self.SUBSCRIBE.cb:
+            for cb in self.SUBSCRIBE.cb[type]:
+                cb[0](type, value, cb[1])
+        if self.SUBSCRIBE.ALL in self.SUBSCRIBE.cb:
+            for cb in self.SUBSCRIBE.cb[self.SUBSCRIBE.ALL]:
+                cb[0](self.SUBSCRIBE.ALL, value, cb[1])
         return True
+
 
     @staticmethod
-    def subscribe_ack_email_sent(cb, opaque):
-        Guest.ack_email_sent_cb.append((cb, opaque))
-        return True
-
-    nbr_ack_sent_cb = []
-
-    def set_nbr_ack_sent(self, value):
-        self.nbr_ack_sent = value
-        db.session.commit()
-        for cb in Guest.nbr_ack_sent_cb:
-            cb[0](value, cb[1])
-        return True
-
-    @staticmethod
-    def subscribe_nbr_ack_sent(cb, opaque):
-        Guest.nbr_ack_sent_cb.append((cb, opaque))
-        return True
-
-    invite_email_sent_cb = []
-
-    def set_invite_email_sent(self, value):
-        self.invite_email_sent = value
-        db.session.commit()
-        for cb in Guest.invite_email_sent_cb:
-            cb[0](value, cb[1])
-        return True
-
-    @staticmethod
-    def subscribe_invite_email_sent(cb, opaque):
-        Guest.invite_email_sent_cb.append((cb, opaque))
-        return True
-
-    nbr_invite_sent_cb = []
-
-    def set_nbr_invite_sent(self, value):
-        self.nbr_invite_sent = value
-        db.session.commit()
-        for cb in Guest.nbr_invite_sent_cb:
-            cb[0](value, cb[1])
-        return True
-
-    @staticmethod
-    def subscribe_nbr_invite_sent(cb, opaque):
-        Guest.nbr_invite_sent_cb.append((cb, opaque))
-        return True
-
-    email_send_retry_cb = []
-
-    def set_email_send_retry(self, value):
-        self.email_send_retry = value
-        db.session.commit()
-        for cb in Guest.email_send_retry_cb:
-            cb[0](value, cb[1])
-        return True
-
-    @staticmethod
-    def subscribe_email_send_retry(cb, opaque):
-        Guest.email_send_retry_cb.append((cb, opaque))
-        return True
-
-    enabled_cb = []
-
-    def set_enabled(self, value):
-        self.enabled = value
-        db.session.commit()
-        for cb in Guest.enabled_cb:
-            cb[0](value, cb[1])
-        return True
-
-    @staticmethod
-    def subscribe_enabled(cb, opaque):
-        Guest.enabled_cb.append((cb, opaque))
+    def subscribe(type, cb, opaque):
+        if type not in Guest.SUBSCRIBE.cb:
+            Guest.SUBSCRIBE.cb[type] = []
+        Guest.SUBSCRIBE.cb[type].append((cb, opaque))
         return True
 
 

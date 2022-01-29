@@ -144,30 +144,6 @@ def get_first_not_sent_ack():
     return None
 
 
-def subscribe_ack_email_sent(cb, opaque):
-    return Guest.subscribe_ack_email_sent(cb, opaque)
-
-
-def subscribe_nbr_ack_email_sent(cb, opaque):
-    return Guest.subscribe_nbr_ack_sent(cb, opaque)
-
-
-def subscribe_invite_email_sent(cb, opaque):
-    return Guest.subscribe_invite_email_sent(cb, opaque)
-
-
-def subscribe_nbr_invite_email_sent(cb, opaque):
-    return Guest.subscribe_nbr_invite_sent(cb, opaque)
-
-
-def subscribe_email_send_retry(cb, opaque):
-    return Guest.subscribe_email_send_retry(cb, opaque)
-
-
-def subscribe_enabled(cb, opaque):
-    return Guest.subscribe_enabled(cb, opaque)
-
-
 def pre_filter():
     return db.session.query(Guest)
 

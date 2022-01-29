@@ -1,5 +1,6 @@
 from app.application.util import datetime_to_dutch_datetime_string, formiodate_to_datetime, datetime_to_formiodate
 from app.data import settings as msettings, guest as mguest
+from app.data.models import Guest
 from app import email, log, email_scheduler, flask_app
 import datetime, time, re, sys
 from flask_mail import Message
@@ -25,9 +26,9 @@ def send_register_ack(**kwargs):
             return False
         email_send_max_retries = msettings.get_configuration_setting('email-send-max-retries')
         if guest.email_send_retry >= email_send_max_retries:
-            guest.set_enabled(False)
+            guest.set(Guest.SUBSCRIBE.ENABLED, False)
             return False
-        guest.set_email_send_retry(guest.email_send_retry + 1)
+        guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, guest.email_send_retry + 1)
 
         email_subject = msettings.get_configuration_setting('register-mail-ack-subject-template')
         email_content = msettings.get_configuration_setting('register-mail-ack-content-template')
@@ -45,8 +46,8 @@ def send_register_ack(**kwargs):
         log.info(f'"{email_subject}" to {guest.email}')
         ret = send_email(guest.email, email_subject, email_content)
         if ret:
-            guest.set_ack_email_sent(True)
-            guest.set_nbr_ack_sent(guest.nbr_ack_sent + 1)
+            guest.set(Guest.SUBSCRIBE.EMAIL_ACK_SENT, True)
+            guest.set(Guest.SUBSCRIBE.NBR_ACK_SENT, guest.nbr_ack_sent + 1)
             return ret
         return False
     except Exception as e:
@@ -63,9 +64,9 @@ def send_invite(**kwargs):
             return False
         email_send_max_retries = msettings.get_configuration_setting('email-send-max-retries')
         if guest.email_send_retry >= email_send_max_retries:
-            guest.set_enabled(False)
+            guest.set(Guest.SUBSCRIBE.ENABLED, False)
             return False
-        guest.set_email_send_retry(guest.email_send_retry + 1)
+        guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, guest.email_send_retry + 1)
 
         email_subject = msettings.get_configuration_setting('invite-mail-subject-template')
         email_content = msettings.get_configuration_setting('invite-mail-content-template')
@@ -81,8 +82,8 @@ def send_invite(**kwargs):
         log.info(f'"{email_subject}" to {guest.email}')
         ret = send_email(guest.email, email_subject, email_content)
         if ret:
-            guest.set_invite_email_sent(True)
-            guest.set_nbr_invite_sent(guest.nbr_invite_sent + 1)
+            guest.set(Guest.SUBSCRIBE.EMAIL_INVITE_SENT, True)
+            guest.set(Guest.SUBSCRIBE.NBR_INVITE_SENT, guest.nbr_invite_sent + 1)
             return ret
         return False
     except Exception as e:

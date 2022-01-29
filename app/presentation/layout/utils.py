@@ -41,11 +41,8 @@ def button_pressed(button=None):
 
 def format_datatable(data_list, total_count, filtered_count):
     #prepare for json/ajax
-    output = {}
-    output['draw'] = str(int(request.values['draw']))
-    output['recordsTotal'] = str(total_count)
-    output['recordsFiltered'] = str(filtered_count)
-    output['data'] = data_list
+    output = {'draw': str(int(request.values['draw'])), 'recordsTotal': str(total_count),
+              'recordsFiltered': str(filtered_count), 'data': data_list}
     # add the (non-standard) flash-tag to display flash-messages via ajax
     fml = get_flashed_messages()
     if not not fml:

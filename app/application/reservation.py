@@ -1,6 +1,7 @@
 from app.application.util import datetime_to_dutch_datetime_string, formiodate_to_datetime, datetime_to_formiodate
 from app.application import guest as maguest
 from app.data import utils as mutils, guest as mguest, settings as msettings, timeslot_configuration as mtc
+from app.data.models import Guest
 from app import log
 import datetime, json, sys
 
@@ -20,7 +21,7 @@ def prepare_reservation(code=None):
                    'available_timeslots': get_available_timeslots(),
                    'mode': 'new'
                    }
-            if ret['available_timeslots'] == []:
+            if not ret['available_timeslots']:
                 return RegisterResult(RegisterResult.Result.E_NO_TIMESLOT, None)
             return RegisterResult(RegisterResult.Result.E_OK, ret)
         else:
@@ -75,8 +76,8 @@ def add_or_update_reservation(data, suppress_send_ack_email=False):
             guest = mguest.update_guest(guest, full_name=data['full_name'].strip(), phone=data['phone'].strip(),
                                         timeslot=timeslot)
         if guest and not suppress_send_ack_email:
-            guest.set_email_send_retry(0)
-            guest.set_ack_email_sent(False)
+            guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, 0)
+            guest.set(Guest.SUBSCRIBE.EMAIL_ACK_SENT, False)
         register_ack_template = msettings.get_configuration_setting('register-ack-template')
         timeslot = datetime_to_dutch_datetime_string(guest.timeslot)
         register_ack_template = register_ack_template.replace('{{TAG_TIMESLOT}}', timeslot)
@@ -93,13 +94,13 @@ def update_reservation(property, id, value):
         if 'note' == property:
             mguest.update_guest(guest, note=value)
         if 'invite_email_sent' == property:
-            guest.set_invite_email_sent(value)
+            guest.set(Guest.SUBSCRIBE.EMAIL_INVITE_SENT, value)
         elif 'ack_email_sent' == property:
-            guest.set_ack_email_sent(value)
+            guest.set(Guest.SUBSCRIBE.EMAIL_ACK_SENT, value)
         elif 'enabled' == property:
-            guest.set_enabled(value)
+            guest.set(Guest.SUBSCRIBE.ENABLED, value)
         elif 'email_send_retry' == property:
-            guest.set_email_send_retry(value)
+            guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, value)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
@@ -114,17 +115,12 @@ def subscribe_reservation_changed(cb, opaque):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def guest_property_change_cb(value, opaque):
+def guest_property_change_cb(type, value, opaque):
     for cb in reservation_changed_cb:
         cb[0](value, cb[1])
 
 
-mguest.subscribe_enabled(guest_property_change_cb, None)
-mguest.subscribe_ack_email_sent(guest_property_change_cb, None)
-mguest.subscribe_nbr_ack_email_sent(guest_property_change_cb, None)
-mguest.subscribe_invite_email_sent(guest_property_change_cb, None)
-mguest.subscribe_nbr_invite_email_sent(guest_property_change_cb, None)
-mguest.subscribe_email_send_retry(guest_property_change_cb, None)
+Guest.subscribe(Guest.SUBSCRIBE.ALL, guest_property_change_cb, None)
 
 
 def get_reservation_counters():

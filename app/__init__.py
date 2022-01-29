@@ -44,11 +44,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.22: bugifx timeslot-list
 # V0.23: log when registration is cancelled
 # V0.24: refactored callbacks in some Guest settings
-
+# V0.25: implemented cancel-registration-mail
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='V0.24', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='V0.25', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

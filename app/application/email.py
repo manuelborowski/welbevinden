@@ -55,6 +55,33 @@ def send_register_ack(**kwargs):
     return False
 
 
+def send_register_cancel(**kwargs):
+    try:
+        if not msettings.get_configuration_setting('enable-send-ack-email'):
+            return False
+        guest = mguest.get_first_not_sent_cancel()
+        if not guest:
+            return False
+        email_send_max_retries = msettings.get_configuration_setting('email-send-max-retries')
+        if guest.email_send_retry >= email_send_max_retries:
+            guest.set(Guest.SUBSCRIBE.ENABLED, False)
+            return False
+        guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, guest.email_send_retry + 1)
+
+        email_subject = msettings.get_configuration_setting('cancel-mail-subject-template')
+        email_content = msettings.get_configuration_setting('cancel-mail-content-template')
+        log.info(f'"{email_subject}" to {guest.email}')
+        ret = send_email(guest.email, email_subject, email_content)
+        if ret:
+            guest.set(Guest.SUBSCRIBE.EMAIL_CANCEL_SENT, True)
+            guest.set(Guest.SUBSCRIBE.NBR_CANCEL_SENT, guest.nbr_cancel_sent + 1)
+            return ret
+        return False
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return False
+
+
 def send_invite(**kwargs):
     try:
         if not msettings.get_configuration_setting('enable-send-invite-email'):
@@ -95,6 +122,7 @@ def send_invite(**kwargs):
 
 send_email_config = [
     {'function': send_register_ack, 'args': {}},
+    {'function': send_register_cancel, 'args': {}},
     {'function': send_invite, 'args': {}},
 ]
 

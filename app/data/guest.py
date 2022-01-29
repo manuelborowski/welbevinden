@@ -144,6 +144,15 @@ def get_first_not_sent_ack():
     return None
 
 
+def get_first_not_sent_cancel():
+    try:
+        guest = Guest.query.filter(Guest.enabled, not_(Guest.cancel_email_sent)).first()
+        return guest
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
+
 def pre_filter():
     return db.session.query(Guest)
 

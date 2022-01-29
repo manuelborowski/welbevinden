@@ -246,6 +246,24 @@ settings_formio = \
                 "key": "register-mail-ack-content-template",
                 "type": "textarea",
                 "input": true
+              },
+              {
+                "label": "Registratie annulatie-mail: onderwerp",
+                "autoExpand": false,
+                "tableView": true,
+                "persistent": false,
+                "key": "cancel-mail-subject-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "Registratie annulatie-mail: inhoud",
+                "autoExpand": false,
+                "tableView": true,
+                "persistent": false,
+                "key": "cancel-mail-content-template",
+                "type": "textarea",
+                "input": true
               }
             ],
             "collapsed": true

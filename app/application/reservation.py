@@ -97,6 +97,8 @@ def update_reservation(property, id, value):
             guest.set(Guest.SUBSCRIBE.EMAIL_INVITE_SENT, value)
         elif 'ack_email_sent' == property:
             guest.set(Guest.SUBSCRIBE.EMAIL_ACK_SENT, value)
+        elif 'cancel_email_sent' == property:
+            guest.set(Guest.SUBSCRIBE.EMAIL_CANCEL_SENT, value)
         elif 'enabled' == property:
             guest.set(Guest.SUBSCRIBE.ENABLED, value)
         elif 'email_send_retry' == property:

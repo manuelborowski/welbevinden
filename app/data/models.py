@@ -139,6 +139,8 @@ class Guest(db.Model):
         NBR_INVITE_SENT =   'nbr-invite-sent'
         EMAIL_ACK_SENT =    'email-ack-sent'
         NBR_ACK_SENT =      'nbr-ack-sent'
+        EMAIL_CANCEL_SENT = 'email-cancel-sent'
+        NBR_CANCEL_SENT =   'nbr-cancel-sent'
         NBR_EMAIL_RETRY =   'nbr-email-retry'
         ENABLED =           'enabled'
         ALL =               'all'
@@ -156,10 +158,12 @@ class Guest(db.Model):
     note = db.Column(db.Text)
     last_login = db.Column(db.DateTime())
     invite_email_sent = db.Column(db.Boolean, default=True)
-    ack_email_sent = db.Column(db.Boolean, default=True)
-    email_send_retry = db.Column(db.Integer(), default=0)
     nbr_invite_sent = db.Column(db.Integer(), default=0)
+    ack_email_sent = db.Column(db.Boolean, default=True)
     nbr_ack_sent = db.Column(db.Integer(), default=0)
+    cancel_email_sent = db.Column(db.Boolean, default=True)
+    nbr_cancel_sent = db.Column(db.Integer(), default=0)
+    email_send_retry = db.Column(db.Integer(), default=0)
     enabled = db.Column(db.Boolean, default=True)
     code = db.Column(db.String(256), default='')
     timeslot = db.Column(db.DateTime())
@@ -191,6 +195,8 @@ class Guest(db.Model):
             'nbr_invite_sent': self.nbr_invite_sent,
             'ack_email_sent': self.ack_email_sent,
             'nbr_ack_sent': self.nbr_ack_sent,
+            'cancel_email_sent': self.cancel_email_sent,
+            'nbr_cancel_sent': self.nbr_cancel_sent,
             'email_send_retry': self.email_send_retry,
             'enabled': self.enabled,
             'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
@@ -210,6 +216,10 @@ class Guest(db.Model):
             self.ack_email_sent = value
         elif type == self.SUBSCRIBE.NBR_ACK_SENT:
             self.nbr_ack_sent = value
+        elif type == self.SUBSCRIBE.EMAIL_CANCEL_SENT:
+            self.cancel_email_sent = value
+        elif type == self.SUBSCRIBE.NBR_CANCEL_SENT:
+            self.nbr_cancel_sent = value
         elif type == self.SUBSCRIBE.NBR_EMAIL_RETRY:
             self.email_send_retry = value
         elif type == self.SUBSCRIBE.ENABLED:

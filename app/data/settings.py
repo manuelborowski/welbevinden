@@ -57,8 +57,12 @@ default_configuration_settings = {
     'invite-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
     'invite-mail-subject-reminder-template': ('', Settings.SETTING_TYPE.E_STRING),
     'invite-mail-content-template': ('', Settings.SETTING_TYPE.E_STRING),
+
     'register-mail-ack-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
     'register-mail-ack-content-template': ('', Settings.SETTING_TYPE.E_STRING),
+
+    'cancel-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'cancel-mail-content-template': ('', Settings.SETTING_TYPE.E_STRING),
 
     'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
     'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),

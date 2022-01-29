@@ -207,8 +207,10 @@ def celledit_event_cb(msg, client_sid=None):
     if msg['data']['column'] == 9:
         mreservation.update_reservation('ack_email_sent', msg['data']['id'], msg['data']['value'])
     if msg['data']['column'] == 11:
+        mreservation.update_reservation('cancel_email_sent', msg['data']['id'], msg['data']['value'])
+    if msg['data']['column'] == 13:
         mreservation.update_reservation('enabled', msg['data']['id'], msg['data']['value'])
-    if msg['data']['column'] == 12:
+    if msg['data']['column'] == 14:
         mreservation.update_reservation('email_send_retry', msg['data']['id'], msg['data']['value'])
     msocketio.send_to_room({'type': 'celledit-reservation', 'data': {'status': True}}, client_sid)
 
@@ -265,6 +267,9 @@ table_configuration = {
         {'name': 'B', 'data': 'ack_email_sent', 'order_by': Guest.ack_email_sent, 'width': '1%',
          'celltoggle': 'standard'},
         {'name': 'B', 'data': 'nbr_ack_sent', 'order_by': Guest.nbr_ack_sent, 'width': '1%'},
+        {'name': 'C', 'data': 'cancel_email_sent', 'order_by': Guest.cancel_email_sent, 'width': '1%',
+         'celltoggle': 'standard'},
+        {'name': 'C', 'data': 'nbr_cancel_sent', 'order_by': Guest.nbr_cancel_sent, 'width': '1%'},
         {'name': 'A', 'data': 'enabled', 'order_by': Guest.enabled, 'width': '1%', 'celltoggle': 'standard'},
         {'name': 'R', 'data': 'email_send_retry', 'order_by': Guest.email_send_retry, 'orderable': True,
          'celledit': 'text', 'width': '1%'},

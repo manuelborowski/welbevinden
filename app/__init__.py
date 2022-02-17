@@ -35,7 +35,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.13: remove yellow row color when invite or ack mail is sent
 # V0.14: small bugfix with counters.  Added invitation reminder mail prefix
 # V0.15: escape url specific characters in data
-# V0.16: bugfix: when adding a new but empty reservation, show error
+# V0.16: bugfix: when adding a new but empty registration, show error
 # V0.17: update in logging: add correct app name
 # V0.18: update in title of registration form
 # V0.19: update in favicon of registration form
@@ -46,10 +46,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.24: refactored callbacks in some Guest settings
 # V0.25: implemented cancel-registration-mail
 # V0.26: send cancel-registration-mail when guest pushes cancel registration button
+# V0.27: copy from 0.26 and start to support opendag registrations
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='V0.26', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='V0.27', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -145,12 +146,12 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings, guest, reservation, timeslot
+    from app.presentation.view import auth, user, settings, guest, registration, timeslot
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(guest.guest)
     flask_app.register_blueprint(settings.settings)
-    flask_app.register_blueprint(reservation.reservation)
+    flask_app.register_blueprint(registration.reservation)
     flask_app.register_blueprint(timeslot.timeslot)
 
     @flask_app.errorhandler(403)

@@ -6,7 +6,36 @@ from app import log
 import datetime, json, sys
 
 
-def prepare_reservation(code=None):
+def prepare_registration():
+    ret = {
+        'default_values': {},
+        'template': json.loads(msettings.get_configuration_setting('register-template'))
+    }
+    return RegisterResult(RegisterResult.Result.E_OK, ret)
+
+
+# TODO : check if registration fits in register...
+def add_registration(data, suppress_send_ack_email=False):
+    try:
+        misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
+        extra_fields = [c['veldnaam'] for c in misc_config]
+        extra_field = {f: '' for f in extra_fields}
+        data['misc_field'] = extra_field
+        guest = maguest.add_guest(data)
+        if guest and not suppress_send_ack_email:
+            guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, 0)
+            guest.set(Guest.SUBSCRIBE.REG_ACK_EMAIL_TX, False)
+        register_ack_template = msettings.get_configuration_setting('register-ack-template')
+        timeslot = datetime_to_dutch_datetime_string(guest.timeslot)
+        register_ack_template = register_ack_template.replace('{{TAG_TIMESLOT}}', timeslot)
+        return RegisterResult(RegisterResult.Result.E_OK, register_ack_template)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        log.error(data)
+    return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
+
+
+def prepare_timeslot_reservation(code=None):
     try:
         if 'new' == code:
             empty_values = {
@@ -14,7 +43,7 @@ def prepare_reservation(code=None):
             'email': '',
             'full_name': '',
             'child_name': '',
-            'reservation-code': 'new',
+            'registration-code': 'new',
             }
             ret = {'default_values': empty_values,
                    'template': json.loads(msettings.get_configuration_setting('register-template')),
@@ -30,7 +59,7 @@ def prepare_reservation(code=None):
                 return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
             default_values = guest.flat()
             if guest.timeslot:
-                default_values['update-reservation'] = 'true'
+                default_values['update-registration'] = 'true'
             ret = {'default_values': default_values,
                    'template': json.loads(msettings.get_configuration_setting('register-template')),
                    'available_timeslots': get_available_timeslots(guest.timeslot),
@@ -46,8 +75,8 @@ def delete_reservation(code):
     try:
         guest = mguest.get_first_guest(code=code)
         mguest.update_timeslot(guest, None)
-        guest.set(Guest.SUBSCRIBE.EMAIL_CANCEL_SENT, False)
-        log.info(f'reservation cancelled: {guest.email}')
+        guest.set(Guest.SUBSCRIBE.CANCEL_EMAIL_TX, False)
+        log.info(f'registration cancelled: {guest.email}')
         return RegisterResult(result=RegisterResult.Result.E_OK)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -56,29 +85,27 @@ def delete_reservation(code):
 
 def add_or_update_reservation(data, suppress_send_ack_email=False):
     try:
-        code = data['reservation-code']
+        code = data['registration-code']
         timeslot = formiodate_to_datetime(data['radio-timeslot'])
         if 'new' == code:
             if data['email'] == '' or data['child_name'] == '':
                 return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
             if not check_requested_timeslot(timeslot):
-                ret = {'reservation-code': 'new'}
+                ret = {'registration-code': 'new'}
                 return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, ret)
             misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
             extra_fields = [c['veldnaam'] for c in misc_config]
             extra_field = {f: '' for f in extra_fields}
-            guest = maguest.add_guest(full_name=data['full_name'].strip(), email=data['email'].strip())
-            guest = mguest.update_guest(guest, child_name=data['child_name'].strip(), phone=data['phone'].strip(),
-                                        timeslot=timeslot, misc_field=json.dumps(extra_field))
+            data['misc_field'] = extra_field
+            guest = maguest.add_guest(data)
         else:
-            guest = mguest.get_first_guest(code=code)
+            guest = mguest.get_first_guest({'code': code})
             if timeslot != guest.timeslot and not check_requested_timeslot(timeslot):
                 return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, guest.flat())
-            guest = mguest.update_guest(guest, full_name=data['full_name'].strip(), phone=data['phone'].strip(),
-                                        timeslot=timeslot)
+            guest = mguest.update_guest(guest, data)
         if guest and not suppress_send_ack_email:
-            guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, 0)
-            guest.set(Guest.SUBSCRIBE.EMAIL_ACK_SENT, False)
+            guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, 0)
+            guest.set(Guest.SUBSCRIBE.REG_ACK_EMAIL_TX, False)
         register_ack_template = msettings.get_configuration_setting('register-ack-template')
         timeslot = datetime_to_dutch_datetime_string(guest.timeslot)
         register_ack_template = register_ack_template.replace('{{TAG_TIMESLOT}}', timeslot)
@@ -95,15 +122,15 @@ def update_reservation(property, id, value):
         if 'note' == property:
             mguest.update_guest(guest, note=value)
         if 'invite_email_sent' == property:
-            guest.set(Guest.SUBSCRIBE.EMAIL_INVITE_SENT, value)
+            guest.set(Guest.SUBSCRIBE.INVITE_EMAIL_TX, value)
         elif 'ack_email_sent' == property:
-            guest.set(Guest.SUBSCRIBE.EMAIL_ACK_SENT, value)
+            guest.set(Guest.SUBSCRIBE.REG_ACK_EMAIL_TX, value)
         elif 'cancel_email_sent' == property:
-            guest.set(Guest.SUBSCRIBE.EMAIL_CANCEL_SENT, value)
+            guest.set(Guest.SUBSCRIBE.CANCEL_EMAIL_TX, value)
         elif 'enabled' == property:
             guest.set(Guest.SUBSCRIBE.ENABLED, value)
         elif 'email_send_retry' == property:
-            guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, value)
+            guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, value)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
@@ -129,8 +156,8 @@ Guest.subscribe(Guest.SUBSCRIBE.ALL, guest_property_change_cb, None)
 def get_reservation_counters():
     reserved_guests = mguest.get_guests(enabled=True, timeslot_is_not_none=True)
     open_guests = mguest.get_guests(enabled=True, timeslot_is_none=True)
-    child_names = [g.child_name for g in reserved_guests]
-    filtered_open_guest = [g for g in open_guests if g.child_name not in child_names]
+    child_names = [g.child_first_name for g in reserved_guests]
+    filtered_open_guest = [g for g in open_guests if g.child_first_name not in child_names]
     nbr_open = len(filtered_open_guest)
     nbr_reserved = len(reserved_guests)
     nbr_total = nbr_open + nbr_reserved

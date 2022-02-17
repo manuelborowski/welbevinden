@@ -25,10 +25,10 @@ def send_register_ack(**kwargs):
         if not guest:
             return False
         email_send_max_retries = msettings.get_configuration_setting('email-send-max-retries')
-        if guest.email_send_retry >= email_send_max_retries:
+        if guest.email_tot_nbr_tx >= email_send_max_retries:
             guest.set(Guest.SUBSCRIBE.ENABLED, False)
             return False
-        guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, guest.email_send_retry + 1)
+        guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, guest.email_tot_nbr_tx + 1)
 
         email_subject = msettings.get_configuration_setting('register-mail-ack-subject-template')
         email_content = msettings.get_configuration_setting('register-mail-ack-content-template')
@@ -46,8 +46,8 @@ def send_register_ack(**kwargs):
         log.info(f'"{email_subject}" to {guest.email}')
         ret = send_email(guest.email, email_subject, email_content)
         if ret:
-            guest.set(Guest.SUBSCRIBE.EMAIL_ACK_SENT, True)
-            guest.set(Guest.SUBSCRIBE.NBR_ACK_SENT, guest.nbr_ack_sent + 1)
+            guest.set(Guest.SUBSCRIBE.REG_ACK_EMAIL_TX, True)
+            guest.set(Guest.SUBSCRIBE.REG_ACK_NBR_TX, guest.reg_ack_nbr_tx + 1)
             return ret
         return False
     except Exception as e:
@@ -63,18 +63,18 @@ def send_register_cancel(**kwargs):
         if not guest:
             return False
         email_send_max_retries = msettings.get_configuration_setting('email-send-max-retries')
-        if guest.email_send_retry >= email_send_max_retries:
+        if guest.email_tot_nbr_tx >= email_send_max_retries:
             guest.set(Guest.SUBSCRIBE.ENABLED, False)
             return False
-        guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, guest.email_send_retry + 1)
+        guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, guest.email_tot_nbr_tx + 1)
 
         email_subject = msettings.get_configuration_setting('cancel-mail-subject-template')
         email_content = msettings.get_configuration_setting('cancel-mail-content-template')
         log.info(f'"{email_subject}" to {guest.email}')
         ret = send_email(guest.email, email_subject, email_content)
         if ret:
-            guest.set(Guest.SUBSCRIBE.EMAIL_CANCEL_SENT, True)
-            guest.set(Guest.SUBSCRIBE.NBR_CANCEL_SENT, guest.nbr_cancel_sent + 1)
+            guest.set(Guest.SUBSCRIBE.CANCEL_EMAIL_TX, True)
+            guest.set(Guest.SUBSCRIBE.CANCEL_NBR_TX, guest.cancel_nbr_tx + 1)
             return ret
         return False
     except Exception as e:
@@ -90,15 +90,15 @@ def send_invite(**kwargs):
         if not guest:
             return False
         email_send_max_retries = msettings.get_configuration_setting('email-send-max-retries')
-        if guest.email_send_retry >= email_send_max_retries:
+        if guest.email_tot_nbr_tx >= email_send_max_retries:
             guest.set(Guest.SUBSCRIBE.ENABLED, False)
             return False
-        guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, guest.email_send_retry + 1)
+        guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, guest.email_tot_nbr_tx + 1)
 
         email_subject = msettings.get_configuration_setting('invite-mail-subject-template')
         email_content = msettings.get_configuration_setting('invite-mail-content-template')
 
-        if guest.nbr_invite_sent > 0:
+        if guest.invite_nbr_tx > 0:
             email_reminder_subject_prefix = msettings.get_configuration_setting('invite-mail-subject-reminder-template')
             email_subject = f'{email_reminder_subject_prefix}{email_subject}'
         url_tag = re.search('{{.*\|TAG_URL}}', email_content)
@@ -109,8 +109,8 @@ def send_invite(**kwargs):
         log.info(f'"{email_subject}" to {guest.email}')
         ret = send_email(guest.email, email_subject, email_content)
         if ret:
-            guest.set(Guest.SUBSCRIBE.EMAIL_INVITE_SENT, True)
-            guest.set(Guest.SUBSCRIBE.NBR_INVITE_SENT, guest.nbr_invite_sent + 1)
+            guest.set(Guest.SUBSCRIBE.INVITE_EMAIL_TX, True)
+            guest.set(Guest.SUBSCRIBE.INVITE_NBR_TX, guest.invite_nbr_tx + 1)
             return ret
         return False
     except Exception as e:

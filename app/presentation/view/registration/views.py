@@ -5,14 +5,14 @@ from flask_login import login_required
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus, button_pressed
 from app.data import guest as mguest
-from app.application import socketio as msocketio, reservation as mreservation, guest as maguest, settings as msettings
+from app.application import socketio as msocketio, registration as mreservation, guest as maguest, settings as msettings
 from app.data.models import Guest
 from app.application import tables
 
 import json
 
 
-@reservation.route('/reservation', methods=['POST', 'GET'])
+@reservation.route('/registration', methods=['POST', 'GET'])
 @login_required
 @supervisor_required
 def show():
@@ -22,7 +22,7 @@ def show():
     return base_multiple_items.show(table_configuration)
 
 
-@reservation.route('/reservation/table_ajax', methods=['GET', 'POST'])
+@reservation.route('/registration/table_ajax', methods=['GET', 'POST'])
 @login_required
 @supervisor_required
 def table_ajax():
@@ -32,7 +32,7 @@ def table_ajax():
     return base_multiple_items.ajax(table_configuration)
 
 
-@reservation.route('/reservation/table_action', methods=['GET', 'POST'])
+@reservation.route('/registration/table_action', methods=['GET', 'POST'])
 @login_required
 @supervisor_required
 def table_action():
@@ -43,11 +43,11 @@ def table_action():
     if button_pressed('delete'):
         return item_delete()
     if button_pressed('update_reservation'):
-        return update_reservation()
-    return redirect(url_for('reservation.show'))
+        return update_registration()
+    return redirect(url_for('registration.show'))
 
 
-@reservation.route('/reservation/item_action/<string:action>', methods=['GET', 'POST'])
+@reservation.route('/registration/item_action/<string:action>', methods=['GET', 'POST'])
 @login_required
 @supervisor_required
 def item_action(action=None):
@@ -63,7 +63,7 @@ def item_action(action=None):
     if button_pressed('edit'):
         if action == 'view':
             return item_edit(False, id)
-    return redirect(url_for('reservation.show'))
+    return redirect(url_for('registration.show'))
 
 
 def item_delete(done=False, id=-1):
@@ -73,10 +73,10 @@ def item_delete(done=False, id=-1):
         mguest.delete_guest(ids)
     except Exception as e:
         log.error(f'could not delete guest {request.args}: {e}')
-    return redirect(url_for('reservation.show'))
+    return redirect(url_for('registration.show'))
 
 
-def update_reservation(done=False, id=-1):
+def update_registration(done=False, id=-1):
     try:
         chbx_id_list = request.form.getlist('chbx')
         if chbx_id_list:
@@ -84,8 +84,8 @@ def update_reservation(done=False, id=-1):
         guest = mguest.get_first_guest(id=id)
         return redirect(url_for('guest.register', code=guest.code))
     except Exception as e:
-        log.error(f'could not edit reservation {request.args}: {e}')
-    return redirect(url_for('reservation.show'))
+        log.error(f'could not edit registration {request.args}: {e}')
+    return redirect(url_for('registration.show'))
 
 
 def get_form(extra_fields, default_values={}):
@@ -123,10 +123,10 @@ def item_edit(done=False, id=-1):
         if done:
             misc_field = get_misc_fields(extra_fields, request.form)
             guest = mguest.get_first_guest(id=id)
-            guest = mguest.update_guest(guest, full_name=request.form['full_name'], email=request.form['email'],
+            guest = mguest.update_guest(guest, full_name=request.form['full_name'],
                                         child_name=request.form['child_name'], phone=request.form['phone'],
-                                        misc_field=json.dumps(misc_field))
-            return redirect(url_for('reservation.show'))
+                                        email=request.form['email'], misc_field=json.dumps(misc_field))
+            return redirect(url_for('registration.show'))
         else:
             chbx_id_list = request.form.getlist('chbx')
             if chbx_id_list:
@@ -136,12 +136,12 @@ def item_edit(done=False, id=-1):
                 form = get_form(extra_fields, guest.flat())
                 common_details['item_id'] = id
             else:
-                return redirect(url_for('reservation.show'))
-            return render_template('reservation/reservation.html', form_details=form, common_details=common_details)
+                return redirect(url_for('registration.show'))
+            return render_template('registration/registration.html', form_details=form, common_details=common_details)
     except Exception as e:
         log.error(f'Could not edit guest {e}')
         flash_plus('Kan gebruiker niet aanpassen', e)
-    return redirect(url_for('reservation.show'))
+    return redirect(url_for('registration.show'))
 
 
 def item_add(done=False):
@@ -154,27 +154,27 @@ def item_add(done=False):
             guest = mguest.update_guest(guest, child_name=request.form['child_name'], phone=request.form['phone'],
                                         misc_field=json.dumps(misc_field))
             log.info(f'add: {guest.email}')
-            return redirect(url_for('reservation.show'))
+            return redirect(url_for('registration.show'))
         else:
             common_details = tables.prepare_item_config_for_view(table_configuration, 'add')
             form = get_form(extra_fields)
-            return render_template('reservation/reservation.html', form_details=form,
+            return render_template('registration/registration.html', form_details=form,
                                    common_details=common_details)
     except Exception as e:
         log.error(f'Could not add guest {e}')
         flash_plus(f'Kan gebruiker niet toevoegen: {e}')
-    return redirect(url_for('reservation.show'))
+    return redirect(url_for('registration.show'))
 
 
 @reservation.route('/reservation_save/<string:form_data>', methods=['POST', 'GET'])
 @login_required
 @supervisor_required
-def reservation_save(form_data):
+def registration_save(form_data):
     try:
         data = json.loads(form_data)
-        if 'cancel-reservation' in data and data['cancel-reservation']:
+        if 'cancel-registration' in data and data['cancel-registration']:
             try:
-                mreservation.delete_reservation(data['reservation-code'])
+                mreservation.delete_reservation(data['registration-code'])
                 flash_plus('Reservatie is verwijderd')
             except Exception as e:
                 flash_plus('Kon de reservatie niet verwijderen', e)
@@ -189,14 +189,14 @@ def reservation_save(form_data):
                 flash_plus('Onbekende fout opgetreden', e)
     except Exception as e:
         flash_plus('Onbekende fout opgetreden', e)
-    return redirect(url_for('reservation.show'))
+    return redirect(url_for('registration.show'))
 
 
-def reservation_update_cb(value, opaque):
-    msocketio.broadcast_message({'type': 'celledit-reservation', 'data': {'reload-table': True}})
+def registration_update_cb(value, opaque):
+    msocketio.broadcast_message({'type': 'celledit-registration', 'data': {'reload-table': True}})
 
 
-mreservation.subscribe_reservation_changed(reservation_update_cb, None)
+mreservation.subscribe_reservation_changed(registration_update_cb, None)
 
 
 def celledit_event_cb(msg, client_sid=None):
@@ -212,10 +212,10 @@ def celledit_event_cb(msg, client_sid=None):
         mreservation.update_reservation('enabled', msg['data']['id'], msg['data']['value'])
     if msg['data']['column'] == 14:
         mreservation.update_reservation('email_send_retry', msg['data']['id'], msg['data']['value'])
-    msocketio.send_to_room({'type': 'celledit-reservation', 'data': {'status': True}}, client_sid)
+    msocketio.send_to_room({'type': 'celledit-registration', 'data': {'status': True}}, client_sid)
 
 
-msocketio.subscribe_on_type('celledit-reservation', celledit_event_cb)
+msocketio.subscribe_on_type('celledit-registration', celledit_event_cb)
 
 
 def get_filters():
@@ -244,7 +244,7 @@ def get_show_info():
 
 
 table_configuration = {
-    'view': 'reservation',
+    'view': 'registration',
     'title': 'Gasten',
     'buttons': ['edit', 'add', 'delete', 'update_reservation'],
     'delete_message': 'Opgelet!!<br>'
@@ -256,22 +256,22 @@ table_configuration = {
         {'name': 'row_action', 'data': 'row_action', 'width': '1%'},
         {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True, 'width': '10%'},
         {'name': 'Email', 'data': 'email', 'order_by': Guest.email, 'orderable': True, 'width': '12%'},
-        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.full_name, 'orderable': True, 'width': '6%'},
-        {'name': 'Kind', 'data': 'child_name', 'order_by': Guest.child_name, 'orderable': True, 'width': '6%'},
+        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.child_last_name, 'orderable': True, 'width': '6%'},
+        {'name': 'Kind', 'data': 'child_name', 'order_by': Guest.child_first_name, 'orderable': True, 'width': '6%'},
         {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True, 'width': '6%'},
         {'name': 'Notitie', 'data': 'note', 'order_by': Guest.note, 'orderable': True, 'width': '20%',
          'celledit': 'text'},
-        {'name': 'U', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_sent, 'width': '1%',
+        {'name': 'U', 'data': 'invite_email_sent', 'order_by': Guest.invite_email_tx, 'width': '1%',
          'celltoggle': 'standard'},
-        {'name': 'U', 'data': 'nbr_invite_sent', 'order_by': Guest.nbr_invite_sent, 'width': '1%'},
-        {'name': 'B', 'data': 'ack_email_sent', 'order_by': Guest.ack_email_sent, 'width': '1%',
+        {'name': 'U', 'data': 'nbr_invite_sent', 'order_by': Guest.invite_nbr_tx, 'width': '1%'},
+        {'name': 'B', 'data': 'ack_email_sent', 'order_by': Guest.reg_ack_email_tx, 'width': '1%',
          'celltoggle': 'standard'},
-        {'name': 'B', 'data': 'nbr_ack_sent', 'order_by': Guest.nbr_ack_sent, 'width': '1%'},
-        {'name': 'C', 'data': 'cancel_email_sent', 'order_by': Guest.cancel_email_sent, 'width': '1%',
+        {'name': 'B', 'data': 'nbr_ack_sent', 'order_by': Guest.reg_ack_nbr_tx, 'width': '1%'},
+        {'name': 'C', 'data': 'cancel_email_sent', 'order_by': Guest.cancel_email_tx, 'width': '1%',
          'celltoggle': 'standard'},
-        {'name': 'C', 'data': 'nbr_cancel_sent', 'order_by': Guest.nbr_cancel_sent, 'width': '1%'},
+        {'name': 'C', 'data': 'nbr_cancel_sent', 'order_by': Guest.cancel_nbr_tx, 'width': '1%'},
         {'name': 'A', 'data': 'enabled', 'order_by': Guest.enabled, 'width': '1%', 'celltoggle': 'standard'},
-        {'name': 'R', 'data': 'email_send_retry', 'order_by': Guest.email_send_retry, 'orderable': True,
+        {'name': 'R', 'data': 'email_send_retry', 'order_by': Guest.email_tot_nbr_tx, 'orderable': True,
          'celledit': 'text', 'width': '1%'},
     ],
     'get_filters': get_filters,
@@ -287,7 +287,7 @@ table_configuration = {
     'filter_data': mguest.filter_data,
     'search_data': mguest.search_data,
     'default_order': (1, 'asc'),
-    'socketio_endpoint': 'celledit-reservation',
+    'socketio_endpoint': 'celledit-registration',
     # 'cell_color': {'supress_cell_content': True, 'color_keys': {'X': 'red', 'O': 'green'}}, #TEST
     # 'suppress_dom': True,
 

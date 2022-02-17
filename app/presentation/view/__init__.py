@@ -1,4 +1,4 @@
-from app.application import reservation as mreservation, settings as msettings
+from app.application import registration as mreservation, settings as msettings
 
 
 false = False
@@ -7,7 +7,7 @@ null = None
 
 
 def prepare_registration_form(code):
-    ret = mreservation.prepare_reservation(code)
+    ret = mreservation.prepare_timeslot_reservation(code)
     if ret.result == ret.Result.E_OK:
         available_timeslots = ret.ret['available_timeslots']
         template = ret.ret['template']

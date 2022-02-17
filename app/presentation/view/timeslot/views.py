@@ -5,7 +5,7 @@ from flask_login import login_required
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus, button_pressed
 from app.data import timeslot_configuration as mtc
-from app.application import reservation as mreservation
+from app.application import registration as mreservation
 from app.data.models import TimeslotConfiguration
 
 import json

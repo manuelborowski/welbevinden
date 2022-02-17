@@ -13,27 +13,41 @@ def create_random_string(len=32):
     return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(len))
 
 
-def add_guest(full_name=None, first_name=None, last_name=None, email=None, code=None):
+def add_guest(data):
     try:
-        guest = mguest.get_first_guest(email=email)
-        if guest:
-            return guest
-        if not code:
-            code = create_random_string(32)
-        guest = mguest.add_guest(full_name, first_name, last_name, email, code)
-        log.info(f'{sys._getframe().f_code.co_name}: {email}')
+        # guest = mguest.get_first_guest(email=email)
+        # if guest:
+        #     return guest
+        # if not code:
+        code = create_random_string(32)
+        data['code'] = code
+        guest = mguest.add_guest(data)
+        log.info(f'{sys._getframe().f_code.co_name}: {data}')
         return guest
     except Exception as e:
         mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)
     return None
+# def add_guest(full_name=None, first_name=None, last_name=None, email=None, code=None):
+#     try:
+#         guest = mguest.get_first_guest(email=email)
+#         if guest:
+#             return guest
+#         if not code:
+#             code = create_random_string(32)
+#         guest = mguest.add_guest(full_name, first_name, last_name, email, code)
+#         log.info(f'{sys._getframe().f_code.co_name}: {email}')
+#         return guest
+#     except Exception as e:
+#         mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)
+#     return None
 
 
 def event_send_invite_emails(opaque):
     try:
         guests = mguest.get_guests(enabled=True)
         for guest in guests:
-            guest.set(Guest.SUBSCRIBE.NBR_EMAIL_RETRY, 0)
-            guest.set(Guest.SUBSCRIBE.EMAIL_INVITE_SENT, False)
+            guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, 0)
+            guest.set(Guest.SUBSCRIBE.INVITE_EMAIL_TX, False)
     except Exception as e:
         mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)
     return None
@@ -77,7 +91,7 @@ def import_guest_info(file_storeage):
         email2_field = msettings.get_configuration_setting('import-email2-field')
         misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
         guests = mguest.get_guests(enabled=True)
-        key_cache = {g.child_name + g.email: g for g in guests}
+        key_cache = {g.child_first_name + g.email: g for g in guests}
         guest_dict = XLSXDictReader(BytesIO(file_storeage.read()))
         for guest in guest_dict:
             if not guest[childname_field] or guest[childname_field] == '' or not guest[email1_field]: continue

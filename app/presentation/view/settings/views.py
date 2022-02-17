@@ -191,30 +191,7 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "Uitnodigings email: onderwerp",
-                "autoExpand": false,
-                "tableView": true,
-                "key": "invite-mail-subject-template",
-                "type": "textarea",
-                "input": true
-              },
-              {
-                "label": "Uitnodigings email onderwerp : HERINNERING prefix",
-                "tableView": true,
-                "key": "invite-mail-subject-reminder-template",
-                "type": "textfield",
-                "input": true
-              },
-              {
-                "label": "Uitnodigings email: inhoud",
-                "autoExpand": false,
-                "tableView": true,
-                "key": "invite-mail-content-template",
-                "type": "textarea",
-                "input": true
-              },
-              {
-                "label": "Web registratie template",
+                "label": "STUDENT registration (formio sandbox)",
                 "autoExpand": false,
                 "tableView": true,
                 "key": "register-template",
@@ -222,7 +199,7 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "Web registratie bevestiging template",
+                "label": "STUDENT registration CONFIRMATION (formio sanbox)",
                 "autoExpand": false,
                 "tableView": true,
                 "key": "register-ack-template",
@@ -230,7 +207,7 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "Registratie bevestigingse-mail: onderwerp",
+                "label": "STUDENT registration confirmation email SUBJECT (html)",
                 "autoExpand": false,
                 "tableView": true,
                 "persistent": false,
@@ -239,7 +216,7 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "Registratie bevestigingse-mail: inhoud",
+                "label": "STUDENT registration confirmation email CONTENT (html)",
                 "autoExpand": false,
                 "tableView": true,
                 "persistent": false,
@@ -248,7 +225,41 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "Registratie annulatie-mail: onderwerp",
+                "label": "TIMESLOT registration (formio sandbox)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "register-timeslot-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "TIMESLOT registration CONFIRMATION (formio sanbox)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "register-timeslot-ack-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "TIMESLOT registration confirmation email SUBJECT (html)",
+                "autoExpand": false,
+                "tableView": true,
+                "persistent": false,
+                "key": "register-timeslot-mail-ack-subject-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "TIMESLOT registration confirmation email CONTENT (html)",
+                "autoExpand": false,
+                "tableView": true,
+                "persistent": false,
+                "key": "register-timeslot-mail-ack-content-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "CANCEL mail SUBJECT (html)",
                 "autoExpand": false,
                 "tableView": true,
                 "persistent": false,
@@ -257,7 +268,7 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "Registratie annulatie-mail: inhoud",
+                "label": "CANCEL mail CONTENT (html)",
                 "autoExpand": false,
                 "tableView": true,
                 "persistent": false,

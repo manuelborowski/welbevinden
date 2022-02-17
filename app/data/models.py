@@ -135,43 +135,95 @@ class Guest(db.Model):
     __tablename__ = 'guests'
 
     class SUBSCRIBE:
-        EMAIL_INVITE_SENT = 'email-invite-sent'
-        NBR_INVITE_SENT =   'nbr-invite-sent'
-        EMAIL_ACK_SENT =    'email-ack-sent'
-        NBR_ACK_SENT =      'nbr-ack-sent'
-        EMAIL_CANCEL_SENT = 'email-cancel-sent'
-        NBR_CANCEL_SENT =   'nbr-cancel-sent'
-        NBR_EMAIL_RETRY =   'nbr-email-retry'
+        INVITE_EMAIL_TX = 'invite-email-tx'
+        INVITE_NBR_TX = 'invite-nbr-tx'
+        REG_ACK_EMAIL_TX = 'registration-ack-email-tx'
+        REG_ACK_NBR_TX = 'registration-ack-email-tx'
+        TSL_ACK_EMAIL_TX = 'timeslot-ack-email-tx'
+        TSL_ACK_NBR_TX = 'timeslot-ack-email-tx'
+        CANCEL_EMAIL_TX = 'cancel-email-tx'
+        CANCEL_NBR_TX = 'cancel-nbr-tx'
+        EMAIL_TOT_NBR_TX = 'email-tot-nbr-tx'
         ENABLED =           'enabled'
         ALL =               'all'
 
         cb = {}
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(256))
-    phone = db.Column(db.String(256))
-    first_name = db.Column(db.String(256))
-    last_name = db.Column(db.String(256))
-    full_name = db.Column(db.String(256))
-    child_name = db.Column(db.String(256))
     key = db.Column(db.String(256))
-    note = db.Column(db.Text)
     last_login = db.Column(db.DateTime())
-    invite_email_sent = db.Column(db.Boolean, default=True)
-    nbr_invite_sent = db.Column(db.Integer(), default=0)
-    ack_email_sent = db.Column(db.Boolean, default=True)
-    nbr_ack_sent = db.Column(db.Integer(), default=0)
-    cancel_email_sent = db.Column(db.Boolean, default=True)
-    nbr_cancel_sent = db.Column(db.Integer(), default=0)
-    email_send_retry = db.Column(db.Integer(), default=0)
+
+    invite_email_tx = db.Column(db.Boolean, default=True)   #invite email is sent
+    invite_nbr_tx = db.Column(db.Integer(), default=0)      #nbr of invite emails sent
+    reg_ack_email_tx = db.Column(db.Boolean, default=True)  #registration ack email is sent
+    reg_ack_nbr_tx = db.Column(db.Integer(), default=0)     #nbr of registration ack emails sent
+    tsl_ack_email_tx = db.Column(db.Boolean, default=True)  #timeslot registration ack email is sent
+    tsl_ack_nbr_tx = db.Column(db.Integer(), default=0)     #nbr of timeslot registration ack emails sent
+    cancel_email_tx = db.Column(db.Boolean, default=True)   #cancel email is sent
+    cancel_nbr_tx = db.Column(db.Integer(), default=0)      #nbr of cancel emails sent
+    email_tot_nbr_tx = db.Column(db.Integer(), default=0)   #nbr of emails-try-send
+
     enabled = db.Column(db.Boolean, default=True)
     code = db.Column(db.String(256), default='')
     timeslot = db.Column(db.DateTime())
     misc_field = db.Column(db.Text)
 
+    register_timestamp = db.Column(db.DateTime())
+    unregister_timestamp = db.Column(db.DateTime())
+    status = db.Column(db.String(256), default='')      #ingeschreven/uitgeschreven/wachtlijst
+    email = db.Column(db.String(256))
+    phone = db.Column(db.String(256))
+    first_name = db.Column(db.String(256))
+    last_name = db.Column(db.String(256))
+    child_last_name = db.Column(db.String(256))
+    child_first_name = db.Column(db.String(256))
+    town = db.Column(db.String(256), default='')
+    postal_code = db.Column(db.String(256), default='')
+    note = db.Column(db.Text)
+    national_registration_number = db.Column(db.String(256), default='')
+    field_of_study = db.Column(db.String(256), default='')
+    indicator = db.Column(db.String(256), default='')   #kansarm
+    reason_priority = db.Column(db.String(256), default='')   #reden van voorrang
+
+    fields = {
+        'id': id,
+        'key': key,
+        'last_login': last_login,
+        'invite_email_tx': invite_email_tx,
+        'invite_nbr_tx': invite_nbr_tx,
+        'reg_ack_email_tx': reg_ack_email_tx,
+        'reg_ack_nbr_tx': reg_ack_nbr_tx,
+        'tsl_ack_email_tx': tsl_ack_email_tx,
+        'tsl_ack_nbr_tx': tsl_ack_nbr_tx,
+        'cancel_email_tx': cancel_email_tx,
+        'cancel_nbr_tx': cancel_nbr_tx,
+        'email_tot_nbr_tx': email_tot_nbr_tx,
+        'enabled': enabled,
+        'code': code,
+        'timeslot': timeslot,
+        'misc_field': misc_field,
+        'register_timestamp': register_timestamp,
+        'unregister_timestamp': unregister_timestamp,
+        'status': status,
+        'email': email,
+        'phone': phone,
+        'first_name': first_name,
+        'last_name': last_name,
+        'child_last_name': child_last_name,
+        'child_first_name': child_first_name,
+        'town': town,
+        'postal_code': postal_code,
+        'note': note,
+        'national_registration_number': national_registration_number,
+        'field_of_study': field_of_study,
+        'indicator': indicator,
+        'reason_priority': reason_priority,
+    }
+
+
     def row_color(self):
         if self.enabled:
-            if 0 == (self.nbr_invite_sent + self.nbr_ack_sent):
+            if 0 == (self.email_tot_nbr_tx):
                 return 'yellow'
             else:
                 return ''
@@ -185,19 +237,19 @@ class Guest(db.Model):
             'email': self.email,
             'first-name': self.first_name,
             'last-name': self.last_name,
-            'full_name': self.full_name,
-            'child_name': self.child_name,
+            'full_name': self.child_last_name,
+            'child_name': self.child_first_name,
             'key': self.key,
             'note': self.note,
             'last_login': self.last_login,
-            'reservation-code': self.code,
-            'invite_email_sent': self.invite_email_sent,
-            'nbr_invite_sent': self.nbr_invite_sent,
-            'ack_email_sent': self.ack_email_sent,
-            'nbr_ack_sent': self.nbr_ack_sent,
-            'cancel_email_sent': self.cancel_email_sent,
-            'nbr_cancel_sent': self.nbr_cancel_sent,
-            'email_send_retry': self.email_send_retry,
+            'registration-code': self.code,
+            'invite_email_sent': self.invite_email_tx,
+            'nbr_invite_sent': self.invite_nbr_tx,
+            'ack_email_sent': self.reg_ack_email_tx,
+            'nbr_ack_sent': self.reg_ack_nbr_tx,
+            'cancel_email_sent': self.cancel_email_tx,
+            'nbr_cancel_sent': self.cancel_nbr_tx,
+            'email_send_retry': self.email_tot_nbr_tx,
             'enabled': self.enabled,
             'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
             'overwrite_row_color': self.row_color(),
@@ -208,20 +260,20 @@ class Guest(db.Model):
 
 
     def set(self, type, value):
-        if type == self.SUBSCRIBE.EMAIL_INVITE_SENT:
-            self.invite_email_sent = value
-        elif type == self.SUBSCRIBE.NBR_INVITE_SENT:
-            self.nbr_invite_sent = value
-        elif type == self.SUBSCRIBE.EMAIL_ACK_SENT:
-            self.ack_email_sent = value
-        elif type == self.SUBSCRIBE.NBR_ACK_SENT:
-            self.nbr_ack_sent = value
-        elif type == self.SUBSCRIBE.EMAIL_CANCEL_SENT:
-            self.cancel_email_sent = value
-        elif type == self.SUBSCRIBE.NBR_CANCEL_SENT:
-            self.nbr_cancel_sent = value
-        elif type == self.SUBSCRIBE.NBR_EMAIL_RETRY:
-            self.email_send_retry = value
+        if type == self.SUBSCRIBE.INVITE_EMAIL_TX:
+            self.invite_email_tx = value
+        elif type == self.SUBSCRIBE.INVITE_NBR_TX:
+            self.invite_nbr_tx = value
+        elif type == self.SUBSCRIBE.REG_ACK_EMAIL_TX:
+            self.reg_ack_email_tx = value
+        elif type == self.SUBSCRIBE.REG_ACK_NBR_TX:
+            self.reg_ack_nbr_tx = value
+        elif type == self.SUBSCRIBE.CANCEL_EMAIL_TX:
+            self.cancel_email_tx = value
+        elif type == self.SUBSCRIBE.CANCEL_NBR_TX:
+            self.cancel_nbr_tx = value
+        elif type == self.SUBSCRIBE.EMAIL_TOT_NBR_TX:
+            self.email_tot_nbr_tx = value
         elif type == self.SUBSCRIBE.ENABLED:
             self.enabled = value
         else:

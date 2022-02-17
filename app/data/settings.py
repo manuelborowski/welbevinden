@@ -52,14 +52,19 @@ def get_test_server():
 
 
 default_configuration_settings = {
-    'register-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'register-ack-template': ('', Settings.SETTING_TYPE.E_STRING),
     'invite-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
     'invite-mail-subject-reminder-template': ('', Settings.SETTING_TYPE.E_STRING),
     'invite-mail-content-template': ('', Settings.SETTING_TYPE.E_STRING),
 
+    'register-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'register-ack-template': ('', Settings.SETTING_TYPE.E_STRING),
     'register-mail-ack-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
     'register-mail-ack-content-template': ('', Settings.SETTING_TYPE.E_STRING),
+
+    'register-timeslot-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'register-timeslot-ack-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'register-timeslot-mail-ack-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'register-timeslot-mail-ack-content-template': ('', Settings.SETTING_TYPE.E_STRING),
 
     'cancel-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cancel-mail-content-template': ('', Settings.SETTING_TYPE.E_STRING),
@@ -90,6 +95,8 @@ default_configuration_settings = {
     'import-misc-column-3': ('', Settings.SETTING_TYPE.E_STRING),
 
     'import-misc-fields': ('{}', Settings.SETTING_TYPE.E_STRING),
+
+    'all-templates': ('', Settings.SETTING_TYPE.E_STRING),
 }
 
 

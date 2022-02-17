@@ -48,10 +48,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.26: send cancel-registration-mail when guest pushes cancel registration button
 # V0.27: copy from 0.26 and start to support opendag registrations
 # V0.28: replaced reservation with registration
+# V0.29: update copyright notice
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='V0.28', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='V0.29', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

@@ -5,7 +5,7 @@ from flask_login import login_required
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus, button_pressed
 from app.data import timeslot_configuration as mtc
-from app.application import registration as mreservation
+from app.application import registration as mregistration
 from app.data.models import TimeslotConfiguration
 
 import json
@@ -48,7 +48,7 @@ table_configuration = {
     'item': {},
     'href': [],
     # 'pre_filter': mtc.pre_filter,
-    'format_data': mreservation.datatable_get_timeslots,
+    'format_data': mregistration.datatable_get_timeslots,
     # 'search_data': mtc.search_data,
     'default_order': (1, 'asc'),
     'socketio_endpoint': 'celledit-timeslot',

@@ -242,7 +242,7 @@
         {
           "label": "Registration Code",
           "persistent": false,
-          "key": "reservation-code",
+          "key": "registration-code",
           "type": "hidden",
           "input": true,
           "tableView": false

@@ -54,9 +54,9 @@ function add_item() {
     $("#action_form").submit();
 }
 
-function update_reservation_item() {
+function update_registration_item() {
     // $("#action_form").attr('target', '_blank')
-    $("#button-pressed").val("update_reservation");
+    $("#button-pressed").val("update_registration");
     $("#action_form").submit();
 }
 

@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from . import guest
 from app import log, socketio, admin_required
 from flask_socketio import emit, join_room, leave_room, close_room, rooms, disconnect
-from app.application import guest as mguest, email as memail, registration as mreservation
+from app.application import guest as mguest, email as memail, registration as mregistration
 import json, re, urllib
 from app.presentation.view import update_available_timeslots, false, true, null, prepare_registration_form
 
@@ -14,7 +14,7 @@ def register():
         current_url = request.url
         current_url = re.sub(f'{request.url_rule.rule}.*', '', current_url)
         memail.set_base_url(current_url)
-        ret = mreservation.prepare_registration()
+        ret = mregistration.prepare_registration()
         if ret.result == ret.Result.E_COULD_NOT_REGISTER:
             return render_template('guest/messages.html', type='could-not-register')
         return render_template('guest/register.html', config_data=ret.ret,
@@ -29,7 +29,7 @@ def register_save(form_data):
     try:
         data = json.loads(urllib.parse.unquote(form_data))
         try:
-            ret = mreservation.add_registration(data)
+            ret = mregistration.add_registration(data)
             if ret.result == ret.Result.E_OK:
                 return render_template('guest/messages.html', type='register-ok', info=ret.ret)
             if ret.result == ret.Result.E_TIMESLOT_FULL:
@@ -66,13 +66,13 @@ def register_timeslot_save(form_data):
         data = json.loads(urllib.parse.unquote(form_data))
         if 'cancel-registration' in data and data['cancel-registration']:
             try:
-                mreservation.delete_reservation(data['registration-code'])
+                mregistration.delete_registration(data['registration-code'])
                 return render_template('guest/messages.html', type='cancel-ok')
             except Exception as e:
                 return render_template('guest/messages.html', type='could-not-cancel', message=e)
         else:
             try:
-                ret = mreservation.add_or_update_reservation(data)
+                ret = mregistration.add_or_update_registration(data)
                 if ret.result == ret.Result.E_OK:
                     return render_template('guest/messages.html', type='register-ok', info=ret.ret)
                 if ret.result == ret.Result.E_TIMESLOT_FULL:

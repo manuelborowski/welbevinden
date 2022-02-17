@@ -35,7 +35,7 @@ def add_registration(data, suppress_send_ack_email=False):
     return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
 
 
-def prepare_timeslot_reservation(code=None):
+def prepare_timeslot_registration(code=None):
     try:
         if 'new' == code:
             empty_values = {
@@ -71,7 +71,7 @@ def prepare_timeslot_reservation(code=None):
     return RegisterResult(RegisterResult.Result.E_NOK)
 
 
-def delete_reservation(code):
+def delete_registration(code):
     try:
         guest = mguest.get_first_guest(code=code)
         mguest.update_timeslot(guest, None)
@@ -83,7 +83,7 @@ def delete_reservation(code):
     return RegisterResult(result=RegisterResult.Result.E_NOK)
 
 
-def add_or_update_reservation(data, suppress_send_ack_email=False):
+def add_or_update_registration(data, suppress_send_ack_email=False):
     try:
         code = data['registration-code']
         timeslot = formiodate_to_datetime(data['radio-timeslot'])
@@ -116,7 +116,7 @@ def add_or_update_reservation(data, suppress_send_ack_email=False):
     return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
 
 
-def update_reservation(property, id, value):
+def update_registration(property, id, value):
     try:
         guest = mguest.get_first_guest(id=id)
         if 'note' == property:
@@ -135,25 +135,25 @@ def update_reservation(property, id, value):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-reservation_changed_cb = []
+registration_changed_cb = []
 
 
-def subscribe_reservation_changed(cb, opaque):
+def subscribe_registration_changed(cb, opaque):
     try:
-        reservation_changed_cb.append((cb, opaque))
+        registration_changed_cb.append((cb, opaque))
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 def guest_property_change_cb(type, value, opaque):
-    for cb in reservation_changed_cb:
+    for cb in registration_changed_cb:
         cb[0](value, cb[1])
 
 
 Guest.subscribe(Guest.SUBSCRIBE.ALL, guest_property_change_cb, None)
 
 
-def get_reservation_counters():
+def get_registration_counters():
     reserved_guests = mguest.get_guests(enabled=True, timeslot_is_not_none=True)
     open_guests = mguest.get_guests(enabled=True, timeslot_is_none=True)
     child_names = [g.child_first_name for g in reserved_guests]

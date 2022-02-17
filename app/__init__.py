@@ -47,10 +47,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.25: implemented cancel-registration-mail
 # V0.26: send cancel-registration-mail when guest pushes cancel registration button
 # V0.27: copy from 0.26 and start to support opendag registrations
+# V0.28: replaced reservation with registration
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='V0.27', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='V0.28', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -151,7 +152,7 @@ else:
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(guest.guest)
     flask_app.register_blueprint(settings.settings)
-    flask_app.register_blueprint(registration.reservation)
+    flask_app.register_blueprint(registration.registration)
     flask_app.register_blueprint(timeslot.timeslot)
 
     @flask_app.errorhandler(403)

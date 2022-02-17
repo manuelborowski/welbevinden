@@ -1,18 +1,18 @@
-from . import reservation
+from . import registration
 from app import admin_required, log, supervisor_required
 from flask import redirect, url_for, request, render_template
 from flask_login import login_required
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus, button_pressed
 from app.data import guest as mguest
-from app.application import socketio as msocketio, registration as mreservation, guest as maguest, settings as msettings
+from app.application import socketio as msocketio, registration as mregistration, guest as maguest, settings as msettings
 from app.data.models import Guest
 from app.application import tables
 
 import json
 
 
-@reservation.route('/registration', methods=['POST', 'GET'])
+@registration.route('/registration', methods=['POST', 'GET'])
 @login_required
 @supervisor_required
 def show():
@@ -22,7 +22,7 @@ def show():
     return base_multiple_items.show(table_configuration)
 
 
-@reservation.route('/registration/table_ajax', methods=['GET', 'POST'])
+@registration.route('/registration/table_ajax', methods=['GET', 'POST'])
 @login_required
 @supervisor_required
 def table_ajax():
@@ -32,7 +32,7 @@ def table_ajax():
     return base_multiple_items.ajax(table_configuration)
 
 
-@reservation.route('/registration/table_action', methods=['GET', 'POST'])
+@registration.route('/registration/table_action', methods=['GET', 'POST'])
 @login_required
 @supervisor_required
 def table_action():
@@ -42,12 +42,12 @@ def table_action():
         return item_add()
     if button_pressed('delete'):
         return item_delete()
-    if button_pressed('update_reservation'):
+    if button_pressed('update_registration'):
         return update_registration()
     return redirect(url_for('registration.show'))
 
 
-@reservation.route('/registration/item_action/<string:action>', methods=['GET', 'POST'])
+@registration.route('/registration/item_action/<string:action>', methods=['GET', 'POST'])
 @login_required
 @supervisor_required
 def item_action(action=None):
@@ -166,7 +166,7 @@ def item_add(done=False):
     return redirect(url_for('registration.show'))
 
 
-@reservation.route('/reservation_save/<string:form_data>', methods=['POST', 'GET'])
+@registration.route('/registration_save/<string:form_data>', methods=['POST', 'GET'])
 @login_required
 @supervisor_required
 def registration_save(form_data):
@@ -174,13 +174,13 @@ def registration_save(form_data):
         data = json.loads(form_data)
         if 'cancel-registration' in data and data['cancel-registration']:
             try:
-                mreservation.delete_reservation(data['registration-code'])
+                mregistration.delete_registration(data['registration-code'])
                 flash_plus('Reservatie is verwijderd')
             except Exception as e:
                 flash_plus('Kon de reservatie niet verwijderen', e)
         else:
             try:
-                ret = mreservation.add_or_update_reservation(data)
+                ret = mregistration.add_or_update_registration(data)
                 if ret.result == ret.Result.E_OK:
                     flash_plus('Reservatie is aangepast')
                 if ret.result == ret.Result.E_TIMESLOT_FULL:
@@ -196,22 +196,22 @@ def registration_update_cb(value, opaque):
     msocketio.broadcast_message({'type': 'celledit-registration', 'data': {'reload-table': True}})
 
 
-mreservation.subscribe_reservation_changed(registration_update_cb, None)
+mregistration.subscribe_registration_changed(registration_update_cb, None)
 
 
 def celledit_event_cb(msg, client_sid=None):
     if msg['data']['column'] == 6:
-        mreservation.update_reservation('note', msg['data']['id'], msg['data']['value'])
+        mregistration.update_registration('note', msg['data']['id'], msg['data']['value'])
     if msg['data']['column'] == 7:
-        mreservation.update_reservation('invite_email_sent', msg['data']['id'], msg['data']['value'])
+        mregistration.update_registration('invite_email_sent', msg['data']['id'], msg['data']['value'])
     if msg['data']['column'] == 9:
-        mreservation.update_reservation('ack_email_sent', msg['data']['id'], msg['data']['value'])
+        mregistration.update_registration('ack_email_sent', msg['data']['id'], msg['data']['value'])
     if msg['data']['column'] == 11:
-        mreservation.update_reservation('cancel_email_sent', msg['data']['id'], msg['data']['value'])
+        mregistration.update_registration('cancel_email_sent', msg['data']['id'], msg['data']['value'])
     if msg['data']['column'] == 13:
-        mreservation.update_reservation('enabled', msg['data']['id'], msg['data']['value'])
+        mregistration.update_registration('enabled', msg['data']['id'], msg['data']['value'])
     if msg['data']['column'] == 14:
-        mreservation.update_reservation('email_send_retry', msg['data']['id'], msg['data']['value'])
+        mregistration.update_registration('email_send_retry', msg['data']['id'], msg['data']['value'])
     msocketio.send_to_room({'type': 'celledit-registration', 'data': {'status': True}}, client_sid)
 
 
@@ -235,7 +235,7 @@ def get_filters():
 
 
 def get_show_info():
-    nbr_total, nbr_open, nbr_reserved = mreservation.get_reservation_counters()
+    nbr_total, nbr_open, nbr_reserved = mregistration.get_registration_counters()
     return [
         f'Totaal: {nbr_total}',
         f'Open: {nbr_open}',
@@ -246,7 +246,7 @@ def get_show_info():
 table_configuration = {
     'view': 'registration',
     'title': 'Gasten',
-    'buttons': ['edit', 'add', 'delete', 'update_reservation'],
+    'buttons': ['edit', 'add', 'delete', 'update_registration'],
     'delete_message': 'Opgelet!!<br>'
                       'Bent u zeker om deze gast(en) verwijderen?<br>'
                       'Eens verwijderd kunnen ze niet meer worden terug gehaald.<br>'

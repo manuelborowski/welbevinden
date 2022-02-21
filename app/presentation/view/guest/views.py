@@ -1,4 +1,4 @@
-from flask import redirect, render_template, request, url_for, jsonify, session, copy_current_request_context, request
+from flask import redirect, render_template, request, url_for, jsonify, session, copy_current_request_context, request, make_response
 from flask_login import login_required, current_user
 from . import guest
 from app import log, socketio, admin_required
@@ -15,10 +15,8 @@ def register():
         current_url = re.sub(f'{request.url_rule.rule}.*', '', current_url)
         memail.set_base_url(current_url)
         ret = mregistration.prepare_registration()
-        if ret.result == ret.Result.E_COULD_NOT_REGISTER:
-            return render_template('guest/messages.html', type='could-not-register')
-        return render_template('guest/register.html', config_data=ret.ret,
-                               registration_endpoint='guest.register_save')
+        ret.data['submit'] = {'endpoint': 'guest.register_save', 'data': True}
+        return render_template('guest/render_formio.html', data=ret.data)
     except Exception as e:
         log.error(f'could not register {request.args}: {e}')
         return render_template('guest/messages.html', type='unknown-error', message=e)
@@ -30,15 +28,21 @@ def register_save(form_data):
         data = json.loads(urllib.parse.unquote(form_data))
         try:
             ret = mregistration.add_registration(data)
-            if ret.result == ret.Result.E_OK:
-                return render_template('guest/messages.html', type='register-ok', info=ret.ret)
-            if ret.result == ret.Result.E_TIMESLOT_FULL:
-                return render_template('guest/messages.html', type='timeslot-full', info=ret.ret)
+            ret.data['submit'] = {'endpoint': 'guest.register', 'data': False}
+            return render_template('guest/render_formio.html', data=ret.data)
         except Exception as e:
             return render_template('guest/messages.html', type='could-not-register', message=e)
         return render_template('guest/messages.html', type='could-not-register')
     except Exception as e:
-        return render_template('guest/messages.html', type='unknown-error', message=e)
+        return render_template('guest/messages.html')
+
+
+@guest.route('/get_confirmation_document', methods=['POST', 'GET'])
+def get_confirmation_document():
+    code = request.args['code'] if 'code' in request.args else None
+    ret = mregistration.get_confirmation_document(code)
+    return render_template('guest/render_formio.html', data=ret.data)
+
 
 
 @guest.route('/register_timeslot', methods=['POST', 'GET'])
@@ -53,7 +57,7 @@ def register_timeslot():
             return render_template('guest/messages.html', type='could-not-register')
         if ret.result == ret.Result.E_NO_TIMESLOT:
             return render_template('guest/messages.html', type='no-timeslot')
-        return render_template('guest/register.html', config_data=ret.ret,
+        return render_template('guest/render_formio.html', config_data=ret.data,
                                registration_endpoint='guest.register_save')
     except Exception as e:
         log.error(f'could not register {request.args}: {e}')
@@ -74,9 +78,9 @@ def register_timeslot_save(form_data):
             try:
                 ret = mregistration.add_or_update_registration(data)
                 if ret.result == ret.Result.E_OK:
-                    return render_template('guest/messages.html', type='register-ok', info=ret.ret)
+                    return render_template('guest/messages.html', type='register-ok', info=ret.data)
                 if ret.result == ret.Result.E_TIMESLOT_FULL:
-                    return render_template('guest/messages.html', type='timeslot-full', info=ret.ret)
+                    return render_template('guest/messages.html', type='timeslot-full', info=ret.data)
             except Exception as e:
                 return render_template('guest/messages.html', type='could-not-register', message=e)
             return render_template('guest/messages.html', type='could-not-register')

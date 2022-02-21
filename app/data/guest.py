@@ -28,6 +28,7 @@ def add_guest(data):
             if hasattr(guest, k):
                 setattr(guest, k, v.strip() if isinstance(v, str) else v)
         db.session.add(guest)
+        db.session.commit()
         # guest = add_guest_bulk(full_name=full_name, child_name=child_name, phone=phone, email=email, code=code, misc_field=misc_field)
         # guest_bulk_commit()
         return guest

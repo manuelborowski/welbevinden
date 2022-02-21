@@ -177,6 +177,8 @@ class Guest(db.Model):
     last_name = db.Column(db.String(256))
     child_last_name = db.Column(db.String(256))
     child_first_name = db.Column(db.String(256))
+    date_of_birth = db.Column(db.DateTime())
+    sex = db.Column(db.String(256), default='')
     town = db.Column(db.String(256), default='')
     postal_code = db.Column(db.String(256), default='')
     note = db.Column(db.Text)
@@ -184,42 +186,6 @@ class Guest(db.Model):
     field_of_study = db.Column(db.String(256), default='')
     indicator = db.Column(db.String(256), default='')   #kansarm
     reason_priority = db.Column(db.String(256), default='')   #reden van voorrang
-
-    fields = {
-        'id': id,
-        'key': key,
-        'last_login': last_login,
-        'invite_email_tx': invite_email_tx,
-        'invite_nbr_tx': invite_nbr_tx,
-        'reg_ack_email_tx': reg_ack_email_tx,
-        'reg_ack_nbr_tx': reg_ack_nbr_tx,
-        'tsl_ack_email_tx': tsl_ack_email_tx,
-        'tsl_ack_nbr_tx': tsl_ack_nbr_tx,
-        'cancel_email_tx': cancel_email_tx,
-        'cancel_nbr_tx': cancel_nbr_tx,
-        'email_tot_nbr_tx': email_tot_nbr_tx,
-        'enabled': enabled,
-        'code': code,
-        'timeslot': timeslot,
-        'misc_field': misc_field,
-        'register_timestamp': register_timestamp,
-        'unregister_timestamp': unregister_timestamp,
-        'status': status,
-        'email': email,
-        'phone': phone,
-        'first_name': first_name,
-        'last_name': last_name,
-        'child_last_name': child_last_name,
-        'child_first_name': child_first_name,
-        'town': town,
-        'postal_code': postal_code,
-        'note': note,
-        'national_registration_number': national_registration_number,
-        'field_of_study': field_of_study,
-        'indicator': indicator,
-        'reason_priority': reason_priority,
-    }
-
 
     def row_color(self):
         if self.enabled:
@@ -232,27 +198,49 @@ class Guest(db.Model):
 
     def flat(self):
         flat = {
-            'id': self.id,
-            'phone': self.phone,
-            'email': self.email,
-            'first-name': self.first_name,
-            'last-name': self.last_name,
-            'full_name': self.child_last_name,
-            'child_name': self.child_first_name,
-            'key': self.key,
-            'note': self.note,
-            'last_login': self.last_login,
-            'registration-code': self.code,
-            'invite_email_sent': self.invite_email_tx,
-            'nbr_invite_sent': self.invite_nbr_tx,
-            'ack_email_sent': self.reg_ack_email_tx,
-            'nbr_ack_sent': self.reg_ack_nbr_tx,
-            'cancel_email_sent': self.cancel_email_tx,
-            'nbr_cancel_sent': self.cancel_nbr_tx,
-            'email_send_retry': self.email_tot_nbr_tx,
-            'enabled': self.enabled,
-            'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
-            'overwrite_row_color': self.row_color(),
+        'id': self.id,
+        'key': self.key,
+        'last_login': self.last_login,
+        'invite_email_tx': self.invite_email_tx,
+        'invite_nbr_tx': self.invite_nbr_tx,
+        'reg_ack_email_tx': self.reg_ack_email_tx,
+        'reg_ack_nbr_tx': self.reg_ack_nbr_tx,
+        'tsl_ack_email_tx': self.tsl_ack_email_tx,
+        'tsl_ack_nbr_tx': self.tsl_ack_nbr_tx,
+        'cancel_email_tx': self.cancel_email_tx,
+        'cancel_nbr_tx': self.cancel_nbr_tx,
+        'email_tot_nbr_tx': self.email_tot_nbr_tx,
+        'enabled': self.enabled,
+        'code': self.code,
+        'misc_field': self.misc_field,
+        'register_timestamp': self.register_timestamp,
+        'unregister_timestamp': self.unregister_timestamp,
+        'status': self.status,
+        'email': self.email,
+        'phone': self.phone,
+        'first_name': self.first_name,
+        'last_name': self.last_name,
+        'child_last_name': self.child_last_name,
+        'child_first_name': self.child_first_name,
+        'date_of_birth': self.date_of_birth,
+        'sex': self.sex,
+        'town': self.town,
+        'postal_code': self.postal_code,
+        'note': self.note,
+        'national_registration_number': self.national_registration_number,
+        'field_of_study': self.field_of_study,
+        'indicator': self.indicator,
+        'reason_priority': self.reason_priority,
+
+        'invite_email_sent': self.invite_email_tx,
+        'nbr_invite_sent': self.invite_nbr_tx,
+        'ack_email_sent': self.reg_ack_email_tx,
+        'nbr_ack_sent': self.reg_ack_nbr_tx,
+        'cancel_email_sent': self.cancel_email_tx,
+        'nbr_cancel_sent': self.cancel_nbr_tx,
+        'email_send_retry': self.email_tot_nbr_tx,
+        'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
+        'overwrite_row_color': self.row_color(),
         }
         misc_field = json.loads(self.misc_field) if self.misc_field else ''
         flat.update(misc_field)

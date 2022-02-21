@@ -5,9 +5,7 @@
     <div class="content-section">
         <div class="center">
             <div class="container">
-                <div id="response-form">
-                    DIT IS EEN CATCH ALL
-                </div>
+                    <div id="register-form"></div>
             </div>
         </div>
     </div>
@@ -15,4 +13,8 @@
 
 {% block scripts %}
     {{ super() }}
+    <script>
+        let data = {{ data | tojson }};
+    </script>
+    <script type="module"> {% include "guest/render_formio.js" %}</script>
 {% endblock %}

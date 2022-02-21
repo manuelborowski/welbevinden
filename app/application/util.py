@@ -19,5 +19,7 @@ def datetime_to_formiodate(date):
     return string
 
 
-def create_random_string(len):
+def create_random_string(len=32):
     return ''.join(random.choice(string.ascii_letters + string.digits) for i in range(len))
+
+

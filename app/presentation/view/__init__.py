@@ -1,5 +1,5 @@
 from app.application import registration as mregistration, settings as msettings
-
+from app.application.formio import search_component
 
 false = False
 true = True
@@ -9,10 +9,10 @@ null = None
 def prepare_registration_form(code):
     ret = mregistration.prepare_timeslot_registration(code)
     if ret.result == ret.Result.E_OK:
-        available_timeslots = ret.ret['available_timeslots']
-        template = ret.ret['template']
+        available_timeslots = ret.data['available_timeslots']
+        template = ret.data['template']
         update_available_timeslots(available_timeslots, template, 'radio-timeslot')
-        update_template(template, new='new' == ret.ret['mode'] )
+        update_template(template, new='new' == ret.data['mode'])
     return ret
 
 
@@ -64,16 +64,5 @@ def update_available_timeslots(timeslots, form, key):
 
 
 
-
-
-def search_component(form, key):
-    components = form['components']
-    for component in components:
-        if 'key' in component and component['key'] == key:
-            return component
-        if 'components' in component:
-            found_component = search_component(component, key)
-            if found_component: return found_component
-    return None
 
 

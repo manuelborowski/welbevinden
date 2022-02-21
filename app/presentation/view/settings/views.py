@@ -199,6 +199,14 @@ settings_formio = \
                 "input": true
               },
               {
+                "label": "WEB RESPONSE template (formio sandbox)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "web-response-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
                 "label": "STUDENT registration CONFIRMATION (formio sanbox)",
                 "autoExpand": false,
                 "tableView": true,

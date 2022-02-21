@@ -1,4 +1,5 @@
-from app.application.util import datetime_to_dutch_datetime_string, formiodate_to_datetime, datetime_to_formiodate
+from app.application.util import datetime_to_dutch_datetime_string, formiodate_to_datetime, datetime_to_formiodate, create_random_string
+from app.application import formio
 from app.application import guest as maguest
 from app.data import utils as mutils, guest as mguest, settings as msettings, timeslot_configuration as mtc
 from app.data.models import Guest
@@ -7,28 +8,52 @@ import datetime, json, sys
 
 
 def prepare_registration():
-    ret = {
-        'default_values': {},
+    data = {
         'template': json.loads(msettings.get_configuration_setting('register-template'))
     }
-    return RegisterResult(RegisterResult.Result.E_OK, ret)
+    return RegisterResult(RegisterResult.Result.E_OK, data)
+
+
+def get_confirmation_document(code):
+    data_selection = {
+        'code': code,
+    }
+    guest = mguest.get_first_guest(data_selection)
+    ack_template = json.loads(msettings.get_configuration_setting('web-response-template'))
+    ack_template = formio.prepare_component(ack_template, 'register-child-ack-document-ok', guest)
+    return RegisterResult(RegisterResult.Result.E_OK, {'guest_info': guest.flat(),
+                                                       'template': ack_template})
 
 
 # TODO : check if registration fits in register...
 def add_registration(data, suppress_send_ack_email=False):
     try:
+        ack_template = json.loads(msettings.get_configuration_setting('web-response-template'))
+
+        data_selection = {  #duplicates are detetected when email and childs name are already found in database
+            'email': data['email'],
+            'child_first_name': data['child_first_name'],
+            'child_last_name': data['child_last_name']
+        }
+        # duplicate_guest = mguest.get_first_guest(data_selection)
+        # if duplicate_guest:
+        #     ack_template = formio.prepare_component(ack_template, 'register-child-ack-already-registered', duplicate_guest)
+        #     return RegisterResult(RegisterResult.Result.E_DUPLICATE_REGISTRATION, ack_template)
+
         misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
         extra_fields = [c['veldnaam'] for c in misc_config]
         extra_field = {f: '' for f in extra_fields}
-        data['misc_field'] = extra_field
-        guest = maguest.add_guest(data)
-        if guest and not suppress_send_ack_email:
-            guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, 0)
-            guest.set(Guest.SUBSCRIBE.REG_ACK_EMAIL_TX, False)
-        register_ack_template = msettings.get_configuration_setting('register-ack-template')
-        timeslot = datetime_to_dutch_datetime_string(guest.timeslot)
-        register_ack_template = register_ack_template.replace('{{TAG_TIMESLOT}}', timeslot)
-        return RegisterResult(RegisterResult.Result.E_OK, register_ack_template)
+        data['misc_field'] = json.dumps(extra_field)
+        data['code'] = create_random_string()
+        guest = mguest.add_guest(data)
+        # if guest and not suppress_send_ack_email:
+        #     guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, 0)
+        #     guest.set(Guest.SUBSCRIBE.REG_ACK_EMAIL_TX, False)
+        ack_template = formio.prepare_component(ack_template, 'register-child-ack-ok', guest)
+        # timeslot = datetime_to_dutch_datetime_string(guest.timeslot)
+        # register_ack_template = register_ack_template.replace('{{TAG_TIMESLOT}}', timeslot)
+        return RegisterResult(RegisterResult.Result.E_OK, {'guest_info': guest.flat(),
+                                                           'template': ack_template})
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         log.error(data)
@@ -226,9 +251,9 @@ def check_requested_timeslot(date):
 
 
 class RegisterResult:
-    def __init__(self, result, ret={}):
+    def __init__(self, result, data={}):
         self.result = result
-        self.ret = ret
+        self.data = data
 
     class Result:
         E_OK = 'ok'
@@ -237,7 +262,8 @@ class RegisterResult:
         E_COULD_NOT_REGISTER = 'could-not-register'
         E_TIMESLOT_FULL = 'timeslot-full'
         E_NO_TIMESLOT = 'no-timeslot'
+        E_DUPLICATE_REGISTRATION = 'duplicate-registration'
 
     result = Result.E_OK
-    ret = {}
+    data = {}
 

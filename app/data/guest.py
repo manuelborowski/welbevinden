@@ -45,6 +45,14 @@ def add_guest(data):
 #     return None
 
 
+def get_guest_register_date_indicator_count(register_label, registration_date, indicator):
+    q = Guest.query.filter(Guest.field_of_study.like(f'{register_label}%'))
+    q = q.filter(Guest.register_timestamp <= registration_date)
+    q = q.filter(Guest.indicator == indicator)
+    guests_count = q.count()
+    return guests_count
+
+
 def get_guests(data={}, id=None, email=None, code=None, timeslot=None, enabled=None, timeslot_is_not_none=False,
                timeslot_is_none=False, first=False, count=False):
     try:

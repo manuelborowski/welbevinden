@@ -37,32 +37,55 @@ def get_confirmation_document(code):
 # TODO : check if registration fits in register...
 def add_registration(data, suppress_send_ack_email=False):
     try:
-        ack_template = json.loads(msettings.get_configuration_setting('web-response-template'))
+        template = json.loads(msettings.get_configuration_setting('web-response-template'))
 
-        data_selection = {  #duplicates are detetected when email and childs name are already found in database
+        data_selection = {  #duplicates are detetected when email AND childs name are already in database
             'email': data['email'],
             'child_first_name': data['child_first_name'],
             'child_last_name': data['child_last_name']
         }
-        # duplicate_guest = mguest.get_first_guest(data_selection)
-        # if duplicate_guest:
-        #     ack_template = formio.prepare_component(ack_template, 'register-child-ack-already-registered', duplicate_guest)
-        #     return RegisterResult(RegisterResult.Result.E_DUPLICATE_REGISTRATION, ack_template)
+        duplicate_guest = mguest.get_first_guest(data_selection)
+        if duplicate_guest:
+            template = formio.prepare_component(template, 'register-child-ack-already-registered', duplicate_guest)
+            return RegisterResult(RegisterResult.Result.E_DUPLICATE_REGISTRATION, {"template": template})
 
         misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
         extra_fields = [c['veldnaam'] for c in misc_config]
         extra_field = {f: '' for f in extra_fields}
         data['misc_field'] = json.dumps(extra_field)
         data['code'] = create_random_string()
+        data['date_of_birth'] = datetime.datetime.strptime(data['date_of_birth'], "%d/%m/%Y")
+        data['register_timestamp'] = datetime.datetime.now()
         guest = mguest.add_guest(data)
+
+        #check the register settings to see if the student is registered or is on the waiting list
+        reg_label = guest.field_of_study.split('-')[0]
+        nbr_regular_guests = mguest.get_guest_register_date_indicator_count(reg_label, guest.register_timestamp, False)
+        nbr_indicator_guests = mguest.get_guest_register_date_indicator_count(reg_label, guest.register_timestamp, True)
+        register_settings = json.loads(msettings.get_configuration_setting('register-resgister-settings'))
+        max_nbr_regular = register_settings['max-number-regular-registrations']
+        max_nbr_indicator = register_settings['max-number-indicator-registrations']
+        overflow = register_settings['overflow-indicator-to-regular']
+        if overflow:
+            registration_ok = (nbr_regular_guests + nbr_indicator_guests) <= (max_nbr_regular + max_nbr_indicator)
+            if not guest.indicator:
+                registration_ok = registration_ok and nbr_regular_guests <= max_nbr_regular
+        else:
+            if guest.indicator:
+                registration_ok = nbr_indicator_guests <= max_nbr_indicator
+            else:
+                registration_ok = nbr_regular_guests <= max_nbr_regular
+        if registration_ok:
+            template = formio.prepare_component(template, 'register-child-ack-ok', guest)
+        else:
+            template = formio.prepare_component(template, 'register-child-ack-waiting-list', guest)
         # if guest and not suppress_send_ack_email:
         #     guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, 0)
         #     guest.set(Guest.SUBSCRIBE.REG_ACK_EMAIL_TX, False)
-        ack_template = formio.prepare_component(ack_template, 'register-child-ack-ok', guest)
         # timeslot = datetime_to_dutch_datetime_string(guest.timeslot)
         # register_ack_template = register_ack_template.replace('{{TAG_TIMESLOT}}', timeslot)
         return RegisterResult(RegisterResult.Result.E_OK, {'guest_info': guest.flat(),
-                                                           'template': ack_template})
+                                                           'template': template})
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         log.error(data)

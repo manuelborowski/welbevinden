@@ -68,12 +68,13 @@ settings_formio = \
         "input": true,
         "components": [
           {
-            "title": "Algemeen",
+            "title": "Generic",
             "theme": "primary",
             "collapsible": true,
             "key": "algemeen",
             "type": "panel",
             "label": "Algemeen",
+            "collapsed": true,
             "input": false,
             "tableView": false,
             "components": [
@@ -159,8 +160,7 @@ settings_formio = \
                 "input": false,
                 "tableView": false
               }
-            ],
-            "collapsed": true
+            ]
           }
         ]
       },
@@ -172,12 +172,13 @@ settings_formio = \
         "input": true,
         "components": [
           {
-            "title": "BEZOEKERS : Registratie template en e-mail",
+            "title": "STUDENT registration",
             "theme": "primary",
             "collapsible": true,
             "key": "RegistratieTemplate1",
             "type": "panel",
             "label": "BEZOEKERS : Registratie template en e-mail",
+            "collapsed": true,
             "input": false,
             "tableView": false,
             "components": [
@@ -215,11 +216,11 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "STUDENT registration confirmation email SUBJECT (html)",
+                "label": "STUDENT registration register settings",
                 "autoExpand": false,
                 "tableView": true,
                 "persistent": false,
-                "key": "register-mail-ack-subject-template",
+                "key": "register-register-settings",
                 "type": "textarea",
                 "input": true
               },
@@ -284,8 +285,7 @@ settings_formio = \
                 "type": "textarea",
                 "input": true
               }
-            ],
-            "collapsed": true
+            ]
           }
         ]
       },

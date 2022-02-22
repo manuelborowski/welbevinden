@@ -50,10 +50,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.28: replaced reservation with registration
 # V0.29: update copyright notice
 # V0.30: backup, unified the html-pages
+# V0.31: added email response, extended Guest-model, improved WEB response
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.30', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.31', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

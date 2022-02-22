@@ -1,5 +1,5 @@
 import re
-def prepare_component(form, key, item):
+def prepare_component(form, key, item, additional_fields = {}):
     def iterate_over_components(container):
         for component in container['components']:
             if component['type'] == 'container':
@@ -7,12 +7,13 @@ def prepare_component(form, key, item):
             for key in ['html', 'content']:
                 if key in component:
                     all_tags = re.findall('TAG\([^(]*\)', component[key])
-                    flat = item.flat()
                     for tag in all_tags:
                         field = tag.split('(')[1].split(')')[0]
                         if field in flat:
                             component[key] = component[key].replace(tag, flat[field])
 
+    flat = item.flat() if item else {}
+    flat.update(additional_fields)
     container = search_component(form, key)
     iterate_over_components(container)
     container['hidden'] = False

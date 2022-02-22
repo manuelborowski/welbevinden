@@ -199,7 +199,7 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "WEB RESPONSE template (formio sandbox)",
+                "label": "WEB RESPONSE templates (formio sandbox)",
                 "autoExpand": false,
                 "tableView": true,
                 "key": "web-response-template",
@@ -207,10 +207,10 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "STUDENT registration CONFIRMATION (formio sanbox)",
+                "label": "EMAIL RESPONSE templates (formio sandbox)",
                 "autoExpand": false,
                 "tableView": true,
-                "key": "register-ack-template",
+                "key": "email-response-template",
                 "type": "textarea",
                 "input": true
               },

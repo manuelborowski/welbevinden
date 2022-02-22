@@ -179,6 +179,8 @@ class Guest(db.Model):
     child_first_name = db.Column(db.String(256))
     date_of_birth = db.Column(db.DateTime())
     sex = db.Column(db.String(256), default='')
+    street = db.Column(db.String(256), default='')
+    house_number = db.Column(db.Integer(), default=0)
     town = db.Column(db.String(256), default='')
     postal_code = db.Column(db.String(256), default='')
     note = db.Column(db.Text)
@@ -224,6 +226,8 @@ class Guest(db.Model):
         'child_first_name': self.child_first_name,
         'date_of_birth': self.date_of_birth,
         'sex': self.sex,
+        'street': self.street,
+        'house_number': self.house_number,
         'town': self.town,
         'postal_code': self.postal_code,
         'note': self.note,

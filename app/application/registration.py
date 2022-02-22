@@ -6,23 +6,32 @@ from app.data.models import Guest
 from app import log
 import datetime, json, sys
 
+class MessageType:
+    E_GENERIC = 'message-generic'
+    E_ERROR = 'message-error'
+
 
 def prepare_registration():
-    data = {
-        'template': json.loads(msettings.get_configuration_setting('register-template'))
-    }
-    return RegisterResult(RegisterResult.Result.E_OK, data)
+    try:
+        return RegisterResult(RegisterResult.Result.E_OK, {'template': json.loads(msettings.get_configuration_setting('register-template'))})
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
 
 
 def get_confirmation_document(code):
-    data_selection = {
-        'code': code,
-    }
-    guest = mguest.get_first_guest(data_selection)
-    ack_template = json.loads(msettings.get_configuration_setting('web-response-template'))
-    ack_template = formio.prepare_component(ack_template, 'register-child-ack-document-ok', guest)
-    return RegisterResult(RegisterResult.Result.E_OK, {'guest_info': guest.flat(),
-                                                       'template': ack_template})
+    try:
+        data_selection = {
+            'code': code,
+        }
+        guest = mguest.get_first_guest(data_selection)
+        ack_template = json.loads(msettings.get_configuration_setting('web-response-template'))
+        ack_template = formio.prepare_component(ack_template, 'register-child-ack-document-ok', guest)
+        return RegisterResult(RegisterResult.Result.E_OK, {'template': ack_template})
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        log.error(code)
+        raise e
 
 
 # TODO : check if registration fits in register...
@@ -57,7 +66,7 @@ def add_registration(data, suppress_send_ack_email=False):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         log.error(data)
-    return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
+        raise e
 
 
 def prepare_timeslot_registration(code=None):
@@ -93,7 +102,13 @@ def prepare_timeslot_registration(code=None):
             return RegisterResult(RegisterResult.Result.E_OK, ret)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return RegisterResult(RegisterResult.Result.E_NOK)
+
+
+def prepare_message(type = MessageType.E_GENERIC, message = None):
+    template = json.loads(msettings.get_configuration_setting('web-response-template'))
+    template = formio.prepare_component(template, type, None, {'message': message})
+    return RegisterResult(RegisterResult.Result.E_OK, {'template': template})
+
 
 
 def delete_registration(code):
@@ -248,7 +263,6 @@ def check_requested_timeslot(date):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return False
-
 
 class RegisterResult:
     def __init__(self, result, data={}):

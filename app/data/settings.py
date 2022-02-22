@@ -67,6 +67,7 @@ default_configuration_settings = {
     'register-timeslot-mail-ack-content-template': ('', Settings.SETTING_TYPE.E_STRING),
 
     'web-response-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'email-response-template': ('', Settings.SETTING_TYPE.E_STRING),
 
     'cancel-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cancel-mail-content-template': ('', Settings.SETTING_TYPE.E_STRING),

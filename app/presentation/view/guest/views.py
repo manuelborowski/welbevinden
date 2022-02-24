@@ -6,15 +6,40 @@ import json, re, urllib
 from app.presentation.view import prepare_registration_form
 
 
+@guest.route('/get_form', methods=['POST', 'GET'])
+def get_form():
+    try:
+        if request.values['form'] == 'register':
+            data = mregistration.prepare_registration()
+            data.update({
+                'post_data_endpoint': 'guest.register_save_data',
+                'form_on_submit': 'register-done'
+            })
+        elif request.values['form'] == 'register-done':
+            data = mregistration.registration_done(request.values['extra'])
+            data.update({
+                'form_on_submit': 'register'
+            })
+        elif request.values['form'] == 'confirmation-document':
+            data = mregistration.get_confirmation_document(request.values['extra'])
+            data.update({
+                'form_on_submit': 'register'
+            })
+        else:
+            return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
+        return {"status": True, "data": data}
+    except Exception as e:
+        log.error(f"Error in get_form: {e}")
+        return {"status": False, "data": f"get_form: {e}"}
+
+
 @guest.route('/register', methods=['POST', 'GET'])
 def register():
     try:
         current_url = request.url
         current_url = re.sub(f'{request.url_rule.rule}.*', '', current_url)
         memail.set_base_url(current_url)
-        ret = mregistration.prepare_registration()
-        ret.data['submit'] = {'endpoint': 'guest.register_save', 'data': True}
-        return render_template('guest/render_formio.html', data=ret.data)
+        return render_template('guest/render_formio.html', data={"form": "register"})
     except Exception as e:
         log.error(f'could not display registration form {request.args}: {e}')
         ret = mregistration.prepare_message(mregistration.MessageType.E_ERROR, str(e))
@@ -22,26 +47,17 @@ def register():
         return render_template('guest/render_formio.html', data=ret.data)
 
 
-@guest.route('/register_save/<string:form_data>', methods=['POST', 'GET'])
-def register_save(form_data):
-    try:
-        data = json.loads(urllib.parse.unquote(form_data))
-        ret = mregistration.add_registration(data)
-        ret.data['submit'] = {'endpoint': 'guest.register', 'data': False}
-        return render_template('guest/render_formio.html', data=ret.data)   #registration is ok OR waiting list
-    except Exception as e:
-        log.error(f'could not save registration form {request.args}: {e}')
-        ret = mregistration.prepare_message(mregistration.MessageType.E_ERROR, str(e))
-        ret.data['submit'] = {'endpoint': 'guest.register', 'data': False}
-        return render_template('guest/render_formio.html', data=ret.data)
+@guest.route('/register_save_data/', methods=['POST', 'GET'])
+def register_save_data():
+    data = json.loads(request.data)
+    ret = mregistration.add_registration(data)
+    return(json.dumps(ret))
 
 
 @guest.route('/get_confirmation_document', methods=['POST', 'GET'])
 def get_confirmation_document():
     try:
-        code = request.args['code'] if 'code' in request.args else None
-        ret = mregistration.get_confirmation_document(code)
-        return render_template('guest/render_formio.html', data=ret.data)
+        return render_template('guest/render_formio.html', data={"form": "confirmation-document", "extra": request.values["code"]})
     except Exception as e:
         log.error(f'could not get confirmation document {request.args}: {e}')
         ret = mregistration.prepare_message(mregistration.MessageType.E_ERROR, str(e))

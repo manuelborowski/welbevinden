@@ -7,9 +7,10 @@ from babel.dates import get_day_names, get_month_names
 
 
 # woensdag 24 februari om 14 uur
-def datetime_to_dutch_datetime_string(date):
+def datetime_to_dutch_datetime_string(date, include_seconds=False):
     try:
-        date_string = f'{get_day_names(locale="nl")[date.weekday()]} {date.day} {get_month_names(locale="nl")[date.month]} om {date.strftime("%H.%M")}'
+        time_string = f"%H.%M{':%S' if include_seconds else ''}"
+        date_string = f'{get_day_names(locale="nl")[date.weekday()]} {date.day} {get_month_names(locale="nl")[date.month]} om {date.strftime(time_string)}'
         return date_string
     except:
         return ''
@@ -216,6 +217,8 @@ class Guest(db.Model):
         'code': self.code,
         'misc_field': self.misc_field,
         'register_timestamp': self.register_timestamp,
+        'register_timestamp_dutch': datetime_to_dutch_datetime_string(self.register_timestamp, include_seconds=True),
+
         'unregister_timestamp': self.unregister_timestamp,
         'status': self.status,
         'email': self.email,

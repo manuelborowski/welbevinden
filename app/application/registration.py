@@ -5,6 +5,7 @@ from app.data import utils as mutils, guest as mguest, settings as msettings, ti
 from app.data.models import Guest
 from app import log
 import datetime, json, sys
+from json.decoder import JSONDecodeError
 
 class MessageType:
     E_GENERIC = 'message-generic'
@@ -13,7 +14,7 @@ class MessageType:
 
 def prepare_registration():
     try:
-        return RegisterResult(RegisterResult.Result.E_OK, {'template': json.loads(msettings.get_configuration_setting('register-template'))})
+        return {'template': json.loads(msettings.get_configuration_setting('register-template'))}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         raise e
@@ -21,13 +22,13 @@ def prepare_registration():
 
 def get_confirmation_document(code):
     try:
-        data_selection = {
-            'code': code,
-        }
-        guest = mguest.get_first_guest(data_selection)
-        ack_template = json.loads(msettings.get_configuration_setting('web-response-template'))
-        ack_template = formio.prepare_component(ack_template, 'register-child-ack-document-ok', guest)
-        return RegisterResult(RegisterResult.Result.E_OK, {'template': ack_template})
+        template = json.loads(msettings.get_configuration_setting('web-response-template'))
+        guest = mguest.get_first_guest({'code': code})
+        if check_register(guest):
+            template = formio.prepare_component(template, 'register-child-ack-document-ok', guest)
+        else:
+            template = formio.prepare_component(template, 'register-child-ack-document-waiting-list', guest)
+        return {'template': template}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         log.error(code)
@@ -35,47 +36,13 @@ def get_confirmation_document(code):
 
 
 # TODO : check if registration fits in register...
-def add_registration(data, suppress_send_ack_email=False):
+def registration_done(code):
     try:
         template = json.loads(msettings.get_configuration_setting('web-response-template'))
-
-        data_selection = {  #duplicates are detetected when email AND childs name are already in database
-            'email': data['email'],
-            'child_first_name': data['child_first_name'],
-            'child_last_name': data['child_last_name']
-        }
-        duplicate_guest = mguest.get_first_guest(data_selection)
-        if duplicate_guest:
-            template = formio.prepare_component(template, 'register-child-ack-already-registered', duplicate_guest)
-            return RegisterResult(RegisterResult.Result.E_DUPLICATE_REGISTRATION, {"template": template})
-
-        misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
-        extra_fields = [c['veldnaam'] for c in misc_config]
-        extra_field = {f: '' for f in extra_fields}
-        data['misc_field'] = json.dumps(extra_field)
-        data['code'] = create_random_string()
-        data['date_of_birth'] = datetime.datetime.strptime(data['date_of_birth'], "%d/%m/%Y")
-        data['register_timestamp'] = datetime.datetime.now()
-        guest = mguest.add_guest(data)
+        guest = mguest.get_first_guest({'code': code})
 
         #check the register settings to see if the student is registered or is on the waiting list
-        reg_label = guest.field_of_study.split('-')[0]
-        nbr_regular_guests = mguest.get_guest_register_date_indicator_count(reg_label, guest.register_timestamp, False)
-        nbr_indicator_guests = mguest.get_guest_register_date_indicator_count(reg_label, guest.register_timestamp, True)
-        register_settings = json.loads(msettings.get_configuration_setting('register-resgister-settings'))
-        max_nbr_regular = register_settings['max-number-regular-registrations']
-        max_nbr_indicator = register_settings['max-number-indicator-registrations']
-        overflow = register_settings['overflow-indicator-to-regular']
-        if overflow:
-            registration_ok = (nbr_regular_guests + nbr_indicator_guests) <= (max_nbr_regular + max_nbr_indicator)
-            if not guest.indicator:
-                registration_ok = registration_ok and nbr_regular_guests <= max_nbr_regular
-        else:
-            if guest.indicator:
-                registration_ok = nbr_indicator_guests <= max_nbr_indicator
-            else:
-                registration_ok = nbr_regular_guests <= max_nbr_regular
-        if registration_ok:
+        if check_register(guest):
             template = formio.prepare_component(template, 'register-child-ack-ok', guest)
         else:
             template = formio.prepare_component(template, 'register-child-ack-waiting-list', guest)
@@ -84,13 +51,57 @@ def add_registration(data, suppress_send_ack_email=False):
         #     guest.set(Guest.SUBSCRIBE.REG_ACK_EMAIL_TX, False)
         # timeslot = datetime_to_dutch_datetime_string(guest.timeslot)
         # register_ack_template = register_ack_template.replace('{{TAG_TIMESLOT}}', timeslot)
-        return RegisterResult(RegisterResult.Result.E_OK, {'guest_info': guest.flat(),
-                                                           'template': template})
+        return {'template': template}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        log.error(code)
+        raise e
+
+
+def add_registration(data, suppress_send_ack_email=False):
+    try:
+        data_selection = {  #duplicates are detetected when email AND childs name are already in database
+            'email': data['email'],
+            'child_first_name': data['child_first_name'],
+            'child_last_name': data['child_last_name']
+        }
+        duplicate_guest = mguest.get_first_guest(data_selection)
+        if duplicate_guest:
+            return {"status": False, "data": f"Fout, de student {duplicate_guest.child_first_name} {duplicate_guest.child_last_name} en mailadres {duplicate_guest.email}\n is reeds geregistreerd."}
+        misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
+        extra_fields = [c['veldnaam'] for c in misc_config]
+        extra_field = {f: '' for f in extra_fields}
+        data['misc_field'] = json.dumps(extra_field)
+        data['code'] = create_random_string()
+        data['date_of_birth'] = datetime.datetime.strptime(data['date_of_birth'], "%d/%m/%Y")
+        data['register_timestamp'] = datetime.datetime.now()
+        guest = mguest.add_guest(data)
+        return {"status": True, "data": guest.code}
+    except JSONDecodeError as e:
+        return {"status": False, "data": f'error: JSON decoder: {e}'}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         log.error(data)
-        raise e
+        return {"status": False, "data": f'generic error {e}'}
 
+def check_register(guest):
+    reg_label = guest.field_of_study.split('-')[0]
+    nbr_regular_guests = mguest.get_guest_register_date_indicator_count(reg_label, guest.register_timestamp, False)
+    nbr_indicator_guests = mguest.get_guest_register_date_indicator_count(reg_label, guest.register_timestamp, True)
+    register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
+    max_nbr_regular = register_settings[reg_label]['max-number-regular-registrations']
+    max_nbr_indicator = register_settings[reg_label]['max-number-indicator-registrations']
+    overflow = register_settings[reg_label]['overflow-indicator-to-regular']
+    if overflow:
+        registration_ok = (nbr_regular_guests + nbr_indicator_guests) <= (max_nbr_regular + max_nbr_indicator)
+        if not guest.indicator:
+            registration_ok = registration_ok and nbr_regular_guests <= max_nbr_regular
+    else:
+        if guest.indicator:
+            registration_ok = nbr_indicator_guests <= max_nbr_indicator
+        else:
+            registration_ok = nbr_regular_guests <= max_nbr_regular
+    return registration_ok
 
 def prepare_timeslot_registration(code=None):
     try:

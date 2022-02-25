@@ -128,7 +128,7 @@ $(document).ready(function () {
             if ('flash' in json) {
                 bootbox.alert(json['flash'].toString());
             }
-        },
+         },
         createdRow: function (row, data, dataIndex, cells) {
             if (data.overwrite_row_color != "") {
                 $(row).attr("style", "background-color: " + data.overwrite_row_color + ";");
@@ -165,7 +165,7 @@ $(document).ready(function () {
                     edit_item();
                 });
             }
-            cell_toggle.display()
+            cell_toggle.display();
         },
     }
 
@@ -191,6 +191,26 @@ $(document).ready(function () {
     }
 
     var table = $('#datatable').DataTable(datatable_config);
+
+    //Toggle column visibility
+    let column_visible = document.querySelector('.column-visible-div');
+    config_columns.forEach((c, i) => {
+        if (c.visible !== 'never') {
+            let a = document.createElement('p');
+            a.appendChild(document.createTextNode(`${c.name}`));
+            a.setAttribute("data-column", i);
+            a.setAttribute("class", c.visible ? "column-visible-a": "column-invisible-a")
+            table.column(i).visible(c.visible);
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                let c = table.column(e.currentTarget.dataset['column']);
+                c.visible(!c.visible());
+                e.currentTarget.classList.toggle('column-invisible-a')
+                e.currentTarget.classList.toggle('column-visible-a')
+            });
+            column_visible.appendChild(a);
+        }
+    });
 
     function cell_edit_cb(type, data) {
         if ("status" in data) {

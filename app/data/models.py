@@ -16,6 +16,15 @@ def datetime_to_dutch_datetime_string(date, include_seconds=False):
         return ''
 
 
+def datetime_to_dutch_short(date, include_seconds=False):
+    try:
+        time_string = f"%d/%m/%y %H.%M{':%S' if include_seconds else ''}"
+        date_string = date.strftime(time_string)
+        return date_string
+    except:
+        return ''
+
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
@@ -217,7 +226,7 @@ class Guest(db.Model):
         'code': self.code,
         'misc_field': self.misc_field,
         'register_timestamp': self.register_timestamp,
-        'register_timestamp_dutch': datetime_to_dutch_datetime_string(self.register_timestamp, include_seconds=True),
+        'register_timestamp_dutch': datetime_to_dutch_short(self.register_timestamp, include_seconds=True),
 
         'unregister_timestamp': self.unregister_timestamp,
         'status': self.status,
@@ -236,7 +245,9 @@ class Guest(db.Model):
         'note': self.note,
         'national_registration_number': self.national_registration_number,
         'field_of_study': self.field_of_study,
+        'register': self.field_of_study[:4],
         'indicator': self.indicator,
+        'indicator_dutch': 'I' if self.indicator == '1' else '',
         'reason_priority': self.reason_priority,
 
         'invite_email_sent': self.invite_email_tx,
@@ -248,6 +259,8 @@ class Guest(db.Model):
         'email_send_retry': self.email_tot_nbr_tx,
         'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
         'overwrite_row_color': self.row_color(),
+        'full_name': f"{self.last_name} {self.first_name}",
+        'child_name': f"{self.child_last_name} {self.child_first_name}",
         }
         misc_field = json.loads(self.misc_field) if self.misc_field else ''
         flat.update(misc_field)

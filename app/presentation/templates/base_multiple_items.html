@@ -1,5 +1,24 @@
 {% extends "base.html" %}
 
+{%  block styles %}
+        {{ super() }}
+
+    <style>
+    .column-invisible-a {
+        border-color: orange;
+    }
+    .column-visible-a {
+        border-color: greenyellow;
+    }
+    .column-visible-div p {
+        border-style: solid;
+        border-radius: 1rem;
+        padding: 0.2rem;
+        margin-bottom: 0;
+    }
+    </style>
+{%  endblock %}
+
 {% block body %}
 
 {% if table_config %}
@@ -28,7 +47,9 @@
                 </div>
                 <hr class="nice-green-line">
             {% endif %}
-
+            <div class="column-visible-div flex-container">Kolom zichtbaar:&nbsp;  </div>
+            <br>
+                <hr class="nice-green-line">
             {% if show_info %}
                 <div class="d-flex flex-row">
                     {% for s in show_info %}

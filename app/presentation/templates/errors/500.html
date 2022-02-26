@@ -1,4 +1,4 @@
-v<!-- flapp/templates/errors/500.html -->
+<!-- flapp/templates/errors/500.html -->
 
 {% extends "base.html" %}
 {% block title %}Internal Server Error{% endblock %}
@@ -10,6 +10,11 @@ v<!-- flapp/templates/errors/500.html -->
         <div style="text-align: center">
             <h1> 500 Error </h1>
             <h3> The server encountered an internal error. That's all we know. </h3>
+            {% if message %}
+                <br><br><br>
+                <h4>Extra info:</h4>
+                <h4>{{ message }}</h4>
+            {% endif %}
             <hr class="intro-divider">
             <a href="{{ url_for('auth.login') }}" class="btn btn-default btn-lg">
                 <i class="fa fa-sign-in"></i>

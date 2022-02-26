@@ -20,6 +20,16 @@ def prepare_registration():
         raise e
 
 
+def edit_registration(code):
+    try:
+        guest = mguest.get_first_guest({"code": code})
+        return {'template': json.loads(msettings.get_configuration_setting('register-items-template')),
+                'defaults': guest.flat()}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
+
+
 def get_confirmation_document(code):
     try:
         template = json.loads(msettings.get_configuration_setting('web-response-template'))

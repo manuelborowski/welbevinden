@@ -237,6 +237,7 @@ class Guest(db.Model):
         'child_last_name': self.child_last_name,
         'child_first_name': self.child_first_name,
         'date_of_birth': self.date_of_birth,
+        'date_of_birth_dutch': datetime_to_dutch_short(self.date_of_birth),
         'sex': self.sex,
         'street': self.street,
         'house_number': self.house_number,

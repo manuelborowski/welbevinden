@@ -1,6 +1,7 @@
 let formio
 let form_name = 'form' in data ? data.form : null;
 let extra = 'extra' in data ? data.extra : {};
+let get_form_endpoint = 'get_form_endpoint' in data ? data.get_form_endpoint : "";
 
 $(document).ready(function () {
     load_new_form(form_name, extra);
@@ -12,7 +13,7 @@ const load_new_form = async (form_name, extra = {}) => {
         sanitizeConfig: {addTags: ['iframe'], addAttr: ['allow'], ALLOWED_TAGS: ['iframe'], ALLOWED_ATTR: ['allow']},
         // noAlerts: true,
     }
-    const ret = await fetch(Flask.url_for('guest.get_form', {form: form_name, extra}))
+    const ret = await fetch(Flask.url_for(get_form_endpoint, {form: form_name, extra}))
     const form_data = await ret.json();
     if (form_data.status) {
         formio = await Formio.createForm(document.getElementById('formio-form'), form_data.data.template, form_options)

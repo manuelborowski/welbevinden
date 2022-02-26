@@ -225,11 +225,11 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "STUDENT registration confirmation email CONTENT (html)",
+                "label": "STUDENT REGISTRATION detailed items (formio sandbox)",
                 "autoExpand": false,
                 "tableView": true,
                 "persistent": false,
-                "key": "register-mail-ack-content-template",
+                "key": "register-items-template",
                 "type": "textarea",
                 "input": true
               },

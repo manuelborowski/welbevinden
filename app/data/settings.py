@@ -69,6 +69,7 @@ default_configuration_settings = {
     'web-response-template': ('', Settings.SETTING_TYPE.E_STRING),
     'email-response-template': ('', Settings.SETTING_TYPE.E_STRING),
     'register-register-settings': ('', Settings.SETTING_TYPE.E_STRING),
+    'register-items-template': ('', Settings.SETTING_TYPE.E_STRING),
 
 
     'cancel-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),

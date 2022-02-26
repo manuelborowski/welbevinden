@@ -12,7 +12,7 @@ from app.application import tables
 import json
 
 
-@registration.route('/registration', methods=['POST', 'GET'])
+@registration.route('/registration/registration', methods=['POST', 'GET'])
 @login_required
 @supervisor_required
 def show():
@@ -88,23 +88,51 @@ def update_registration(done=False, id=-1):
     return redirect(url_for('registration.show'))
 
 
-def get_form(extra_fields, default_values={}):
-    form = {
-        'fields': ['full_name', 'child_name', 'email', 'phone'],
-        'config': {
-            'full_name': {'label': 'Naam ouder', 'default': ''},
-            'child_name': {'label': 'Naam kind', 'default': ''},
-            'email': {'label': 'E-mail', 'default': ''},
-            'phone': {'label': 'Telefoon', 'default': ''},
-        }
-    }
-    for field in extra_fields:
-        form['fields'].append(field)
-        form['config'][field] = {'label': field, 'default': ''}
-    if default_values:
-        for field in form['fields']:
-            form['config'][field]['default'] = default_values[field]
-    return form
+@registration.route('/registration/get_form', methods=['POST', 'GET'])
+def get_form():
+    try:
+        if request.values['form'] == 'edit':
+            data = mregistration.edit_registration(request.values['extra'])
+            data.update({
+                'post_data_endpoint': 'guest.register_save_data',
+                'form_on_submit': 'register-done'
+            })
+        else:
+            return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
+        return {"status": True, "data": data}
+    except Exception as e:
+        log.error(f"Error in get_form: {e}")
+        return {"status": False, "data": f"get_form: {e}"}
+
+
+
+
+# def get_form(extra_fields, default_values={}):
+#
+#     form = {
+#         'fields': ['child_last_name', 'child_first_name', 'date_of_birth', 'last_name', 'first_name', 'street',
+#                    'house_number', 'postal_code', 'town', 'email', 'phone'],
+#         'config': {
+#             'child_last_name' : {'label': 'Achternaam kind', 'default': ''},
+#             'child_first_name': {'label': 'Voornaam kind', 'default': ''},
+#             'date_of_birth': {'label': 'Geboortedatum', 'default': ''},
+#             'last_name': {'label': 'Achternaam ouder', 'default': ''},
+#             'first_name': {'label': 'Voornaam ouder', 'default': ''},
+#             'street': {'label': 'Straat', 'default': ''},
+#             'house_number': {'label': 'Huisnummer', 'default': ''},
+#             'postal_code': {'label': 'Postcode', 'default': ''},
+#             'town': {'label': 'Gemeente', 'default': ''},
+#             'email': {'label': 'Mail', 'default': ''},
+#             'phone': {'label': 'Telefoon', 'default': ''},
+#         }
+#     }
+#     for field in extra_fields:
+#         form['fields'].append(field)
+#         form['config'][field] = {'label': field, 'default': ''}
+#     if default_values:
+#         for field in form['fields']:
+#             form['config'][field]['default'] = default_values[field]
+#     return form
 
 
 def get_misc_fields(extra_fields, form):
@@ -133,11 +161,15 @@ def item_edit(done=False, id=-1):
                 id = int(chbx_id_list[0])  # only the first one can be edited
             if id > -1:
                 guest = mguest.get_first_guest(id=id)
-                form = get_form(extra_fields, guest.flat())
-                common_details['item_id'] = id
+                # form = get_form(extra_fields, guest.flat())
+                # common_details['item_id'] = id
             else:
                 return redirect(url_for('registration.show'))
-            return render_template('registration/registration.html', form_details=form, common_details=common_details)
+            return render_template('render_formio.html',
+                                   data={"form": "edit",
+                                         "get_form_endpoint": "registration.get_form",
+                                         "extra": guest.code})
+            # return render_template('registration/registration.html', form_details=form, common_details=common_details)
     except Exception as e:
         log.error(f'Could not edit guest {e}')
         flash_plus('Kan gebruiker niet aanpassen', e)
@@ -166,7 +198,7 @@ def item_add(done=False):
     return redirect(url_for('registration.show'))
 
 
-@registration.route('/registration_save/<string:form_data>', methods=['POST', 'GET'])
+@registration.route('/registration/registration_save/<string:form_data>', methods=['POST', 'GET'])
 @login_required
 @supervisor_required
 def registration_save(form_data):

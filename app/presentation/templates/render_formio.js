@@ -2,6 +2,7 @@ let formio
 let form_name = 'form' in data ? data.form : null;
 let extra = 'extra' in data ? data.extra : {};
 let get_form_endpoint = 'get_form_endpoint' in data ? data.get_form_endpoint : "";
+let cancel_endpoint = 'cancel_endpoint' in data ? data.cancel_endpoint : "";
 
 $(document).ready(function () {
     load_new_form(form_name, extra);
@@ -45,6 +46,14 @@ const load_new_form = async (form_name, extra = {}) => {
             if ('form_on_submit' in form_data.data) {
                 load_new_form(form_data.data.form_on_submit, extra);
             }
+            if ('submit_endpoint' in form_data.data) {
+                document.location.href = Flask.url_for(form_data.data['submit_endpoint'])
+            }
+        });
+        formio.on('cancel', () => {
+            if ('cancel_endpoint' in form_data.data) {
+                document.location.href = Flask.url_for(form_data.data['cancel_endpoint'])
+            }
         });
     } else {
         alert(`Fout bij het ophalen van een form:\n ${form_data.data}`)
@@ -67,5 +76,3 @@ function form_changed(changed) {
         formio.on('change', form_changed)
     }, 1000);
 }
-
-

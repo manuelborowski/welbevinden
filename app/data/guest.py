@@ -106,15 +106,15 @@ def get_guest_count(timeslot=None):
 
 def update_guest(guest, data={}, full_name=None, child_name=None, phone=None, email=None, timeslot=None, note=None,
                  misc_field=None):
-    for k, v in data.items():
-        if hasattr(guest, k):
-            setattr(guest, k, v.strip() if isinstance(v, str) else v)
-    db.session.add(guest)
-
-    # guest = update_guest_bulk(guest, full_name=full_name, child_name=child_name, phone=phone, email=email, timeslot=timeslot, note=note, misc_field=misc_field)
-    # guest_bulk_commit()
-    return guest
-
+    try:
+        for k, v in data.items():
+            if hasattr(guest, k):
+                setattr(guest, k, v.strip() if isinstance(v, str) else v)
+        db.session.commit()
+        return guest
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
 
 def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, email=None, timeslot=None, note=None, misc_field=None):
     try:
@@ -214,9 +214,9 @@ def format_data(db_list):
     for i in db_list:
         em = i.flat()
         em.update({
-            'row_action': f"{i.id}",
+            'row_action': i.code,
             'id': i.id,
-            'DT_RowId': i.id
+            'DT_RowId': i.code
         })
         out.append(em)
     return out

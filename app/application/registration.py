@@ -1,6 +1,6 @@
-from app.application.util import datetime_to_dutch_datetime_string, formiodate_to_datetime, datetime_to_formiodate, create_random_string
+from app.application.util import datetime_to_dutch_datetime_string, create_random_string
 from app.application import formio
-from app.application import guest as maguest
+from app.application import guest as maguest, formio as mformio
 from app.data import utils as mutils, guest as mguest, settings as msettings, timeslot_configuration as mtc
 from app.data.models import Guest
 from app import log
@@ -23,7 +23,9 @@ def prepare_registration():
 def edit_registration(code):
     try:
         guest = mguest.get_first_guest({"code": code})
-        return {'template': json.loads(msettings.get_configuration_setting('register-items-template')),
+        template = json.loads(msettings.get_configuration_setting('register-template'))
+        template = formio.prepare_for_edit(template)
+        return {'template': template,
                 'defaults': guest.flat()}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -35,9 +37,9 @@ def get_confirmation_document(code):
         template = json.loads(msettings.get_configuration_setting('web-response-template'))
         guest = mguest.get_first_guest({'code': code})
         if check_register(guest):
-            template = formio.prepare_component(template, 'register-child-ack-document-ok', guest)
+            template = formio.prepare_sub_component(template, 'register-child-ack-document-ok', guest)
         else:
-            template = formio.prepare_component(template, 'register-child-ack-document-waiting-list', guest)
+            template = formio.prepare_sub_component(template, 'register-child-ack-document-waiting-list', guest)
         return {'template': template}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -53,9 +55,9 @@ def registration_done(code):
 
         #check the register settings to see if the student is registered or is on the waiting list
         if check_register(guest):
-            template = formio.prepare_component(template, 'register-child-ack-ok', guest)
+            template = formio.prepare_sub_component(template, 'register-child-ack-ok', guest)
         else:
-            template = formio.prepare_component(template, 'register-child-ack-waiting-list', guest)
+            template = formio.prepare_sub_component(template, 'register-child-ack-waiting-list', guest)
         # if guest and not suppress_send_ack_email:
         #     guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, 0)
         #     guest.set(Guest.SUBSCRIBE.REG_ACK_EMAIL_TX, False)
@@ -83,7 +85,7 @@ def add_registration(data, suppress_send_ack_email=False):
         extra_field = {f: '' for f in extra_fields}
         data['misc_field'] = json.dumps(extra_field)
         data['code'] = create_random_string()
-        data['date_of_birth'] = datetime.datetime.strptime(data['date_of_birth'], "%d/%m/%Y")
+        data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
         data['register_timestamp'] = datetime.datetime.now()
         guest = mguest.add_guest(data)
         return {"status": True, "data": guest.code}
@@ -93,6 +95,7 @@ def add_registration(data, suppress_send_ack_email=False):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         log.error(data)
         return {"status": False, "data": f'generic error {e}'}
+
 
 def check_register(guest):
     reg_label = guest.field_of_study.split('-')[0]
@@ -150,7 +153,7 @@ def prepare_timeslot_registration(code=None):
 
 def prepare_message(type = MessageType.E_GENERIC, message = None):
     template = json.loads(msettings.get_configuration_setting('web-response-template'))
-    template = formio.prepare_component(template, type, None, {'message': message})
+    template = formio.prepare_sub_component(template, type, None, {'message': message})
     return RegisterResult(RegisterResult.Result.E_OK, {'template': template})
 
 
@@ -159,7 +162,7 @@ def delete_registration(code):
     try:
         guest = mguest.get_first_guest(code=code)
         mguest.update_timeslot(guest, None)
-        guest.set(Guest.SUBSCRIBE.CANCEL_EMAIL_TX, False)
+        guest.set(Guest.SUBSCRIBE.E_CANCEL_EMAIL_TX, False)
         log.info(f'registration cancelled: {guest.email}')
         return RegisterResult(result=RegisterResult.Result.E_OK)
     except Exception as e:
@@ -188,8 +191,8 @@ def add_or_update_registration(data, suppress_send_ack_email=False):
                 return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, guest.flat())
             guest = mguest.update_guest(guest, data)
         if guest and not suppress_send_ack_email:
-            guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, 0)
-            guest.set(Guest.SUBSCRIBE.REG_ACK_EMAIL_TX, False)
+            guest.set(Guest.SUBSCRIBE.E_EMAIL_TOT_NBR_TX, 0)
+            guest.set(Guest.SUBSCRIBE.E_REG_ACK_EMAIL_TX, False)
         register_ack_template = msettings.get_configuration_setting('register-ack-template')
         timeslot = datetime_to_dutch_datetime_string(guest.timeslot)
         register_ack_template = register_ack_template.replace('{{TAG_TIMESLOT}}', timeslot)
@@ -200,23 +203,18 @@ def add_or_update_registration(data, suppress_send_ack_email=False):
     return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
 
 
-def update_registration(property, id, value):
+def update_registration(code, data):
     try:
-        guest = mguest.get_first_guest(id=id)
-        if 'note' == property:
-            mguest.update_guest(guest, note=value)
-        if 'invite_email_sent' == property:
-            guest.set(Guest.SUBSCRIBE.INVITE_EMAIL_TX, value)
-        elif 'ack_email_sent' == property:
-            guest.set(Guest.SUBSCRIBE.REG_ACK_EMAIL_TX, value)
-        elif 'cancel_email_sent' == property:
-            guest.set(Guest.SUBSCRIBE.CANCEL_EMAIL_TX, value)
-        elif 'enabled' == property:
-            guest.set(Guest.SUBSCRIBE.ENABLED, value)
-        elif 'email_send_retry' == property:
-            guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, value)
+        guest = mguest.get_first_guest({"code": code})
+        data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
+        mguest.update_guest(guest, data)
+        return {"status": True, "data": guest.code}
+    except JSONDecodeError as e:
+        return {"status": False, "data": f'error: JSON decoder: {e}'}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        log.error(data)
+        return {"status": False, "data": f'generic error {e}'}
 
 
 registration_changed_cb = []
@@ -234,7 +232,7 @@ def guest_property_change_cb(type, value, opaque):
         cb[0](value, cb[1])
 
 
-Guest.subscribe(Guest.SUBSCRIBE.ALL, guest_property_change_cb, None)
+Guest.subscribe(Guest.SUBSCRIBE.E_ALL, guest_property_change_cb, None)
 
 
 def get_registration_counters():

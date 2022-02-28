@@ -16,11 +16,12 @@ def datetime_to_dutch_datetime_string(date, include_seconds=False):
         return ''
 
 
-def datetime_to_dutch_short(date, include_seconds=False):
+def datetime_to_dutch_short(date, include_seconds=False, include_time=True):
     try:
-        time_string = f"%d/%m/%y %H.%M{':%S' if include_seconds else ''}"
-        date_string = date.strftime(time_string)
-        return date_string
+        in_string = "%d/%m/%Y"
+        if include_time:
+            in_string = f"{in_string} %H.%M{':%S' if include_seconds else ''}"
+        return date.strftime(in_string)
     except:
         return ''
 
@@ -144,20 +145,24 @@ class Settings(db.Model):
 class Guest(db.Model):
     __tablename__ = 'guests'
 
-    class SUBSCRIBE:
-        INVITE_EMAIL_TX = 'invite-email-tx'
-        INVITE_NBR_TX = 'invite-nbr-tx'
-        REG_ACK_EMAIL_TX = 'registration-ack-email-tx'
-        REG_ACK_NBR_TX = 'registration-ack-email-tx'
-        TSL_ACK_EMAIL_TX = 'timeslot-ack-email-tx'
-        TSL_ACK_NBR_TX = 'timeslot-ack-email-tx'
-        CANCEL_EMAIL_TX = 'cancel-email-tx'
-        CANCEL_NBR_TX = 'cancel-nbr-tx'
-        EMAIL_TOT_NBR_TX = 'email-tot-nbr-tx'
-        ENABLED =           'enabled'
-        ALL =               'all'
+    class Subscribe:
+        def __init__(self):
+            self.fields = [getattr(self, f) for f in dir(self) if f[:2] == "E_"]
+
+        E_INVITE_EMAIL_TX = 'invite_email_tx'
+        E_INVITE_NBR_TX = 'invite_nbr_tx'
+        E_REG_ACK_EMAIL_TX = 'reg_ack_email_tx'
+        E_REG_ACK_NBR_TX = 'reg_ack_nbr_tx'
+        E_TSL_ACK_EMAIL_TX = 'tsl_ack_email_tx'
+        E_TSL_ACK_NBR_TX = 'tsl_ack_nbr_tx'
+        E_CANCEL_EMAIL_TX = 'cancel_email_tx'
+        E_CANCEL_NBR_TX = 'cancel_nbr_tx'
+        E_EMAIL_TOT_NBR_TX = 'email_tot_nbr_tx'
+        E_ENABLED = 'enabled'
+        E_ALL = 'all'
 
         cb = {}
+    SUBSCRIBE = Subscribe()
 
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(256))
@@ -196,8 +201,19 @@ class Guest(db.Model):
     note = db.Column(db.Text)
     national_registration_number = db.Column(db.String(256), default='')
     field_of_study = db.Column(db.String(256), default='')
-    indicator = db.Column(db.String(256), default='')   #kansarm
+    indicator = db.Column(db.Boolean, default=False)   #kansarm
     reason_priority = db.Column(db.String(256), default='')   #reden van voorrang
+
+    def __setattr__(self, key, value):
+        super(Guest, self).__setattr__(key, value)
+        if key in self.SUBSCRIBE.fields:
+            if key in self.SUBSCRIBE.cb:
+                for cb in self.SUBSCRIBE.cb[key]:
+                    cb[0](key, value, cb[1])
+            if self.SUBSCRIBE.E_ALL in self.SUBSCRIBE.cb:
+                for cb in self.SUBSCRIBE.cb[self.SUBSCRIBE.E_ALL]:
+                    cb[0](self.SUBSCRIBE.E_ALL, value, cb[1])
+
 
     def row_color(self):
         if self.enabled:
@@ -237,7 +253,7 @@ class Guest(db.Model):
         'child_last_name': self.child_last_name,
         'child_first_name': self.child_first_name,
         'date_of_birth': self.date_of_birth,
-        'date_of_birth_dutch': datetime_to_dutch_short(self.date_of_birth),
+        'date_of_birth_dutch': datetime_to_dutch_short(self.date_of_birth, include_time=False),
         'sex': self.sex,
         'street': self.street,
         'house_number': self.house_number,
@@ -248,7 +264,7 @@ class Guest(db.Model):
         'field_of_study': self.field_of_study,
         'register': self.field_of_study[:4],
         'indicator': self.indicator,
-        'indicator_dutch': 'I' if self.indicator == '1' else '',
+        'indicator_dutch': 'I' if self.indicator else '',
         'reason_priority': self.reason_priority,
 
         'invite_email_sent': self.invite_email_tx,
@@ -257,7 +273,6 @@ class Guest(db.Model):
         'nbr_ack_sent': self.reg_ack_nbr_tx,
         'cancel_email_sent': self.cancel_email_tx,
         'nbr_cancel_sent': self.cancel_nbr_tx,
-        'email_send_retry': self.email_tot_nbr_tx,
         'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
         'overwrite_row_color': self.row_color(),
         'full_name': f"{self.last_name} {self.first_name}",
@@ -266,35 +281,6 @@ class Guest(db.Model):
         misc_field = json.loads(self.misc_field) if self.misc_field else ''
         flat.update(misc_field)
         return flat
-
-
-    def set(self, type, value):
-        if type == self.SUBSCRIBE.INVITE_EMAIL_TX:
-            self.invite_email_tx = value
-        elif type == self.SUBSCRIBE.INVITE_NBR_TX:
-            self.invite_nbr_tx = value
-        elif type == self.SUBSCRIBE.REG_ACK_EMAIL_TX:
-            self.reg_ack_email_tx = value
-        elif type == self.SUBSCRIBE.REG_ACK_NBR_TX:
-            self.reg_ack_nbr_tx = value
-        elif type == self.SUBSCRIBE.CANCEL_EMAIL_TX:
-            self.cancel_email_tx = value
-        elif type == self.SUBSCRIBE.CANCEL_NBR_TX:
-            self.cancel_nbr_tx = value
-        elif type == self.SUBSCRIBE.EMAIL_TOT_NBR_TX:
-            self.email_tot_nbr_tx = value
-        elif type == self.SUBSCRIBE.ENABLED:
-            self.enabled = value
-        else:
-            return False
-        db.session.commit()
-        if type in self.SUBSCRIBE.cb:
-            for cb in self.SUBSCRIBE.cb[type]:
-                cb[0](type, value, cb[1])
-        if self.SUBSCRIBE.ALL in self.SUBSCRIBE.cb:
-            for cb in self.SUBSCRIBE.cb[self.SUBSCRIBE.ALL]:
-                cb[0](self.SUBSCRIBE.ALL, value, cb[1])
-        return True
 
 
     @staticmethod

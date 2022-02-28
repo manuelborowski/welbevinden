@@ -46,8 +46,8 @@ def event_send_invite_emails(opaque):
     try:
         guests = mguest.get_guests(enabled=True)
         for guest in guests:
-            guest.set(Guest.SUBSCRIBE.EMAIL_TOT_NBR_TX, 0)
-            guest.set(Guest.SUBSCRIBE.INVITE_EMAIL_TX, False)
+            guest.set(Guest.SUBSCRIBE.E_EMAIL_TOT_NBR_TX, 0)
+            guest.set(Guest.SUBSCRIBE.E_INVITE_EMAIL_TX, False)
     except Exception as e:
         mutils.raise_error(f'{sys._getframe().f_code.co_name}:', e)
     return None

@@ -245,11 +245,15 @@ $(document).ready(function () {
     }
 
     function cell_edit_changed_cb(cell, row, old_value) {
-        data = {
-            'id': row.data().DT_RowId,
-            'column': cell.index().column,
-            'value': cell.data()
+        const column = cell.index().column;
+        switch (config_columns[column].celledit) {
+            case 'int':
+                value = parseInt(cell.data());
+                break;
+            default:
+                value = cell.data();
         }
+        data = { id: row.data().DT_RowId, column, value}
         update_cell_changed(data);
     }
 
@@ -272,28 +276,20 @@ $(document).ready(function () {
     celledit_inputtypes = [];
     celledit_columns = []
     for (i = 0; i < config_columns.length; i++) {
+        let options = [];
         if ("celledit_options" in config_columns[i]) {
-            entry = {};
-            entry["column"] = i;
-            celledit_columns.push(i);
-            entry["type"] = "list";
-            entry["options"] = [];
             for (j = 0; j < config_columns[i]["celledit_options"].length; j++) {
-                opt = {
+                options = {
                     "value": config_columns[i]["celledit_options"][j][0],
                     "display": config_columns[i]["celledit_options"][j][1]
                 };
-                entry["options"].push(opt);
             }
-            celledit_inputtypes.push(entry);
+            entry = { column: i, type: "list", options}
         } else if ("celledit" in config_columns[i]) {
-            entry = {};
-            entry["column"] = i;
-            celledit_columns.push(i);
-            entry["type"] = config_columns[i]["celledit"]
-            entry["options"] = [];
-            celledit_inputtypes.push(entry);
-        }
+            entry = { column: i, type: config_columns[i]["celledit"], options }
+        } else continue;
+        celledit_columns.push(i);
+        celledit_inputtypes.push(entry);
     }
 
     if (celledit_inputtypes.length > 0) {

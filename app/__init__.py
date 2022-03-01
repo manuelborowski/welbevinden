@@ -54,10 +54,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.32: student registration seems to work.  Reworked rendering of formio (more generic)
 # V0.33: added buttons to show/hide columns
 # V0.34: reworked celledit to support integers.  Re-use register-form to edit a registration.  Editing a registration is ok.
+# V0.35: reworked registration table: improved feedback, addded filtering, added gauges
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.34', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.35', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -153,7 +154,8 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings, guest, registration, timeslot
+    from app.presentation.view import auth, user, settings, guest, registration, timeslot, api
+    flask_app.register_blueprint(api.api)
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(guest.guest)

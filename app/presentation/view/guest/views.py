@@ -12,7 +12,7 @@ def get_form():
         if request.values['form'] == 'register':
             data = mregistration.prepare_registration()
             data.update({
-                'post_data_endpoint': 'guest.register_save_data',
+                'post_data_endpoint': 'api.register_add',
                 'form_on_submit': 'register-done'
             })
         elif request.values['form'] == 'register-done':
@@ -44,13 +44,6 @@ def register():
         message = f'could not display registration form {request.args}: {e}'
         log.error(message)
         return render_template('errors/500.html', message=message)
-
-
-@guest.route('/guest/register_save_data/', methods=['POST', 'GET'])
-def register_save_data():
-    data = json.loads(request.data)
-    ret = mregistration.add_registration(data)
-    return(json.dumps(ret))
 
 
 @guest.route('/guest/get_confirmation_document', methods=['POST', 'GET'])

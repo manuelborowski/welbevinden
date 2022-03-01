@@ -1,4 +1,4 @@
-from flask import flash, request, get_flashed_messages, jsonify
+from flask import flash, request
 import datetime
 
 stb_id = 'STB' #standby
@@ -37,17 +37,6 @@ def button_pressed(button=None):
         return 'button-pressed' in request.values and request.values['button-pressed'] == button
     else:
         return request.values['button-pressed'] if 'button-pressed' in request.values else ''
-
-
-def format_datatable(data_list, total_count, filtered_count):
-    #prepare for json/ajax
-    output = {'draw': str(int(request.values['draw'])), 'recordsTotal': str(total_count),
-              'recordsFiltered': str(filtered_count), 'data': data_list}
-    # add the (non-standard) flash-tag to display flash-messages via ajax
-    fml = get_flashed_messages()
-    if not not fml:
-        output['flash'] = fml
-    return  jsonify(output)
 
 
 

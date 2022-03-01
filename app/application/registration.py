@@ -20,13 +20,23 @@ def prepare_registration():
         raise e
 
 
-def edit_registration(code):
+def prepare_edit_registration_form(code):
     try:
         guest = mguest.get_first_guest({"code": code})
         template = json.loads(msettings.get_configuration_setting('register-template'))
         template = formio.prepare_for_edit(template)
         return {'template': template,
                 'defaults': guest.flat()}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
+
+
+def prepare_add_registration_form():
+    try:
+        template = json.loads(msettings.get_configuration_setting('register-template'))
+        template = formio.prepare_for_edit(template)
+        return {'template': template}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         raise e
@@ -88,6 +98,8 @@ def add_registration(data, suppress_send_ack_email=False):
         data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
         data['register_timestamp'] = datetime.datetime.now()
         guest = mguest.add_guest(data)
+        notify_registration_changed()
+        log.info(f"New registration: {guest.email}, {guest.child_last_name} {guest.child_first_name} {guest.register_timestamp}")
         return {"status": True, "data": guest.code}
     except JSONDecodeError as e:
         return {"status": False, "data": f'error: JSON decoder: {e}'}
@@ -99,8 +111,8 @@ def add_registration(data, suppress_send_ack_email=False):
 
 def check_register(guest):
     reg_label = guest.field_of_study.split('-')[0]
-    nbr_regular_guests = mguest.get_guest_register_date_indicator_count(reg_label, guest.register_timestamp, False)
-    nbr_indicator_guests = mguest.get_guest_register_date_indicator_count(reg_label, guest.register_timestamp, True)
+    nbr_regular_guests = mguest.get_guest_register_count(reg_label, guest.register_timestamp, False)
+    nbr_indicator_guests = mguest.get_guest_register_count(reg_label, guest.register_timestamp, True)
     register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
     max_nbr_regular = register_settings[reg_label]['max-number-regular-registrations']
     max_nbr_indicator = register_settings[reg_label]['max-number-indicator-registrations']
@@ -163,6 +175,7 @@ def delete_registration(code):
         guest = mguest.get_first_guest(code=code)
         mguest.update_timeslot(guest, None)
         guest.set(Guest.SUBSCRIBE.E_CANCEL_EMAIL_TX, False)
+        notify_registration_changed()
         log.info(f'registration cancelled: {guest.email}')
         return RegisterResult(result=RegisterResult.Result.E_OK)
     except Exception as e:
@@ -206,7 +219,8 @@ def add_or_update_registration(data, suppress_send_ack_email=False):
 def update_registration(code, data):
     try:
         guest = mguest.get_first_guest({"code": code})
-        data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
+        if 'date_of_birth_dutch' in data:
+            data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
         mguest.update_guest(guest, data)
         return {"status": True, "data": guest.code}
     except JSONDecodeError as e:
@@ -217,8 +231,12 @@ def update_registration(code, data):
         return {"status": False, "data": f'generic error {e}'}
 
 
-registration_changed_cb = []
+def notify_registration_changed(value=None):
+    for cb in registration_changed_cb:
+        cb[0](value, cb[1])
 
+
+registration_changed_cb = []
 
 def subscribe_registration_changed(cb, opaque):
     try:
@@ -228,12 +246,9 @@ def subscribe_registration_changed(cb, opaque):
 
 
 def guest_property_change_cb(type, value, opaque):
-    for cb in registration_changed_cb:
-        cb[0](value, cb[1])
-
+    notify_registration_changed(value)
 
 Guest.subscribe(Guest.SUBSCRIBE.E_ALL, guest_property_change_cb, None)
-
 
 def get_registration_counters():
     reserved_guests = mguest.get_guests(enabled=True, timeslot_is_not_none=True)
@@ -245,6 +260,19 @@ def get_registration_counters():
     nbr_total = nbr_open + nbr_reserved
     return nbr_total, nbr_open, nbr_reserved
 
+
+def display_register_counters():
+    register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
+    display = []
+    for reg, data in register_settings.items():
+        nbr_regular_guests = mguest.get_guest_register_count(reg, indicator=False)
+        nbr_indicator_guests = mguest.get_guest_register_count(reg, indicator=True)
+        max_nbr_regular = data['max-number-regular-registrations']
+        max_nbr_indicator = data['max-number-indicator-registrations']
+        label = data['label']
+        overflow = " (overloop)" if data['overflow-indicator-to-regular'] else ""
+        display.append(f"{label}{overflow}: {nbr_regular_guests}/{max_nbr_regular}, indicator: {nbr_indicator_guests}/{max_nbr_indicator}")
+    return display
 
 def get_available_timeslots(default_date=None, ignore_availability=False):
     try:

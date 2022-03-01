@@ -49,15 +49,9 @@
             {% endif %}
             <div class="column-visible-div flex-container">Kolom zichtbaar:&nbsp;  </div>
             <br>
-                <hr class="nice-green-line">
-            {% if show_info %}
-                <div class="d-flex flex-row">
-                    {% for s in show_info %}
-                        <div class="p-2 border">{{ s }}</div>
-                    {% endfor %}
-                </div>
-                <hr class="nice-green-line">
-            {%  endif %}
+            <hr class="nice-green-line">
+            <div class="show-info d-flex flex-row"></div>
+            <hr class="nice-green-line">
 
             {% if table_config.buttons %}
                 <input type="hidden" id="button-pressed" name="button-pressed">

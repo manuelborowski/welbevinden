@@ -1,4 +1,5 @@
 from app.data.models import Guest
+from app.data import settings as msettings
 from sqlalchemy import not_
 from app import log, db
 import sys, json
@@ -45,31 +46,27 @@ def add_guest(data):
 #     return None
 
 
-def get_guest_register_date_indicator_count(register_label, registration_date, indicator):
-    q = Guest.query.filter(Guest.field_of_study.like(f'{register_label}%'))
-    q = q.filter(Guest.register_timestamp <= registration_date)
-    q = q.filter(Guest.indicator == indicator)
-    guests_count = q.count()
-    return guests_count
+def get_guest_register_count(register_label, registration_date=None, indicator=None):
+    try:
+        q = Guest.query.filter(Guest.field_of_study.like(f'{register_label}%'))
+        if registration_date:
+            q = q.filter(Guest.register_timestamp <= registration_date)
+        if indicator != None:
+            q = q.filter(Guest.indicator == indicator)
+        q = q.filter(Guest.enabled)
+        guests_count = q.count()
+        return guests_count
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return 0
 
 
-def get_guests(data={}, id=None, email=None, code=None, timeslot=None, enabled=None, timeslot_is_not_none=False,
-               timeslot_is_none=False, first=False, count=False):
+def get_guests(data={}, timeslot_is_not_none=False, timeslot_is_none=False, first=False, count=False):
     try:
         guests = Guest.query
         for k, v in data.items():
             if hasattr(Guest, k):
                 guests = guests.filter(getattr(Guest, k) == v)
-        # if id:
-        #     guests = guests.filter(Guest.id == id)
-        # if email:
-        #     guests = guests.filter(Guest.email == email)
-        # if code:
-        #     guests = guests.filter(Guest.code == code)
-        # if timeslot:
-        #     guests = guests.filter(Guest.timeslot == timeslot)
-        # if enabled is not None:
-        #     guests = guests.filter(Guest.enabled == enabled)
         if timeslot_is_not_none:
             guests = guests.filter(Guest.timeslot != None)
         if timeslot_is_none:
@@ -86,9 +83,9 @@ def get_guests(data={}, id=None, email=None, code=None, timeslot=None, enabled=N
     return None
 
 
-def get_first_guest(data={}, id=None, email=None, code=None):
+def get_first_guest(data={}):
     try:
-        guest = get_guests(data, id=id, email=email, code=code, first=True)
+        guest = get_guests(data, first=True)
         return guest
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -137,10 +134,10 @@ def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, email=
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
-def delete_guest(id_list=None):
+def delete_guest(codes=None):
     try:
-        for id in id_list:
-            guest = get_first_guest(id=id)
+        for code in codes:
+            guest = get_first_guest({"code": code})
             db.session.delete(guest)
         db.session.commit()
     except Exception as e:
@@ -190,6 +187,10 @@ def pre_filter():
 
 
 def filter_data(query, filter):
+    if 'register' in filter and filter['register'] != 'default':
+        [reg, ind] = filter['register'].split('-')
+        query = query.filter(Guest.field_of_study.like(f"{reg}%")).filter(Guest.indicator == (ind == 'I'))
+
     if 'timeslot' in filter:
         select = filter['timeslot']
         if 'yes' == select:
@@ -210,6 +211,7 @@ def search_data(search_string):
 
 
 def format_data(db_list):
+    register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
     out = []
     for i in db_list:
         em = i.flat()
@@ -219,6 +221,7 @@ def format_data(db_list):
             'DT_RowId': i.code
         })
         out.append(em)
+        em['register'] = register_settings[em['register']]['label']
     return out
 
 

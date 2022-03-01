@@ -145,6 +145,7 @@ $(document).ready(function () {
             busy_indication_on();
         },
         drawCallback: function (settings) {
+            let api = this.api();
             busy_indication_off();
             if (cell_to_color) {
                 table.cells().every(function () {
@@ -166,6 +167,17 @@ $(document).ready(function () {
                 });
             }
             cell_toggle.display();
+
+            let json = api.ajax.json();
+            if('show_info' in json && json.show_info.length > 0) {
+                let show_info_div = document.querySelector(".show-info");
+                show_info_div.innerHTML = '';
+                json.show_info.forEach(i => {
+                    show_info_div.innerHTML += `<div class="p-2 border">${ i }</div>`
+                });
+            }
+
+
         },
     }
 

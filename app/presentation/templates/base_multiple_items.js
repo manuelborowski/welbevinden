@@ -99,6 +99,9 @@ $(document).ready(function () {
         $('<tfoot/>').append($("#datatable thead tr").clone())
     );
 
+    //column-name to column-index
+    column_name_to_index = {}
+
     //ellipsis
     $.each(config_columns, function (i, v) {
         if ("render" in v) {
@@ -106,6 +109,7 @@ $(document).ready(function () {
             var wordbreak = v.render.wordbreak;
             v.render = $.fn.dataTable.render.ellipsis(cuttoff, wordbreak, true);
         }
+        column_name_to_index[v.data] = i;
     });
 
 
@@ -132,6 +136,12 @@ $(document).ready(function () {
         createdRow: function (row, data, dataIndex, cells) {
             if (data.overwrite_row_color != "") {
                 $(row).attr("style", "background-color: " + data.overwrite_row_color + ";");
+            }
+            if (data.overwrite_cell_color.length > 0) {
+                data.overwrite_cell_color.forEach( ([cn, cc])  => {
+                    const ci = column_name_to_index[cn];
+                    $(cells[ci]).attr("style", `background-color: ${cc};`);
+                })
             }
         },
         rowCallback: function (row, data, displayNum, displayIndex, dataIndex) {

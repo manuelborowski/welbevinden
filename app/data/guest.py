@@ -30,20 +30,10 @@ def add_guest(data):
                 setattr(guest, k, v.strip() if isinstance(v, str) else v)
         db.session.add(guest)
         db.session.commit()
-        # guest = add_guest_bulk(full_name=full_name, child_name=child_name, phone=phone, email=email, code=code, misc_field=misc_field)
-        # guest_bulk_commit()
         return guest
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
-# def add_guest(full_name=None, child_name=None,phone=None, email=None, code=None, misc_field=None):
-#     try:
-#         guest = add_guest_bulk(full_name=full_name, child_name=child_name, phone=phone, email=email, code=code, misc_field=misc_field)
-#         guest_bulk_commit()
-#         return guest
-#     except Exception as e:
-#         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-#     return None
 
 
 def get_guest_register_count(register_label, registration_date=None, indicator=None):
@@ -51,7 +41,7 @@ def get_guest_register_count(register_label, registration_date=None, indicator=N
         q = Guest.query.filter(Guest.field_of_study.like(f'{register_label}%'))
         if registration_date:
             q = q.filter(Guest.register_timestamp <= registration_date)
-        if indicator != None:
+        if indicator is not None:
             q = q.filter(Guest.indicator == indicator)
         q = q.filter(Guest.enabled)
         guests_count = q.count()
@@ -59,6 +49,20 @@ def get_guest_register_count(register_label, registration_date=None, indicator=N
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return 0
+
+
+def get_guest_register_last_timestamp(register_label, count, indicator=None):
+    try:
+        q = Guest.query.filter(Guest.field_of_study.like(f'{register_label}%'))
+        q = q.filter(Guest.enabled)
+        if indicator is not None:
+            q = q.filter(Guest.indicator == indicator)
+        q = q.slice(0, count)
+        guest = q.all()
+        return guest[-1] if guest else None
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
 
 
 def get_guests(data={}, timeslot_is_not_none=False, timeslot_is_none=False, first=False, count=False):
@@ -101,8 +105,7 @@ def get_guest_count(timeslot=None):
     return -1
 
 
-def update_guest(guest, data={}, full_name=None, child_name=None, phone=None, email=None, timeslot=None, note=None,
-                 misc_field=None):
+def update_guest(guest, data={}):
     try:
         for k, v in data.items():
             if hasattr(guest, k):
@@ -189,7 +192,9 @@ def pre_filter():
 def filter_data(query, filter):
     if 'register' in filter and filter['register'] != 'default':
         [reg, ind] = filter['register'].split('-')
-        query = query.filter(Guest.field_of_study.like(f"{reg}%")).filter(Guest.indicator == (ind == 'I'))
+        query = query.filter(Guest.field_of_study.like(f"{reg}%"))
+        if ind != 'N':
+            query = query.filter(Guest.indicator == (ind == 'I'))
 
     if 'timeslot' in filter:
         select = filter['timeslot']
@@ -212,6 +217,22 @@ def search_data(search_string):
 
 def format_data(db_list):
     register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
+    register_last_timestamp = {}
+    for r, d in register_settings.items():
+        timestamps = {'regular_timestamp': None, 'indicator_timestamp': None}
+        if d['overflow-indicator-to-regular']:
+            guest = get_guest_register_last_timestamp(r, d['max-number-regular-registrations'] + d['max-number-indicator-registrations'])
+            if guest:
+                timestamps['regular_timestamp'] = guest.register_timestamp
+                timestamps['indicator_timestamp'] = guest.register_timestamp
+        else:
+            regular_guest = get_guest_register_last_timestamp(r, d['max-number-regular-registrations'], indicator=False)
+            indicator_guest = get_guest_register_last_timestamp(r, d['max-number-indicator-registrations'], indicator=True)
+            if regular_guest:
+                timestamps['regular_timestamp'] = regular_guest.register_timestamp
+            if indicator_guest:
+                timestamps['indicator_timestamp'] = indicator_guest.register_timestamp
+        register_last_timestamp[r] = timestamps
     out = []
     for i in db_list:
         em = i.flat()
@@ -220,8 +241,17 @@ def format_data(db_list):
             'id': i.id,
             'DT_RowId': i.code
         })
+        if i.enabled:
+            data = register_last_timestamp[em['register']]
+            timestamp = data['indicator_timestamp' if i.indicator else 'regular_timestamp']
+            if timestamp and i.register_timestamp > timestamp:
+                em['overwrite_cell_color'].append(['register_timestamp_dutch', 'orange'])
+            else:
+                em['overwrite_cell_color'].append(['register_timestamp_dutch', 'greenyellow'])
+        else:
+            em['overwrite_cell_color'].append(['enabled', 'red'])
+
         out.append(em)
-        em['register'] = register_settings[em['register']]['label']
     return out
 
 

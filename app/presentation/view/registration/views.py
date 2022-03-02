@@ -135,8 +135,9 @@ def get_filters():
     register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
     choices = [['default', 'Alles']]
     for reg, data in register_settings.items():
-        choices.append([f"{reg}-R", f"{data['label']}"])
-        choices.append([f"{reg}-I", f"{data['label']}-INDICATOR"])
+        choices.append([f"{reg}-N", f"{reg}"])
+        choices.append([f"{reg}-R", f"{reg}-REGULIER"])
+        choices.append([f"{reg}-I", f"{reg}-INDICATOR"])
     return [
         {
             'type': 'select',

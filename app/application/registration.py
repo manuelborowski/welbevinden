@@ -269,9 +269,8 @@ def display_register_counters():
         nbr_indicator_guests = mguest.get_guest_register_count(reg, indicator=True)
         max_nbr_regular = data['max-number-regular-registrations']
         max_nbr_indicator = data['max-number-indicator-registrations']
-        label = data['label']
-        overflow = " (overloop)" if data['overflow-indicator-to-regular'] else ""
-        display.append(f"{label}{overflow}: {nbr_regular_guests}/{max_nbr_regular}, indicator: {nbr_indicator_guests}/{max_nbr_indicator}")
+        overflow = " (overloop)" if data['overflow-indicator-to-regular'] else " (geen overloop)"
+        display.append(f"{reg}{overflow}, regulier: {nbr_regular_guests}/{max_nbr_regular}, indicator: {nbr_indicator_guests}/{max_nbr_indicator}")
     return display
 
 def get_available_timeslots(default_date=None, ignore_availability=False):

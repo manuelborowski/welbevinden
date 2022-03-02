@@ -262,7 +262,7 @@ class Guest(db.Model):
         'note': self.note,
         'national_registration_number': self.national_registration_number,
         'field_of_study': self.field_of_study,
-        'register': self.field_of_study[:4],
+        'register': self.field_of_study.split('-')[0],
         'indicator': self.indicator,
         'indicator_dutch': 'I' if self.indicator else '',
         'reason_priority': self.reason_priority,
@@ -277,6 +277,7 @@ class Guest(db.Model):
         'overwrite_row_color': self.row_color(),
         'full_name': f"{self.last_name} {self.first_name}",
         'child_name': f"{self.child_last_name} {self.child_first_name}",
+        'overwrite_cell_color': []
         }
         misc_field = json.loads(self.misc_field) if self.misc_field else ''
         flat.update(misc_field)

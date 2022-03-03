@@ -80,6 +80,17 @@ def registration_done(code):
         raise e
 
 
+def check_registration_status(code):
+    try:
+        guest = mguest.get_first_guest({'code': code})
+        #check the register settings to see if the student is registered or is on the waiting list
+        return {'status': True, 'data': check_register(guest)}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        log.error(code)
+        return {"status": False, "data": f'generic error {e}'}
+
+
 def add_registration(data, suppress_send_ack_email=False):
     try:
         data_selection = {  #duplicates are detetected when email AND childs name are already in database
@@ -111,20 +122,30 @@ def add_registration(data, suppress_send_ack_email=False):
 
 def check_register(guest):
     reg_label = guest.field_of_study.split('-')[0]
-    nbr_regular_guests = mguest.get_guest_register_count(reg_label, guest.register_timestamp, False)
-    nbr_indicator_guests = mguest.get_guest_register_count(reg_label, guest.register_timestamp, True)
     register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
     max_nbr_regular = register_settings[reg_label]['max-number-regular-registrations']
     max_nbr_indicator = register_settings[reg_label]['max-number-indicator-registrations']
     overflow = register_settings[reg_label]['overflow-indicator-to-regular']
     if overflow:
-        registration_ok = (nbr_regular_guests + nbr_indicator_guests) <= (max_nbr_regular + max_nbr_indicator)
-        if not guest.indicator:
-            registration_ok = registration_ok and nbr_regular_guests <= max_nbr_regular
+        guests = mguest.get_guests(data={'enabled': True}, special={'register_timestamp_<=': guest.register_timestamp,
+                                            'field_of_study_like': guest.field_of_study}, order_by='register_timestamp')
+        for g in guests:
+            if g.indicator:
+                max_nbr_indicator -= 1
+                if max_nbr_indicator < 0:
+                    max_nbr_regular -= 1
+            else:
+                max_nbr_regular -= 1
+        if guest.indicator:
+            registration_ok = max_nbr_indicator >= 0 or max_nbr_regular >= 0
+        else:
+            registration_ok = max_nbr_regular >= 0
     else:
         if guest.indicator:
+            nbr_indicator_guests = mguest.get_guest_register_count(reg_label, guest.register_timestamp, True)
             registration_ok = nbr_indicator_guests <= max_nbr_indicator
         else:
+            nbr_regular_guests = mguest.get_guest_register_count(reg_label, guest.register_timestamp, False)
             registration_ok = nbr_regular_guests <= max_nbr_regular
     return registration_ok
 

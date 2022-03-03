@@ -55,17 +55,11 @@
 
             {% if table_config.buttons %}
                 <input type="hidden" id="button-pressed" name="button-pressed">
-                {% if 'view' in table_config.buttons %}
-                <button class="btn btn-default" type="button" onclick="view_item()">Bekijk</button>
-                {% endif %}
                 {% if 'edit' in table_config.buttons %}
                 <button class="btn btn-default" type="button" onclick="edit_item()">Wijzig</button>
                 {% endif %}
                 {% if 'add' in table_config.buttons %}
                 <button class="btn btn-default" type="button" onclick="add_item()">Nieuw</button>
-                {% endif %}
-                {% if 'update_registration' in table_config.buttons %}
-                <button class="btn btn-default" type="button" onclick="update_registration_item()">Reservatie aanpassen</button>
                 {% endif %}
                 {% if 'delete' in table_config.buttons %}
                 <button class="btn btn-danger" type="button" onclick="delete_item()">Verwijder</button>

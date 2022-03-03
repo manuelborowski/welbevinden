@@ -54,19 +54,6 @@ function add_item() {
     $("#action_form").submit();
 }
 
-function update_registration_item() {
-    // $("#action_form").attr('target', '_blank')
-    $("#button-pressed").val("update_registration");
-    $("#action_form").submit();
-}
-
-function view_item() {
-    if (is_exactly_one_checkbox_selected()) {
-        $("#button-pressed").val("view");
-        $("#action_form").submit();
-    }
-}
-
 function edit_item() {
     if (is_exactly_one_checkbox_selected()) {
         // $("#action_form").attr('target', '_blank')
@@ -76,7 +63,7 @@ function edit_item() {
 }
 
 $(document).ready(function () {
-    var filter_settings = {}
+    let filter_settings = {}
 
     //if a filter is changed, then the filter is applied by simulating a click on the filter button
     $(".table-filter").change(function () {
@@ -86,13 +73,25 @@ $(document).ready(function () {
 
     //Store locally in the client-browser
     function store_filter_settings() {
-        for (i = 0; i < filters.length; i++) {
-            filter_settings[filters[i].name] = $("#" + filters[i].name).val();
-        }
+        filters.forEach(f => {
+            filter_settings[f.name] = document.querySelector(`#${f.name} option:checked`).value
+        });
         localStorage.setItem("Filter", JSON.stringify(filter_settings));
     }
 
-    store_filter_settings(); //filters are applied when the page is loaded for the first time
+    function load_filter_settings() {
+        filter_settings = JSON.parse(localStorage.getItem("Filter"));
+        if (!filter_settings) {
+            filter_settings = {};
+            return false
+        }
+        for (const [n, v] of Object.entries(filter_settings)) {
+            document.querySelector(`#${n}`).value = v;
+        }
+        return true;
+    }
+
+    if (!load_filter_settings()) store_filter_settings(); //filters are applied when the page is loaded for the first time
 
     //Bugfix to repeat the table header at the bottom
     $("#datatable").append(
@@ -186,8 +185,6 @@ $(document).ready(function () {
                     show_info_div.innerHTML += `<div class="p-2 border">${ i }</div>`
                 });
             }
-
-
         },
     }
 
@@ -215,22 +212,32 @@ $(document).ready(function () {
     var table = $('#datatable').DataTable(datatable_config);
 
     //Toggle column visibility
-    let column_visible = document.querySelector('.column-visible-div');
-    config_columns.forEach((c, i) => {
-        if (c.visible !== 'never') {
+    let column_visible_div = document.querySelector('.column-visible-div');
+    let column_visible_settings = JSON.parse(localStorage.getItem("ColumnsVisible"));
+    if (!column_visible_settings || column_visible_settings.length !== config_columns.length) {
+        column_visible_settings = []
+        config_columns.forEach((column, i) => {
+            column_visible_settings.push({name: [column.name], visible: column.visible});
+        });
+        localStorage.setItem("ColumnsVisible", JSON.stringify(column_visible_settings));
+    }
+    column_visible_settings.forEach((column, i) => {
+        if (column.visible !== 'never') {
             let a = document.createElement('p');
-            a.appendChild(document.createTextNode(`${c.name}`));
+            a.appendChild(document.createTextNode(`${column.name}`));
             a.setAttribute("data-column", i);
-            a.setAttribute("class", c.visible ? "column-visible-a": "column-invisible-a")
-            table.column(i).visible(c.visible);
+            a.setAttribute("class", column.visible === 'yes' ? "column-visible-a": "column-invisible-a")
+            table.column(i).visible(column.visible === 'yes');
             a.addEventListener('click', e => {
                 e.preventDefault();
                 let c = table.column(e.currentTarget.dataset['column']);
                 c.visible(!c.visible());
                 e.currentTarget.classList.toggle('column-invisible-a')
                 e.currentTarget.classList.toggle('column-visible-a')
+                column_visible_settings[e.currentTarget.dataset.column].visible = c.visible() ? 'yes' : 'no';
+                localStorage.setItem("ColumnsVisible", JSON.stringify(column_visible_settings));
             });
-            column_visible.appendChild(a);
+            column_visible_div.appendChild(a);
         }
     });
 

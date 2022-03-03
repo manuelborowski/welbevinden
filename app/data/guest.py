@@ -65,22 +65,25 @@ def get_guest_register_last_timestamp(register_label, count, indicator=None):
     return None
 
 
-def get_guests(data={}, timeslot_is_not_none=False, timeslot_is_none=False, first=False, count=False):
+def get_guests(data={}, special={}, order_by=None, first=False, count=False):
     try:
-        guests = Guest.query
+        q = Guest.query
         for k, v in data.items():
             if hasattr(Guest, k):
-                guests = guests.filter(getattr(Guest, k) == v)
-        if timeslot_is_not_none:
-            guests = guests.filter(Guest.timeslot != None)
-        if timeslot_is_none:
-            guests = guests.filter(Guest.timeslot == None)
+                q = q.filter(getattr(Guest, k) == v)
+        for k, v in special.items():
+            if k == 'register_timestamp_<=':
+                q = q.filter(Guest.register_timestamp <= v)
+            if k == 'field_of_study_like':
+                q = q.filter(Guest.field_of_study.like(f'{v}%'))
+        if order_by:
+            q.order_by(getattr(Guest, order_by))
         if first:
-            guest = guests.first()
+            guest = q.first()
             return guest
         if count:
-            return guests.count()
-        guests = guests.all()
+            return q.count()
+        guests = q.all()
         return guests
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -219,15 +222,25 @@ def format_data(db_list):
     register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
     register_last_timestamp = {}
     for r, d in register_settings.items():
+        max_nbr_indicator = d['max-number-indicator-registrations']
+        max_nbr_regular = d['max-number-regular-registrations']
         timestamps = {'regular_timestamp': None, 'indicator_timestamp': None}
         if d['overflow-indicator-to-regular']:
-            guest = get_guest_register_last_timestamp(r, d['max-number-regular-registrations'] + d['max-number-indicator-registrations'])
-            if guest:
-                timestamps['regular_timestamp'] = guest.register_timestamp
-                timestamps['indicator_timestamp'] = guest.register_timestamp
+            guests = get_guests(data={'enabled': True}, special={'field_of_study_like': r}, order_by='register_timestamp')
+            for g in guests:
+                if g.indicator:
+                    if max_nbr_indicator > 0:
+                        max_nbr_indicator -= 1
+                        timestamps['indicator_timestamp'] = g.register_timestamp
+                    elif max_nbr_regular > 0:
+                        max_nbr_regular -= 1
+                        timestamps['indicator_timestamp'] = g.register_timestamp
+                elif max_nbr_regular > 0:
+                    max_nbr_regular -= 1
+                    timestamps['regular_timestamp'] = g.register_timestamp
         else:
-            regular_guest = get_guest_register_last_timestamp(r, d['max-number-regular-registrations'], indicator=False)
-            indicator_guest = get_guest_register_last_timestamp(r, d['max-number-indicator-registrations'], indicator=True)
+            regular_guest = get_guest_register_last_timestamp(r, max_nbr_regular, indicator=False)
+            indicator_guest = get_guest_register_last_timestamp(r, max_nbr_indicator, indicator=True)
             if regular_guest:
                 timestamps['regular_timestamp'] = regular_guest.register_timestamp
             if indicator_guest:

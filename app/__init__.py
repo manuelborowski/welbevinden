@@ -56,10 +56,14 @@ flask_app.config.from_pyfile('config.py')
 # V0.34: reworked celledit to support integers.  Re-use register-form to edit a registration.  Editing a registration is ok.
 # V0.35: reworked registration table: improved feedback, addded filtering, added gauges
 # V0.36: added datatables cell background coloring.  Implemented differentiation between registered and waiting-list students
+# V0.37: registrations: make columns-visibility persistent.
+# Bugfix algorithms to determine if a registration is ok or on the waiting list.
+# Bug in socketio?  Sometimes a True at the sender is received as 'on'
+
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.36', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.37', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

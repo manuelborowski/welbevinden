@@ -1,6 +1,7 @@
 from flask import request
 from flask_socketio import emit, join_room, leave_room, close_room
 from app import socketio
+import json
 
 socketio_cbs = {}
 
@@ -23,6 +24,8 @@ def close_room(message):
 @socketio.event
 def send_to_server(msg):
     if msg['type'] in socketio_cbs:
+        if msg['data']['value'] == 'on': # bugfix socketio?  Sometimes, a True at the sender becomes 'on' at the receiver
+            msg['data']['value'] = True
         for cb in socketio_cbs[msg['type']]:
             cb(msg, request.sid)
 

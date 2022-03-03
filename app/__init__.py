@@ -61,10 +61,12 @@ flask_app.config.from_pyfile('config.py')
 # Bug in socketio?  Sometimes a True at the sender is received as 'on'
 # V0.38: implemented status (registered, waiting-list,...)
 # Updated celledit and celltoggle
+# V0.39: included correct columns when searching in database
+
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.38', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.39', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

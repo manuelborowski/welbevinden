@@ -212,9 +212,11 @@ def search_data(search_string):
     search_constraints = []
     search_constraints.append(Guest.child_last_name.like(search_string))
     search_constraints.append(Guest.child_first_name.like(search_string))
+    search_constraints.append(Guest.last_name.like(search_string))
+    search_constraints.append(Guest.first_name.like(search_string))
+    search_constraints.append(Guest.note.like(search_string))
     search_constraints.append(Guest.email.like(search_string))
     search_constraints.append(Guest.phone.like(search_string))
-    search_constraints.append(Guest.misc_field.like(search_string))
     return search_constraints
 
 

@@ -156,37 +156,18 @@ jQuery.fn.dataTable.Api.register('MakeCellsEditable()', function (settings) {
             }
         }
 
-        if (settings.confirmationButton) {
-            if (settings.confirmationButton.listenToKeys) {
-                listenToKeys = settings.confirmationButton.listenToKeys;
-            }
-            confirmCss = settings.confirmationButton.confirmCss;
-            cancelCss = settings.confirmationButton.cancelCss;
-            inputType = inputType + "-confirm";
+        const type = inputType.split('-')[1];
+        if (type === 'confirmkey') {
+            listenToKeys = true;
         }
         switch (inputType) {
-            case "list":
-                input.html = startWrapperHtml + "<select class='" + inputCss + "' onchange='$(this).updateEditableCell(this);'>";
+            case "select":
+                input.html = `${startWrapperHtml}<select class="${inputCss}" onchange='$(this).updateEditableCell(this);'>`;
                 $.each(inputSetting.options, function (index, option) {
-                    if (oldValue == option.display) {
-                        input.html = input.html + "<option value='" + option.value + "' selected>" + option.display + "</option>"
-                    } else {
-                        input.html = input.html + "<option value='" + option.value + "' >" + option.display + "</option>"
-                    }
+                    const selected = oldValue === option.value ? "selected" : "";
+                    input.html = input.html + `<option value=${option.value} ${selected}>${option.display}</option>`
                 });
-                input.html = input.html + "</select>" + endWrapperHtml;
-                input.focus = false;
-                break;
-            case "list-confirm": // List w/ confirm
-                input.html = startWrapperHtml + "<select class='" + inputCss + "'>";
-                $.each(inputSetting.options, function (index, option) {
-                    if (oldValue == option.value) {
-                        input.html = input.html + "<option value='" + option.value + "' selected>" + option.display + "</option>"
-                    } else {
-                        input.html = input.html + "<option value='" + option.value + "' >" + option.display + "</option>"
-                    }
-                });
-                input.html = input.html + "</select>&nbsp;<a href='javascript:void(0);' class='" + confirmCss + "' onclick='$(this).updateEditableCell(this);'><span class='glyphicon glyphicon-ok'></span></a> <a href='javascript:void(0);' class='" + cancelCss + "' onclick='$(this).cancelEditableCell(this)'><span class='glyphicon glyphicon-remove'></span></a>" + endWrapperHtml;
+                input.html = input.html + `</select>${endWrapperHtml}`;
                 input.focus = false;
                 break;
             case "datepicker": //Both datepicker options work best when confirming the values
@@ -213,8 +194,8 @@ jQuery.fn.dataTable.Api.register('MakeCellsEditable()', function (settings) {
                         });
                 }, 100);
                 break;
-            case "text-confirm": // text input w/ confirm
-            case "int-confirm": // text input w/ confirm
+            case "text-confirmkey": // text input w/ confirm
+            case "int-confirmkey": // integer input w/ confirm
                 input.html = startWrapperHtml + "<input id='ejbeatycelledit' class='" + inputCss + "' value='" + oldValue + "'" + (listenToKeys ? " onkeyup='if(event.keyCode==13) {$(this).updateEditableCell(this);} else if (event.keyCode===27) {$(this).cancelEditableCell(this);}'" : "") + "></input>&nbsp;<a href='javascript:void(0);' class='" + confirmCss + "' onclick='$(this).updateEditableCell(this)'><span class='glyphicon glyphicon-ok'></span></a> <a href='javascript:void(0);' class='" + cancelCss + "' onclick='$(this).cancelEditableCell(this)'><span class='glyphicon glyphicon-remove'></span></a>" + endWrapperHtml;
                 break;
             case "undefined-confirm": // text input w/ confirm

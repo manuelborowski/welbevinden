@@ -164,6 +164,12 @@ class Guest(db.Model):
         cb = {}
     SUBSCRIBE = Subscribe()
 
+    class Status:
+        E_REGISTERED = 'registered'     #ingeschreven
+        E_REGISTERED_OF = 'registered-overflow'     #indicator ingeschreven op reguliere lijst
+        E_WAITINGLIST = 'waiting-list'  #wachtlijst
+        E_UNREGISTERED = 'unregistered' #uitgeschreven
+
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(256))
     last_login = db.Column(db.DateTime())

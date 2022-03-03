@@ -111,6 +111,29 @@ $(document).ready(function () {
         column_name_to_index[v.data] = i;
     });
 
+    //configure cell edit
+    celledit_inputtypes = [];
+    celledit_columns = []
+    celledit_select = {}
+    celltoggle_columns = []
+    for (i = 0; i < config_columns.length; i++) {
+        let options = [];
+        if ("celledit" in config_columns[i]) {
+            if (config_columns[i].celledit.type === 'select') {
+                celledit_select[i] = {};
+                config_columns[i].celledit.options.forEach(o => {
+                    options.push({value: o[0], display: o[1]});
+                    celledit_select[i][o[0]] = o[1];
+                });
+            }
+            if (config_columns[i].celledit.type === 'toggle') {
+                celltoggle_columns.push(i)
+            } else
+                entry = { column: i, type: config_columns[i].celledit.type, options }
+        } else continue;
+        celledit_columns.push(i);
+        celledit_inputtypes.push(entry);
+    }
 
     var datatable_config = {
         serverSide: true,
@@ -148,6 +171,11 @@ $(document).ready(function () {
                 row.cells[0].innerHTML = "<input type='checkbox' class='chbx_all' name='chbx' value='" + data.row_action + "'>" +
                     "<div value='" + data.row_action + "' class='pencil glyphicon glyphicon-pencil'></div>";
 
+            }
+            if (celledit_select) {
+                for ([column, select]  of Object.entries(celledit_select)) {
+                    row.cells[column].innerHTML = select[row.cells[column].innerHTML]
+                }
             }
         },
         preDrawCallback: function (settings) {
@@ -295,47 +323,15 @@ $(document).ready(function () {
         update_cell_changed(data);
     }
 
-    //test to cancel reload when column 1 is being edit
-    // table.on('user-select', function ( e, dt, type, cell, originalEvent ) {
-    //             if ( $(originalEvent.target).index() === 1 ) {
-    //                 e.preventDefault();
-    //             }
-    //         });
-
-    celledit_inputtypes = [];
-    celledit_columns = []
-    for (i = 0; i < config_columns.length; i++) {
-        let options = [];
-        if ("celledit_options" in config_columns[i]) {
-            for (j = 0; j < config_columns[i]["celledit_options"].length; j++) {
-                options = {
-                    "value": config_columns[i]["celledit_options"][j][0],
-                    "display": config_columns[i]["celledit_options"][j][1]
-                };
-            }
-            entry = { column: i, type: "list", options}
-        } else if ("celledit" in config_columns[i]) {
-            entry = { column: i, type: config_columns[i]["celledit"], options }
-        } else continue;
-        celledit_columns.push(i);
-        celledit_inputtypes.push(entry);
-    }
-
     if (celledit_inputtypes.length > 0) {
         // table.MakeCellsEditable("destroy");
         table.MakeCellsEditable({
             onUpdate: cell_edit_changed_cb,
-            confirmationButton: {listenToKeys: true},
             columns: celledit_columns,
             inputTypes: celledit_inputtypes,
             inputCss: "celledit-input"
         });
     }
-
-    celltoggle_columns = []
-    $.each(config_columns, function (i, v) {
-        celltoggle_columns.push(("celltoggle" in v) ? v["celltoggle"] : "");
-    });
 
     var cell_toggle = new MakeCellsToggleable(table, {
         onUpdate: cell_toggle_changed_cb,

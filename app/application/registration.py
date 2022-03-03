@@ -137,17 +137,18 @@ def check_register(guest):
             else:
                 max_nbr_regular -= 1
         if guest.indicator:
-            registration_ok = max_nbr_indicator >= 0 or max_nbr_regular >= 0
+            status = guest.Status.E_REGISTERED if max_nbr_indicator >= 0 else guest.Status.E_REGISTERED_OF if max_nbr_regular >= 0 else guest.Status.E_WAITINGLIST
         else:
-            registration_ok = max_nbr_regular >= 0
+            status = guest.Status.E_REGISTERED if max_nbr_regular >= 0 else guest.Status.E_WAITINGLIST
     else:
         if guest.indicator:
             nbr_indicator_guests = mguest.get_guest_register_count(reg_label, guest.register_timestamp, True)
-            registration_ok = nbr_indicator_guests <= max_nbr_indicator
+            status = guest.Status.E_REGISTERED if nbr_indicator_guests <= max_nbr_indicator else guest.Status.E_WAITINGLIST
         else:
             nbr_regular_guests = mguest.get_guest_register_count(reg_label, guest.register_timestamp, False)
-            registration_ok = nbr_regular_guests <= max_nbr_regular
-    return registration_ok
+            status = guest.Status.E_REGISTERED if nbr_regular_guests <= max_nbr_regular else guest.Status.E_WAITINGLIST
+    mguest.update_guest(guest, {'status': status})
+    return status != guest.Status.E_WAITINGLIST
 
 def prepare_timeslot_registration(code=None):
     try:

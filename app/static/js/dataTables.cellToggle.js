@@ -21,18 +21,12 @@ class MakeCellsToggleable {
     constructor(table, settings) {
         this.table = table.table();
         this.settings = settings;
-        this.toggle_columns = []
         var _this = this
-        this.settings.columns.forEach(function (v, i) {
-            if (v !== "") {
-                _this.toggle_columns.push(i);
-            }
-        });
 
         // On cell click
         $(this.table.body()).on('click', 'td', function () {
             var currentColumnIndex = _this.table.cell(this).index().column;
-            if (_this.toggle_columns.includes(currentColumnIndex)) {
+            if (_this.settings.columns.includes(currentColumnIndex)) {
 
                 var row = _this.table.row($(this).parents('tr'));
                 var cell = _this.table.cell(this).node();
@@ -52,7 +46,7 @@ class MakeCellsToggleable {
 
     display() {
         var _this = this
-        $.each(this.toggle_columns, function (ci, cv) {
+        $.each(this.settings.columns, function (ci, cv) {
             $.each(_this.table.column(cv).data(), function (ri, rv) {
                 var template = _this.get_toggle_template(rv);
                 _this.table.cell({row: ri, column: cv}).data(template)

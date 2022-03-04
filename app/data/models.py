@@ -166,7 +166,6 @@ class Guest(db.Model):
 
     class Status:
         E_REGISTERED = 'registered'     #ingeschreven
-        E_REGISTERED_OF = 'registered-overflow'     #indicator ingeschreven op reguliere lijst
         E_WAITINGLIST = 'waiting-list'  #wachtlijst
         E_UNREGISTERED = 'unregistered' #uitgeschreven
 
@@ -220,16 +219,6 @@ class Guest(db.Model):
                 for cb in self.SUBSCRIBE.cb[self.SUBSCRIBE.E_ALL]:
                     cb[0](self.SUBSCRIBE.E_ALL, value, cb[1])
 
-
-    def row_color(self):
-        if self.enabled:
-            if 0 == (self.email_tot_nbr_tx):
-                return 'yellow'
-            else:
-                return ''
-        else:
-            return 'lightsalmon'
-
     def flat(self):
         flat = {
         'id': self.id,
@@ -251,6 +240,8 @@ class Guest(db.Model):
         'register_timestamp_dutch': datetime_to_dutch_short(self.register_timestamp, include_seconds=True),
 
         'unregister_timestamp': self.unregister_timestamp,
+        'unregister_timestamp_dutch': datetime_to_dutch_short(self.unregister_timestamp, include_seconds=True),
+
         'status': self.status,
         'email': self.email,
         'phone': self.phone,
@@ -280,7 +271,6 @@ class Guest(db.Model):
         'cancel_email_sent': self.cancel_email_tx,
         'nbr_cancel_sent': self.cancel_nbr_tx,
         'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
-        'overwrite_row_color': self.row_color(),
         'full_name': f"{self.last_name} {self.first_name}",
         'child_name': f"{self.child_last_name} {self.child_first_name}",
         'overwrite_cell_color': []
@@ -288,7 +278,6 @@ class Guest(db.Model):
         misc_field = json.loads(self.misc_field) if self.misc_field else ''
         flat.update(misc_field)
         return flat
-
 
     @staticmethod
     def subscribe(type, cb, opaque):

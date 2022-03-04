@@ -3,7 +3,7 @@ from app.data import settings as msettings, guest as mguest
 from app.application import formio as mformio
 from app.data.models import Guest
 from app import email, log, email_scheduler, flask_app
-import datetime, time, re, sys
+import datetime, time, re, sys, json
 from flask_mail import Message
 
 
@@ -26,29 +26,29 @@ def send_register_ack(**kwargs):
         if not guest:
             return False
         email_send_max_retries = msettings.get_configuration_setting('email-send-max-retries')
-        if guest.email_tot_nbr_tx >= email_send_max_retries:
-            guest.set(Guest.SUBSCRIBE.E_ENABLED, False)
+        if guest.reg_ack_nbr_tx >= email_send_max_retries:
+            guest.enabled = False
             return False
-        guest.set(Guest.SUBSCRIBE.E_EMAIL_TOT_NBR_TX, guest.email_tot_nbr_tx + 1)
 
-        email_subject = msettings.get_configuration_setting('register-mail-ack-subject-template')
-        email_content = msettings.get_configuration_setting('register-mail-ack-content-template')
+        template = json.loads(msettings.get_configuration_setting('email-response-template'))
+        if guest.status == guest.Status.E_REGISTERED:
+            link = f'{msettings.get_configuration_setting("base-url")}/timeslot/register?code={guest.code}'
+            email_subject = mformio.extract_sub_component(template, 'register-child-ack-ok-subject')['html']
+            email_content = mformio.extract_sub_component(template, 'register-child-ack-ok-content', guest,
+                                                      {'timeslot_registration_link': link})['html']
+        elif guest.status == guest.Status.E_WAITINGLIST:
+            email_subject = mformio.extract_sub_component(template, 'register-child-ack-waiting-list-subject')['html']
+            email_content = mformio.extract_sub_component(template, 'register-child-ack-waiting-list-content', guest)['html']
+        else:
+            email_subject = mformio.extract_sub_component(template, 'register-child-ack-unregister-subject')['html']
+            email_content = mformio.extract_sub_component(template, 'register-child-ack-unregister-content', guest)['html']
+        email_subject = mformio.strip_html(email_subject)
 
-        timeslot = mformio.datetime_to_formiodatetime(guest.timeslot)
-
-        email_subject = email_subject.replace('{{TAG_TIMESLOT}}', timeslot)
-        email_content = email_content.replace('{{TAG_TIMESLOT}}', timeslot)
-
-        url_tag = re.search('{{.*\|TAG_UPDATE_URL}}', email_content)
-        url_text = url_tag.group(0).split('|')[0].split('{{')[1]
-        url = f'{msettings.get_configuration_setting("base-url")}/register?code={guest.code}'
-        url_template = f'<a href={url}>{url_text}</a>'
-        email_content = re.sub('{{.*\|TAG_UPDATE_URL}}', url_template, email_content)
         log.info(f'"{email_subject}" to {guest.email}')
         ret = send_email(guest.email, email_subject, email_content)
         if ret:
-            guest.set(Guest.SUBSCRIBE.E_REG_ACK_EMAIL_TX, True)
-            guest.set(Guest.SUBSCRIBE.E_REG_ACK_NBR_TX, guest.reg_ack_nbr_tx + 1)
+            mguest.update_guest(guest, {"reg_ack_email_tx": True})
+            mguest.update_guest(guest, {"reg_ack_nbr_tx": guest.reg_ack_nbr_tx + 1})
             return ret
         return False
     except Exception as e:

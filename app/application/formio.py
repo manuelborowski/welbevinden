@@ -1,28 +1,42 @@
 import re, datetime
+from bleach.sanitizer import Cleaner
+
 
 # iterate over the container, if a component contains a html or content property, replace the TAG(...) with
 # the data provided by 'tag'
-def fill_in_tags(container, flat):
-    for component in container['components']:
-        if component['type'] == 'container':
-            fill_in_tags(component, flat)
-        for key in ['html', 'content']:
-            if key in component:
-                all_tags = re.findall('TAG\([^(]*\)', component[key])
-                for tag in all_tags:
-                    field = tag.split('(')[1].split(')')[0]
-                    if field in flat:
-                        component[key] = component[key].replace(tag, flat[field])
+def fill_in_tags(component, flat):
+    if component['type'] == 'container':
+        for sub_component in component['components']:
+            fill_in_tags(sub_component, flat)
+    for key in ['html', 'content']:
+        if key in component:
+            all_tags = re.findall('TAG\([^(]*\)', component[key])
+            for tag in all_tags:
+                field = tag.split('(')[1].split(')')[0]
+                link = None
+                if '|' in field:
+                    link, field = field.split('|')
+                if field in flat:
+                    if link:
+                        component[key] = component[key].replace(tag, f"<a href='{str(flat[field])}'>{link}</a>")
+                    else:
+                        component[key] = component[key].replace(tag, str(flat[field]))
 
 
 # find the given sub-component and update its tags
-def prepare_sub_component(form, key, item, additional_fields = {}):
+def prepare_sub_component(form, key, item ={}, additional_fields = {}):
+    extract_sub_component(form, key, item, additional_fields)
+    return form
+
+
+# find the given sub-component and update its tags
+def extract_sub_component(form, key, item ={}, additional_fields = {}):
+    component = search_component(form, key)
     flat = item.flat() if item else {}
     flat.update(additional_fields)
-    container = search_component(form, key)
-    fill_in_tags(container, flat)
-    container['hidden'] = False
-    return form
+    fill_in_tags(component, flat)
+    component['hidden'] = False
+    return component
 
 
 # update the register-form:
@@ -89,3 +103,6 @@ def datetime_to_formiodatetime(date):
     return string
 
 
+def strip_html(input):
+    cleaner = Cleaner(tags=[], attributes={}, styles=[], protocols=[], strip=True, strip_comments=True, filters=None)
+    return cleaner.clean(input)

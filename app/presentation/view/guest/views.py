@@ -58,7 +58,7 @@ def get_confirmation_document():
         return render_template('errors/500.html', message=message)
 
 
-@guest.route('/register_timeslot', methods=['POST', 'GET'])
+@guest.route('/timeslot/register', methods=['POST', 'GET'])
 def register_timeslot():
     try:
         current_url = request.url

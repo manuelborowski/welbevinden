@@ -2,7 +2,7 @@ from app.data.models import Guest
 from app.data import settings as msettings
 from sqlalchemy import not_
 from app import log, db
-import sys, json
+import sys, json, datetime
 
 
 def add_guest_bulk(full_name=None, child_name=None, phone=None, email=None, code=None, misc_field=None):
@@ -221,6 +221,7 @@ def search_data(search_string):
 
 
 def format_data(db_list):
+    now = datetime.datetime.now()
     register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
     register_last_timestamp = {}
     for r, d in register_settings.items():
@@ -249,6 +250,8 @@ def format_data(db_list):
                 timestamps['indicator_timestamp'] = indicator_guest.register_timestamp
         register_last_timestamp[r] = timestamps
     out = []
+    regular_counter = 1
+    indicator_counter = 1
     for i in db_list:
         em = i.flat()
         em.update({
@@ -256,17 +259,37 @@ def format_data(db_list):
             'id': i.id,
             'DT_RowId': i.code
         })
+        em['sequence_counter'] = ""
         if i.enabled:
             data = register_last_timestamp[em['register']]
             timestamp = data['indicator_timestamp' if i.indicator else 'regular_timestamp']
             if timestamp and i.register_timestamp > timestamp:
-                em['overwrite_cell_color'].append(['register_timestamp_dutch', 'orange'])
+                em['overwrite_cell_color'].append(['register_timestamp_dutch', 'yellow'])
             else:
                 em['overwrite_cell_color'].append(['register_timestamp_dutch', 'greenyellow'])
+                if i.indicator:
+                    em['sequence_counter'] = indicator_counter
+                    indicator_counter += 1
+                    em['overwrite_cell_color'].append(['sequence_counter', 'aqua'])
+                else:
+                    em['sequence_counter'] = regular_counter
+                    regular_counter += 1
+                    em['overwrite_cell_color'].append(['sequence_counter', 'turquoise'])
+            if i.status == Guest.Status.E_REGISTERED:
+                em['overwrite_cell_color'].append(['status', 'greenyellow'])
+            else:
+                em['overwrite_cell_color'].append(['status', 'yellow'])
         else:
             em['overwrite_cell_color'].append(['enabled', 'red'])
+        if i.reg_ack_nbr_tx == 0:
+            em['overwrite_cell_color'].append(['reg_ack_nbr_tx', 'orange'])
+            em['overwrite_cell_color'].append(['reg_ack_email_tx', 'orange'])
+        if i.tsl_ack_nbr_tx == 0:
+            em['overwrite_cell_color'].append(['tsl_ack_nbr_tx', 'orange'])
+            em['overwrite_cell_color'].append(['tsl_ack_email_tx', 'orange'])
 
         out.append(em)
+    print(datetime.datetime.now() - now)
     return out
 
 

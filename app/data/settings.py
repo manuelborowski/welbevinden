@@ -71,9 +71,12 @@ default_configuration_settings = {
     'register-register-settings': ('', Settings.SETTING_TYPE.E_STRING),
     'register-items-template': ('', Settings.SETTING_TYPE.E_STRING),
 
+    'enable-send-register-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'cancel-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cancel-mail-content-template': ('', Settings.SETTING_TYPE.E_STRING),
+
+
 
     'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
     'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),

@@ -192,6 +192,14 @@ settings_formio = \
                 "input": true
               },
               {
+                "label": "Send confirmation email when registered",
+                "tableView": false,
+                "key": "enable-send-register-ack-mail",
+                "type": "checkbox",
+                "input": true,
+                "defaultValue": false
+              },
+              {
                 "label": "STUDENT registration (formio sandbox)",
                 "autoExpand": false,
                 "tableView": true,
@@ -221,67 +229,6 @@ settings_formio = \
                 "tableView": true,
                 "persistent": false,
                 "key": "register-register-settings",
-                "type": "textarea",
-                "input": true
-              },
-              {
-                "label": "STUDENT REGISTRATION detailed items (formio sandbox)",
-                "autoExpand": false,
-                "tableView": true,
-                "persistent": false,
-                "key": "register-items-template",
-                "type": "textarea",
-                "input": true
-              },
-              {
-                "label": "TIMESLOT registration (formio sandbox)",
-                "autoExpand": false,
-                "tableView": true,
-                "key": "register-timeslot-template",
-                "type": "textarea",
-                "input": true
-              },
-              {
-                "label": "TIMESLOT registration CONFIRMATION (formio sanbox)",
-                "autoExpand": false,
-                "tableView": true,
-                "key": "register-timeslot-ack-template",
-                "type": "textarea",
-                "input": true
-              },
-              {
-                "label": "TIMESLOT registration confirmation email SUBJECT (html)",
-                "autoExpand": false,
-                "tableView": true,
-                "persistent": false,
-                "key": "register-timeslot-mail-ack-subject-template",
-                "type": "textarea",
-                "input": true
-              },
-              {
-                "label": "TIMESLOT registration confirmation email CONTENT (html)",
-                "autoExpand": false,
-                "tableView": true,
-                "persistent": false,
-                "key": "register-timeslot-mail-ack-content-template",
-                "type": "textarea",
-                "input": true
-              },
-              {
-                "label": "CANCEL mail SUBJECT (html)",
-                "autoExpand": false,
-                "tableView": true,
-                "persistent": false,
-                "key": "cancel-mail-subject-template",
-                "type": "textarea",
-                "input": true
-              },
-              {
-                "label": "CANCEL mail CONTENT (html)",
-                "autoExpand": false,
-                "tableView": true,
-                "persistent": false,
-                "key": "cancel-mail-content-template",
                 "type": "textarea",
                 "input": true
               }

@@ -221,37 +221,34 @@ def search_data(search_string):
 
 
 def format_data(db_list):
-    now = datetime.datetime.now()
     register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
-    register_last_timestamp = {}
+    register_info = {}
     for r, d in register_settings.items():
         max_nbr_indicator = d['max-number-indicator-registrations']
         max_nbr_regular = d['max-number-regular-registrations']
-        timestamps = {'regular_timestamp': None, 'indicator_timestamp': None}
+        info = {'regular_timestamp': None, 'indicator_timestamp': None, 'regular_counter': 1, 'indicator_counter': 1}
         if d['overflow-indicator-to-regular']:
             guests = get_guests(data={'enabled': True}, special={'field_of_study_like': r}, order_by='register_timestamp')
             for g in guests:
                 if g.indicator:
                     if max_nbr_indicator > 0:
                         max_nbr_indicator -= 1
-                        timestamps['indicator_timestamp'] = g.register_timestamp
+                        info['indicator_timestamp'] = g.register_timestamp
                     elif max_nbr_regular > 0:
                         max_nbr_regular -= 1
-                        timestamps['indicator_timestamp'] = g.register_timestamp
+                        info['indicator_timestamp'] = g.register_timestamp
                 elif max_nbr_regular > 0:
                     max_nbr_regular -= 1
-                    timestamps['regular_timestamp'] = g.register_timestamp
+                    info['regular_timestamp'] = g.register_timestamp
         else:
             regular_guest = get_guest_register_last_timestamp(r, max_nbr_regular, indicator=False)
             indicator_guest = get_guest_register_last_timestamp(r, max_nbr_indicator, indicator=True)
             if regular_guest:
-                timestamps['regular_timestamp'] = regular_guest.register_timestamp
+                info['regular_timestamp'] = regular_guest.register_timestamp
             if indicator_guest:
-                timestamps['indicator_timestamp'] = indicator_guest.register_timestamp
-        register_last_timestamp[r] = timestamps
+                info['indicator_timestamp'] = indicator_guest.register_timestamp
+        register_info[r] = info
     out = []
-    regular_counter = 1
-    indicator_counter = 1
     for i in db_list:
         em = i.flat()
         em.update({
@@ -261,19 +258,19 @@ def format_data(db_list):
         })
         em['sequence_counter'] = ""
         if i.enabled:
-            data = register_last_timestamp[em['register']]
-            timestamp = data['indicator_timestamp' if i.indicator else 'regular_timestamp']
+            info = register_info[em['register']]
+            timestamp = info['indicator_timestamp' if i.indicator else 'regular_timestamp']
             if timestamp and i.register_timestamp > timestamp:
                 em['overwrite_cell_color'].append(['register_timestamp_dutch', 'yellow'])
             else:
                 em['overwrite_cell_color'].append(['register_timestamp_dutch', 'greenyellow'])
                 if i.indicator:
-                    em['sequence_counter'] = indicator_counter
-                    indicator_counter += 1
+                    em['sequence_counter'] = info['indicator_counter']
+                    info['indicator_counter'] += 1
                     em['overwrite_cell_color'].append(['sequence_counter', 'aqua'])
                 else:
-                    em['sequence_counter'] = regular_counter
-                    regular_counter += 1
+                    em['sequence_counter'] = info['regular_counter']
+                    info['regular_counter'] += 1
                     em['overwrite_cell_color'].append(['sequence_counter', 'turquoise'])
             if i.status == Guest.Status.E_REGISTERED:
                 em['overwrite_cell_color'].append(['status', 'greenyellow'])
@@ -289,7 +286,6 @@ def format_data(db_list):
             em['overwrite_cell_color'].append(['tsl_ack_email_tx', 'orange'])
 
         out.append(em)
-    print(datetime.datetime.now() - now)
     return out
 
 

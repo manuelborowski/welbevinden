@@ -105,6 +105,8 @@ def add_registration(data, suppress_send_ack_email=False):
         data['register_timestamp'] = datetime.datetime.now()
         guest = mguest.add_guest(data)
         _update_register_status(guest)
+        if msettings.get_configuration_setting('enable-send-register-ack-mail'):
+            mguest.update_guest(guest, {"reg_ack_email_tx": False})
         notify_registration_changed()
         log.info(f"New registration: {guest.email}, {guest.child_last_name} {guest.child_first_name} {guest.register_timestamp}")
         return {"status": True, "data": guest.code}

@@ -66,8 +66,6 @@ def registration_done(code):
             template = mformio.prepare_sub_component(template, 'register-child-ack-ok', guest)
         else:
             template = mformio.prepare_sub_component(template, 'register-child-ack-waiting-list', guest)
-        # send email
-        mguest.update_guest(guest, {"reg_ack_nbr_tx": 0, "reg_ack_email_tx": False})
         return {'template': template}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -106,7 +104,7 @@ def add_registration(data, suppress_send_ack_email=False):
         guest = mguest.add_guest(data)
         _update_register_status(guest)
         if msettings.get_configuration_setting('enable-send-register-ack-mail'):
-            mguest.update_guest(guest, {"reg_ack_email_tx": False})
+            mguest.update_guest(guest, {"reg_ack_nbr_tx": 0, "reg_ack_email_tx": False})
         notify_registration_changed()
         log.info(f"New registration: {guest.email}, {guest.child_last_name} {guest.child_first_name} {guest.register_timestamp}")
         return {"status": True, "data": guest.code}
@@ -156,6 +154,8 @@ def _check_register_status(guest):
 
 def prepare_timeslot_registration(code=None):
     try:
+        guest = mguest.get_first_guest({'code': code})
+
         if 'new' == code:
             empty_values = {
             'phone': '',

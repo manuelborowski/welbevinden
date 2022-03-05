@@ -237,6 +237,69 @@ settings_formio = \
         ]
       },
       {
+        "label": "Visitors",
+        "tableView": false,
+        "key": "visitors1",
+        "type": "container",
+        "input": true,
+        "components": [
+          {
+            "title": "TIMESLOT registration",
+            "theme": "primary",
+            "collapsible": true,
+            "key": "RegistratieTemplate1",
+            "type": "panel",
+            "label": "BEZOEKERS : Registratie template en e-mail",
+            "collapsed": true,
+            "input": false,
+            "tableView": false,
+            "components": [
+              {
+                "label": "Submit",
+                "showValidations": false,
+                "theme": "warning",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              },
+              {
+                "label": "Send confirmation email when registered",
+                "tableView": false,
+                "defaultValue": false,
+                "key": "timeslot-enable-send-register-ack-mail",
+                "type": "checkbox",
+                "input": true
+              },
+              {
+                "label": "TIMESLOT registration (formio sandbox)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "timeslot-register-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "WEB RESPONSE templates (formio sandbox)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "timeslot-web-response-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "EMAIL RESPONSE templates (formio sandbox)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "timeslot-email-response-template",
+                "type": "textarea",
+                "input": true
+              }
+            ]
+          }
+        ]
+      },
+      {
         "label": "Timeslot",
         "tableView": false,
         "key": "timeslot",
@@ -263,7 +326,7 @@ settings_formio = \
                 "input": true
               },
               {
-                "html": "<p>Configureer tijdsloten:&nbsp;<br>[<br>&nbsp; {\"jaar\": 2021, \"maand\": 5, \"dag\": 1, \"uur\": 9, \"minuut\": 0, \"lengte\": 15, \"aantal\": 12, \"plaatsen\": 8},<br>&nbsp; {\"jaar\": 2021, \"maand\": 5, \"dag\": 1, \"uur\": 12, \"minuut\": 0, \"lengte\": 15, \"aantal\": 4, \"plaatsen\": 5},<br>]</p>",
+                "html": "<p>Configureer tijdsloten:&nbsp;<br>[<br>&nbsp; {\"jaar\": 2021, \"maand\": 5, \"dag\": 1, \"uur\": 9, \"minuut\": 0, \"lengte\": 15, \"aantal\": 12, \"plaatsen\": 8},<br>&nbsp; {\"jaar\": 2021, \"maand\": 5, \"dag\": 1, \"uur\": 12, \"minuut\": 0, \"lengte\": 15, \"aantal\": 4, \"plaatsen\": 5}<br>]</p>",
                 "label": "Content",
                 "refreshOnChange": false,
                 "key": "content",

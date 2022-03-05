@@ -47,6 +47,9 @@ def prepare_for_edit(form):
     def cb(component):
         if component['key'] == 'header':
             component['hidden'] = True
+        if component['key'] == 'mail-confirm':
+            component['hidden'] = True
+            component['disabled'] = True
         if 'validate' in component and 'required' in component['validate']:
             component['validate']['required'] = False
         if 'tags' in component and 'show-when-edit' in component['tags']:

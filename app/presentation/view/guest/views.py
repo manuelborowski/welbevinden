@@ -25,6 +25,12 @@ def get_form():
             data.update({
                 'form_on_submit': 'register'
             })
+        elif request.values['form'] == 'timeslot':
+            data = mregistration.prepare_timeslot_registration(request.values['extra'])
+            data.update({
+                'post_data_endpoint': 'api.timeslot_add',
+                'form_on_submit': 'timeslot-done'
+            })
         else:
             return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
         return {"status": True, "data": data}
@@ -61,20 +67,13 @@ def get_confirmation_document():
 @guest.route('/timeslot/register', methods=['POST', 'GET'])
 def register_timeslot():
     try:
-        current_url = request.url
-        current_url = re.sub(f'{request.url_rule.rule}.*', '', current_url)
-        memail.set_base_url(current_url)
-        code = request.args['code'] if 'code' in request.args else None
-        ret = prepare_registration_form(code)
-        if ret.result == ret.Result.E_COULD_NOT_REGISTER:
-            return render_template('guest/messages.html', type='could-not-register')
-        if ret.result == ret.Result.E_NO_TIMESLOT:
-            return render_template('guest/messages.html', type='no-timeslot')
-        return render_template('guest/render_formio.html', config_data=ret.data,
-                               registration_endpoint='guest.register_save')
+        code = request.values['code'] if 'code' in request.values else ""
+        return render_template('guest/render_formio.html',
+                               data={"form": "register", "get_form_endpoint": "guest.get_form", "extra": code})
     except Exception as e:
-        log.error(f'could not register {request.args}: {e}')
-        return render_template('guest/messages.html', type='unknown-error', message=e)
+        message = f'could not display timeslot registration form {request.args}: {e}'
+        log.error(message)
+        return render_template('errors/500.html', message=message)
 
 
 @guest.route('/register_timeslot_save/<string:form_data>', methods=['POST', 'GET'])

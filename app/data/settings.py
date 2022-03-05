@@ -70,8 +70,12 @@ default_configuration_settings = {
     'email-response-template': ('', Settings.SETTING_TYPE.E_STRING),
     'register-register-settings': ('', Settings.SETTING_TYPE.E_STRING),
     'register-items-template': ('', Settings.SETTING_TYPE.E_STRING),
-
     'enable-send-register-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
+
+    'timeslot-register-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'timeslot-web-response-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'timeslot-email-response-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'timeslot-enable-send-register-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'cancel-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cancel-mail-content-template': ('', Settings.SETTING_TYPE.E_STRING),

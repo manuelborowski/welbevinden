@@ -25,3 +25,10 @@ def register_check():
     return(json.dumps(ret))
 
 
+@api.route('/api/timeslot/add', methods=['POST', 'GET'])
+def timeslot_add():
+    data = json.loads(request.data)
+    ret = mregistration.add_registration(data)
+    return(json.dumps(ret))
+
+

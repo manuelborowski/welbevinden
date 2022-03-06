@@ -99,9 +99,9 @@ def get_first_guest(data={}):
     return None
 
 
-def get_guest_count(timeslot=None):
+def get_guest_count(data={}):
     try:
-        count = get_guests(timeslot=timeslot, enabled=True, count=True)
+        count = get_guests(data, count=True)
         return count
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -170,9 +170,18 @@ def get_first_not_sent_invite():
     return None
 
 
-def get_first_not_sent_ack():
+def get_first_not_sent_register_ack():
     try:
         guest = Guest.query.filter(Guest.enabled, not_(Guest.reg_ack_email_tx)).first()
+        return guest
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
+
+def get_first_not_sent_timeslot_register_ack():
+    try:
+        guest = Guest.query.filter(Guest.enabled, not_(Guest.tsl_ack_email_tx)).first()
         return guest
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

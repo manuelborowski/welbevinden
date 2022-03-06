@@ -70,10 +70,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.42: added email-confirmation-field.
 # Bugfixed automatically-send-email-when-registering
 # First code to register-timeslot
+# V0.43: added support to reserve a timeslot and minor updates
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.42', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.43', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

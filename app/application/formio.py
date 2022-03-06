@@ -23,13 +23,13 @@ def fill_in_tags(component, flat):
                         component[key] = component[key].replace(tag, str(flat[field]))
 
 
-# find the given sub-component and update its tags
+# find the given sub-component and update its tags.  Return the form because it is used to render the webpage
 def prepare_sub_component(form, key, item ={}, additional_fields = {}):
     extract_sub_component(form, key, item, additional_fields)
     return form
 
 
-# find the given sub-component and update its tags
+# find the given sub-component and update its tags.  Return the component because it is used to send an email
 def extract_sub_component(form, key, item ={}, additional_fields = {}):
     component = search_component(form, key)
     flat = item.flat() if item else {}
@@ -57,6 +57,30 @@ def prepare_for_edit(form):
 
     iterate_components_cb(form, cb)
     return form
+
+
+def update_available_timeslots(timeslots, form, key):
+    components = form['components']
+    for component in components:
+        if 'key' in component and component['key'] == key:
+            values = []
+            # component['components'] = []
+            for timeslot in timeslots:
+                if timeslot['available'] <= 0:
+                    continue
+                new = {
+                    'label': timeslot['label'],
+                    'value': timeslot['value'],
+                    'shortcut': '',
+                }
+                values.append(new)
+                if timeslot['default']:
+                    component['defaultValue'] = timeslot['value']
+            component['values'] = values
+            return
+        if 'components' in component:
+            update_available_timeslots(timeslots, component, key)
+    return
 
 
 # search, in a given hierarchical tree of components, for a component with the given 'key'
@@ -91,8 +115,10 @@ def iterate_components(form):
             yield component
 
 
+
+
 def formiodate_to_datetime(formio_date):
-    date_time = datetime.datetime.strptime(':'.join(formio_date.split(':')[:2]), '%d/%m%Y-T%H:%M')
+    date_time = datetime.datetime.strptime(':'.join(formio_date.split(':')[:2]), '%d/%m/%YT%H:%M')
     return date_time
 
 
@@ -101,7 +127,7 @@ def formiodate_to_date(formio_date):
     return date
 
 
-def datetime_to_formiodatetime(date):
+def datetime_to_formio_datetime(date):
     string = f"{datetime.datetime.strftime(date, '%d/%m/%YT%H:%M')}:00+01:00"
     return string
 

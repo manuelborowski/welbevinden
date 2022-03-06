@@ -7,14 +7,14 @@ import json
 @api.route('/api/register/add', methods=['POST', 'GET'])
 def register_add():
     data = json.loads(request.data)
-    ret = mregistration.add_registration(data)
+    ret = mregistration.registration_add(data)
     return(json.dumps(ret))
 
 
 @api.route('/api/register/update', methods=['POST', 'GET'])
 def register_update():
     data = json.loads(request.data)
-    ret = mregistration.update_registration(data['code'], data)
+    ret = mregistration.registration_update(data['code'], data)
     return(json.dumps(ret))
 
 
@@ -28,7 +28,7 @@ def register_check():
 @api.route('/api/timeslot/add', methods=['POST', 'GET'])
 def timeslot_add():
     data = json.loads(request.data)
-    ret = mregistration.add_registration(data)
+    ret = mregistration.timeslot_add_registration(data)
     return(json.dumps(ret))
 
 

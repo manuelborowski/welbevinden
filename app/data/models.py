@@ -270,7 +270,8 @@ class Guest(db.Model):
         'nbr_ack_sent': self.reg_ack_nbr_tx,
         'cancel_email_sent': self.cancel_email_tx,
         'nbr_cancel_sent': self.cancel_nbr_tx,
-        'timeslot': datetime_to_dutch_datetime_string(self.timeslot),
+        'timeslot': self.timeslot,
+        'timeslot_dutch': datetime_to_dutch_datetime_string(self.timeslot),
         'full_name': f"{self.last_name} {self.first_name}",
         'child_name': f"{self.child_last_name} {self.child_first_name}",
         'overwrite_cell_color': []

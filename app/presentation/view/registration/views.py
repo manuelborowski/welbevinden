@@ -107,7 +107,7 @@ def item_add():
 def registration_update_cb(value, opaque):
     msocketio.broadcast_message({'type': 'celledit-registration', 'data': {'reload-table': True}})
 
-mregistration.subscribe_registration_changed(registration_update_cb, None)
+mregistration.registration_subscribe_changed(registration_update_cb, None)
 
 # some columns can be edit inplace in the table.
 def celledit_event_cb(msg, client_sid=None):
@@ -115,7 +115,7 @@ def celledit_event_cb(msg, client_sid=None):
         nbr = msg['data']['column']
         column_template = table_configuration['template'][nbr]
         if 'celltoggle' in column_template or 'celledit' in column_template:
-            mregistration.update_registration(msg['data']['id'], {column_template['data']: msg['data']['value']})
+            mregistration.registration_update(msg['data']['id'], {column_template['data']: msg['data']['value']})
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     msocketio.send_to_room({'type': 'celledit-registration', 'data': {'status': True}}, client_sid)

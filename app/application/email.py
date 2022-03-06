@@ -22,7 +22,7 @@ def send_register_ack(**kwargs):
     try:
         if not msettings.get_configuration_setting('enable-send-ack-email'):
             return False
-        guest = mguest.get_first_not_sent_ack()
+        guest = mguest.get_first_not_sent_register_ack()
         if not guest:
             return False
         email_send_max_retries = msettings.get_configuration_setting('email-send-max-retries')
@@ -49,6 +49,37 @@ def send_register_ack(**kwargs):
         if ret:
             mguest.update_guest(guest, {"reg_ack_email_tx": True})
             mguest.update_guest(guest, {"reg_ack_nbr_tx": guest.reg_ack_nbr_tx + 1})
+            return ret
+        return False
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return False
+
+
+def send_timeslot_register_ack(**kwargs):
+    try:
+        if not msettings.get_configuration_setting('enable-send-ack-email'):
+            return False
+        guest = mguest.get_first_not_sent_timeslot_register_ack()
+        if not guest:
+            return False
+        email_send_max_retries = msettings.get_configuration_setting('email-send-max-retries')
+        if guest.tsl_ack_nbr_tx >= email_send_max_retries:
+            guest.enabled = False
+            return False
+
+        template = json.loads(msettings.get_configuration_setting('timeslot-email-response-template'))
+        link = f'{msettings.get_configuration_setting("base-url")}/timeslot/register?code={guest.code}'
+        email_subject = mformio.extract_sub_component(template, 'timeslot-register-ack-ok-subject', guest)['html']
+        email_content = mformio.extract_sub_component(template, 'timeslot-register-ack-ok-content', guest,
+                                                      {'timeslot_registration_link': link})['html']
+        email_subject = mformio.strip_html(email_subject)
+
+        log.info(f'"{email_subject}" to {guest.email}')
+        ret = send_email(guest.email, email_subject, email_content)
+        if ret:
+            mguest.update_guest(guest, {"tsl_ack_email_tx": True})
+            mguest.update_guest(guest, {"tsl_ack_nbr_tx": guest.tsl_ack_nbr_tx + 1})
             return ret
         return False
     except Exception as e:
@@ -123,6 +154,7 @@ def send_invite(**kwargs):
 
 send_email_config = [
     {'function': send_register_ack, 'args': {}},
+    {'function': send_timeslot_register_ack, 'args': {}},
     {'function': send_register_cancel, 'args': {}},
     {'function': send_invite, 'args': {}},
 ]

@@ -28,9 +28,12 @@ def get_form():
         elif request.values['form'] == 'timeslot':
             data = mregistration.prepare_timeslot_registration(request.values['extra'])
             data.update({
-                'post_data_endpoint': 'api.timeslot_add',
-                'form_on_submit': 'timeslot-done'
+                'post_data_endpoint': 'api.register_update',
+                'form_on_submit': 'timeslot-register-done'
             })
+        elif request.values['form'] == 'timeslot-register-done':
+            data = mregistration.timeslot_registration_done(request.values['extra'])
+            data.update()
         else:
             return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
         return {"status": True, "data": data}
@@ -69,7 +72,9 @@ def register_timeslot():
     try:
         code = request.values['code'] if 'code' in request.values else ""
         return render_template('guest/render_formio.html',
-                               data={"form": "register", "get_form_endpoint": "guest.get_form", "extra": code})
+                               data={"form": "timeslot",
+                                     "get_form_endpoint": "guest.get_form",
+                                     "extra": code})
     except Exception as e:
         message = f'could not display timeslot registration form {request.args}: {e}'
         log.error(message)

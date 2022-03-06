@@ -62,10 +62,28 @@ def registration_done(code):
         template = json.loads(msettings.get_configuration_setting('web-response-template'))
         guest = mguest.get_first_guest({'code': code})
         #check the register settings to see if the student is registered or is on the waiting list
-        if check_register_status(guest):
+        if _check_register_status(guest):
             template = mformio.prepare_sub_component(template, 'register-child-ack-ok', guest)
         else:
             template = mformio.prepare_sub_component(template, 'register-child-ack-waiting-list', guest)
+        # send confirmation e-mail
+        if msettings.get_configuration_setting('enable-send-register-ack-mail'):
+            mguest.update_guest(guest, {"reg_ack_nbr_tx": 0, "reg_ack_email_tx": False})
+        return {'template': template}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        log.error(code)
+        raise e
+
+
+def timeslot_registration_done(code):
+    try:
+        template = json.loads(msettings.get_configuration_setting('timeslot-web-response-template'))
+        guest = mguest.get_first_guest({'code': code})
+        template = mformio.prepare_sub_component(template, 'timeslot-register-ack-ok', guest)
+        # send confirmation e-mail
+        if msettings.get_configuration_setting('timeslot-enable-send-register-ack-mail'):
+            mguest.update_guest(guest, {"tsl_ack_nbr_tx": 0, "tsl_ack_email_tx": False})
         return {'template': template}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -84,7 +102,7 @@ def check_register_status(code):
         return {"status": False, "data": f'generic error {e}'}
 
 
-def add_registration(data, suppress_send_ack_email=False):
+def registration_add(data, suppress_send_ack_email=False):
     try:
         data_selection = {  #duplicates are detetected when email AND childs name are already in database
             'email': data['email'],
@@ -103,8 +121,6 @@ def add_registration(data, suppress_send_ack_email=False):
         data['register_timestamp'] = datetime.datetime.now()
         guest = mguest.add_guest(data)
         _update_register_status(guest)
-        if msettings.get_configuration_setting('enable-send-register-ack-mail'):
-            mguest.update_guest(guest, {"reg_ack_nbr_tx": 0, "reg_ack_email_tx": False})
         notify_registration_changed()
         log.info(f"New registration: {guest.email}, {guest.child_last_name} {guest.child_first_name} {guest.register_timestamp}")
         return {"status": True, "data": guest.code}
@@ -155,36 +171,17 @@ def _check_register_status(guest):
 def prepare_timeslot_registration(code=None):
     try:
         guest = mguest.get_first_guest({'code': code})
-
-        if 'new' == code:
-            empty_values = {
-            'phone': '',
-            'email': '',
-            'full_name': '',
-            'child_name': '',
-            'registration-code': 'new',
-            }
-            ret = {'default_values': empty_values,
-                   'template': json.loads(msettings.get_configuration_setting('register-template')),
-                   'available_timeslots': get_available_timeslots(),
-                   'mode': 'new'
-                   }
-            if not ret['available_timeslots']:
-                return RegisterResult(RegisterResult.Result.E_NO_TIMESLOT, None)
-            return RegisterResult(RegisterResult.Result.E_OK, ret)
-        else:
-            guest = mguest.get_first_guest(code=code)
-            if not guest:
-                return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
-            default_values = guest.flat()
-            if guest.timeslot:
-                default_values['update-registration'] = 'true'
-            ret = {'default_values': default_values,
-                   'template': json.loads(msettings.get_configuration_setting('register-template')),
-                   'available_timeslots': get_available_timeslots(guest.timeslot),
-                   'mode': 'update'
-                   }
-            return RegisterResult(RegisterResult.Result.E_OK, ret)
+        if not guest:
+            template = json.loads(msettings.get_configuration_setting('timeslot-web-response-template'))
+            template = mformio.prepare_sub_component(template, 'timeslot-register-error-wrong-code')
+            return {'template': template}
+        available_timeslots = get_available_timeslots(guest.timeslot)
+        template = json.loads(msettings.get_configuration_setting('timeslot-register-template'))
+        mformio.update_available_timeslots(available_timeslots, template, 'radio-timeslot')
+        data = {
+            'template': template,
+            'defaults': guest.flat()}
+        return data
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
@@ -193,7 +190,6 @@ def prepare_message(type = MessageType.E_GENERIC, message = None):
     template = json.loads(msettings.get_configuration_setting('web-response-template'))
     template = mformio.prepare_sub_component(template, type, None, {'message': message})
     return RegisterResult(RegisterResult.Result.E_OK, {'template': template})
-
 
 
 def delete_registration(code):
@@ -209,40 +205,7 @@ def delete_registration(code):
     return RegisterResult(result=RegisterResult.Result.E_NOK)
 
 
-def add_or_update_registration(data, suppress_send_ack_email=False):
-    try:
-        code = data['registration-code']
-        timeslot = formiodate_to_datetime(data['radio-timeslot'])
-        if 'new' == code:
-            if data['email'] == '' or data['child_name'] == '':
-                return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
-            if not check_requested_timeslot(timeslot):
-                ret = {'registration-code': 'new'}
-                return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, ret)
-            misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
-            extra_fields = [c['veldnaam'] for c in misc_config]
-            extra_field = {f: '' for f in extra_fields}
-            data['misc_field'] = extra_field
-            guest = maguest.add_guest(data)
-        else:
-            guest = mguest.get_first_guest({'code': code})
-            if timeslot != guest.timeslot and not check_requested_timeslot(timeslot):
-                return RegisterResult(RegisterResult.Result.E_TIMESLOT_FULL, guest.flat())
-            guest = mguest.update_guest(guest, data)
-        if guest and not suppress_send_ack_email:
-            guest.set(Guest.SUBSCRIBE.E_EMAIL_TOT_NBR_TX, 0)
-            guest.set(Guest.SUBSCRIBE.E_REG_ACK_EMAIL_TX, False)
-        register_ack_template = msettings.get_configuration_setting('register-ack-template')
-        timeslot = datetime_to_dutch_datetime_string(guest.timeslot)
-        register_ack_template = register_ack_template.replace('{{TAG_TIMESLOT}}', timeslot)
-        return RegisterResult(RegisterResult.Result.E_OK, register_ack_template)
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        log.error(data)
-    return RegisterResult(RegisterResult.Result.E_COULD_NOT_REGISTER)
-
-
-def update_registration(code, data):
+def registration_update(code, data):
     try:
         guest = mguest.get_first_guest({"code": code})
         if 'date_of_birth_dutch' in data:
@@ -252,6 +215,11 @@ def update_registration(code, data):
         if 'status' in data and data['status'] == Guest.Status.E_UNREGISTERED:
             data['unregister_timestamp'] = datetime.datetime.now()
             data['enabled'] = False
+        if 'radio-timeslot' in data:
+            timeslot = mformio.formiodate_to_datetime(data['radio-timeslot'])
+            if timeslot != guest.timeslot and not check_requested_timeslot(timeslot):
+                return {"status": False, "data": "Opgepast, het gekozen tijdslot is zojuist volzet geraakt.\nGelieve een nieuw tijdslot te kiezen."}
+            data['timeslot'] = timeslot
         mguest.update_guest(guest, data)
         return {"status": True, "data": guest.code}
     except JSONDecodeError as e:
@@ -269,7 +237,7 @@ def notify_registration_changed(value=None):
 
 registration_changed_cb = []
 
-def subscribe_registration_changed(cb, opaque):
+def registration_subscribe_changed(cb, opaque):
     try:
         registration_changed_cb.append((cb, opaque))
     except Exception as e:
@@ -304,6 +272,7 @@ def display_register_counters():
         display.append(f"{reg}{overflow}, regulier: {nbr_regular_guests}/{max_nbr_regular}, indicator: {nbr_indicator_guests}/{max_nbr_indicator}")
     return display
 
+
 def get_available_timeslots(default_date=None, ignore_availability=False):
     try:
         timeslots = []
@@ -311,7 +280,7 @@ def get_available_timeslots(default_date=None, ignore_availability=False):
         for timeslot_config in timeslot_configs:
             date = timeslot_config.date
             for i in range(timeslot_config.nbr_of_timeslots):
-                nbr_guests = mguest.get_guest_count(date)
+                nbr_guests = mguest.get_guest_count({'enabled': True, 'timeslot': date})
                 available = timeslot_config.items_per_timeslot - nbr_guests
                 default_flag = default_date and date == default_date
                 if default_flag:
@@ -319,7 +288,7 @@ def get_available_timeslots(default_date=None, ignore_availability=False):
                 if available > 0 or ignore_availability:
                     timeslots.append({
                         'label':  f"({available}) {datetime_to_dutch_datetime_string(date)}",
-                        'value': datetime_to_formiodate(date),
+                        'value': mformio.datetime_to_formio_datetime(date),
                         'available': available,
                         'default': default_flag,
                         'maximum': timeslot_config.items_per_timeslot,
@@ -348,16 +317,15 @@ def datatable_get_timeslots():
     return out
 
 
-
+# return true if the current number of guests is less than the maximum
 def check_requested_timeslot(date):
     try:
-        timeslots = []
         tcs = mtc.get_timeslot_configurations()
         for tc in tcs:
             start_date = tc.date
             end_date = tc.date + datetime.timedelta(minutes=(tc.nbr_of_timeslots * tc.length))
             if start_date <= date <= end_date:
-                guest_count = mguest.get_guest_count(date)
+                guest_count = mguest.get_guest_count({'timeslot': date, 'enabled': True})
                 return guest_count < tc.items_per_timeslot
         return False
     except Exception as e:

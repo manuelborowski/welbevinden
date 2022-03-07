@@ -71,10 +71,13 @@ flask_app.config.from_pyfile('config.py')
 # Bugfixed automatically-send-email-when-registering
 # First code to register-timeslot
 # V0.43: added support to reserve a timeslot and minor updates
+# V0.44: filter and column-visibility: split out per page
+# debugged timeslot and user pages
+
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.43', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.44', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

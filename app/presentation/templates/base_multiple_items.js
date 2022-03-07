@@ -1,6 +1,7 @@
 //Convert python True/False to js true/false
 var False = false;
 var True = true;
+const view = table_config.view;
 
 //If not exactly one checkbox is selected, display warning and return false, else return true
 function is_exactly_one_checkbox_selected() {
@@ -76,11 +77,11 @@ $(document).ready(function () {
         filters.forEach(f => {
             filter_settings[f.name] = document.querySelector(`#${f.name} option:checked`).value
         });
-        localStorage.setItem("Filter", JSON.stringify(filter_settings));
+        localStorage.setItem(`Filter-${view}`, JSON.stringify(filter_settings));
     }
 
     function load_filter_settings() {
-        filter_settings = JSON.parse(localStorage.getItem("Filter"));
+        filter_settings = JSON.parse(localStorage.getItem(`Filter-${view}`));
         if (!filter_settings) {
             filter_settings = {};
             return false
@@ -156,10 +157,10 @@ $(document).ready(function () {
             }
          },
         createdRow: function (row, data, dataIndex, cells) {
-            if (data.overwrite_row_color != "") {
+            if (data.overwrite_row_color && data.overwrite_row_color != "") {
                 $(row).attr("style", "background-color: " + data.overwrite_row_color + ";");
             }
-            if (data.overwrite_cell_color.length > 0) {
+            if (data.overwrite_cell_color && data.overwrite_cell_color.length > 0) {
                 data.overwrite_cell_color.forEach( ([cn, cc])  => {
                     const ci = column_name_to_index[cn];
                     $(cells[ci]).attr("style", `background-color: ${cc};`);
@@ -167,9 +168,9 @@ $(document).ready(function () {
             }
         },
         rowCallback: function (row, data, displayNum, displayIndex, dataIndex) {
-            if (data.row_action != "") {
-                row.cells[0].innerHTML = "<input type='checkbox' class='chbx_all' name='chbx' value='" + data.row_action + "'>" +
-                    "<div value='" + data.row_action + "' class='pencil glyphicon glyphicon-pencil'></div>";
+            if (data.row_action !== null) {
+                row.cells[0].innerHTML = `<input type='checkbox' class='chbx_all' name='chbx' value='${data.row_action}'>` +
+                    `<div value='${data.row_action}' class='pencil glyphicon glyphicon-pencil'></div>`;
 
             }
             if (celledit_select) {
@@ -241,13 +242,13 @@ $(document).ready(function () {
 
     //Toggle column visibility
     let column_visible_div = document.querySelector('.column-visible-div');
-    let column_visible_settings = JSON.parse(localStorage.getItem("ColumnsVisible"));
+    let column_visible_settings = JSON.parse(localStorage.getItem(`ColumnsVisible-${view}`));
     if (!column_visible_settings || column_visible_settings.length !== config_columns.length) {
         column_visible_settings = []
         config_columns.forEach((column, i) => {
-            column_visible_settings.push({name: [column.name], visible: column.visible});
+            column_visible_settings.push({name: column.name, visible: column.visible});
         });
-        localStorage.setItem("ColumnsVisible", JSON.stringify(column_visible_settings));
+        localStorage.setItem(`ColumnsVisible-${view}`, JSON.stringify(column_visible_settings));
     }
     column_visible_settings.forEach((column, i) => {
         if (column.visible !== 'never') {
@@ -263,7 +264,7 @@ $(document).ready(function () {
                 e.currentTarget.classList.toggle('column-invisible-a')
                 e.currentTarget.classList.toggle('column-visible-a')
                 column_visible_settings[e.currentTarget.dataset.column].visible = c.visible() ? 'yes' : 'no';
-                localStorage.setItem("ColumnsVisible", JSON.stringify(column_visible_settings));
+                localStorage.setItem(`ColumnsVisible-${view}`, JSON.stringify(column_visible_settings));
             });
             column_visible_div.appendChild(a);
         }

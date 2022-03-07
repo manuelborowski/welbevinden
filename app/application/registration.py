@@ -276,6 +276,7 @@ def display_register_counters():
 def get_available_timeslots(default_date=None, ignore_availability=False):
     try:
         timeslots = []
+        id = 0
         timeslot_configs = mtc.get_timeslot_configurations()
         for timeslot_config in timeslot_configs:
             date = timeslot_config.date
@@ -292,8 +293,10 @@ def get_available_timeslots(default_date=None, ignore_availability=False):
                         'available': available,
                         'default': default_flag,
                         'maximum': timeslot_config.items_per_timeslot,
+                        'id': id
                     })
                 date += datetime.timedelta(minutes=timeslot_config.length)
+                id += 1
         return timeslots
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -305,9 +308,9 @@ def datatable_get_timeslots():
     timeslots = get_available_timeslots(ignore_availability=True)
     for timeslot in timeslots:
         em = {
-            'row_action': "0",
-            'id': 0,
-            'DT_RowId': 0,
+            'row_action': timeslot["id"],
+            'id': timeslot["id"],
+            'DT_RowId': timeslot["id"],
             'timeslot': timeslot['label'],
             'nbr_total': timeslot['maximum'],
             'nbr_open': timeslot['available'],

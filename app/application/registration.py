@@ -56,7 +56,6 @@ def get_confirmation_document(code):
         raise e
 
 
-# TODO : check if registration fits in register...
 def registration_done(code):
     try:
         template = mutil.get_json_template('student-web-response-template')
@@ -102,7 +101,7 @@ def check_register_status(code):
         return {"status": False, "data": f'generic error {e}'}
 
 
-def registration_add(data, suppress_send_ack_email=False):
+def registration_add(data):
     try:
         data_selection = {  #duplicates are detetected when email AND childs name are already in database
             'email': data['email'],
@@ -186,31 +185,10 @@ def prepare_timeslot_registration(code=None):
         available_timeslots = get_available_timeslots(guest.timeslot)
         template = mutil.get_json_template('timeslot-register-template')
         mformio.update_available_timeslots(available_timeslots, template, 'radio-timeslot')
-        data = {
-            'template': template,
-            'defaults': guest.flat()}
+        data = {'template': template,'defaults': guest.flat()}
         return data
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-
-
-def prepare_message(type = MessageType.E_GENERIC, message = None):
-    template = mutil.get_json_template('student-web-response-template')
-    template = mformio.prepare_sub_component(template, type, None, {'message': message})
-    return RegisterResult(RegisterResult.Result.E_OK, {'template': template})
-
-
-def delete_registration(code):
-    try:
-        guest = mguest.get_first_guest(code=code)
-        mguest.update_timeslot(guest, None)
-        guest.set(Guest.SUBSCRIBE.E_CANCEL_EMAIL_TX, False)
-        notify_registration_changed()
-        log.info(f'registration cancelled: {guest.email}')
-        return RegisterResult(result=RegisterResult.Result.E_OK)
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return RegisterResult(result=RegisterResult.Result.E_NOK)
 
 
 def registration_update(code, data):
@@ -242,7 +220,6 @@ def notify_registration_changed(value=None):
     for cb in registration_changed_cb:
         cb[0](value, cb[1])
 
-
 registration_changed_cb = []
 
 def registration_subscribe_changed(cb, opaque):
@@ -256,16 +233,6 @@ def guest_property_change_cb(type, value, opaque):
     notify_registration_changed(value)
 
 Guest.subscribe(Guest.SUBSCRIBE.E_ALL, guest_property_change_cb, None)
-
-def get_registration_counters():
-    reserved_guests = mguest.get_guests(enabled=True, timeslot_is_not_none=True)
-    open_guests = mguest.get_guests(enabled=True, timeslot_is_none=True)
-    child_names = [g.child_first_name for g in reserved_guests]
-    filtered_open_guest = [g for g in open_guests if g.child_first_name not in child_names]
-    nbr_open = len(filtered_open_guest)
-    nbr_reserved = len(reserved_guests)
-    nbr_total = nbr_open + nbr_reserved
-    return nbr_total, nbr_open, nbr_reserved
 
 
 def display_register_counters():
@@ -342,23 +309,6 @@ def check_requested_timeslot(date):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return False
-
-class RegisterResult:
-    def __init__(self, result, data={}):
-        self.result = result
-        self.data = data
-
-    class Result:
-        E_OK = 'ok'
-        E_NOK = 'nok'
-        E_REGISTER_OK = 'guest-ok'
-        E_COULD_NOT_REGISTER = 'could-not-register'
-        E_TIMESLOT_FULL = 'timeslot-full'
-        E_NO_TIMESLOT = 'no-timeslot'
-        E_DUPLICATE_REGISTRATION = 'duplicate-registration'
-
-    result = Result.E_OK
-    data = {}
 
 
 def format_data(db_list):

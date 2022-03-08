@@ -30,10 +30,3 @@ def timeslot_configuration_changed_cb(value, opaque):
 
 
 msettings.subscribe_setting_changed('timeslot-config-timeslots-template', timeslot_configuration_changed_cb, None)
-
-
-
-# add_timeslot_configuration(datetime.datetime(2021, 5, 1, 9, 0), 15, 12, 8)
-# add_timeslot_configuration(datetime.datetime(2021, 5, 1, 12, 0), 15, 4, 5)
-# add_timeslot_configuration(datetime.datetime(2021, 5, 1, 13, 0), 15, 16, 8)
-# add_timeslot_configuration(datetime.datetime(2021, 5, 5, 13, 0), 15, 16, 5)

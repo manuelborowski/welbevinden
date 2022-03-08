@@ -1,5 +1,3 @@
-__all__ = ['forms', 'utils', 'views']
+__all__ = ['utils']
 
 import app.presentation.layout.utils
-import app.presentation.layout.views
-import app.presentation.layout.forms

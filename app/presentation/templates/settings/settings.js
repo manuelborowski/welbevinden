@@ -15,36 +15,6 @@ $(document).ready(function () {
         form.on('submit', function(submission) {
             socketio_transmit_setting('data', JSON.stringify((submission.data)))
         })
-        form.on('event-get-teacher-rfid-from-papercut', function(submission) {
-            busy_indication_on();
-            socketio_transmit_event('event-get-teacher-rfid-from-papercut')
-            _form.getComponent("chk-rfid-from-papercut").setValue(false);
-        })
-        form.on('event-populate-database', function(submission) {
-            busy_indication_on();
-            socketio_transmit_event('event-populate-database')
-            _form.getComponent("chk-populate-database").setValue(false);
-        })
-        form.on('event-update-database-now', function(submission) {
-            busy_indication_on();
-            socketio_transmit_event('event-update-database-now')
-            _form.getComponent("chk-update-database-now").setValue(false);
-        })
-        form.on('event-clear-own-database', function(submission) {
-            busy_indication_on();
-            socketio_transmit_event('event-clear-own-database')
-            _form.getComponent("chk-clear-own-database").setValue(false);
-        })
-        form.on('event-clear-own-database', function(submission) {
-            busy_indication_on();
-            socketio_transmit_event('event-clear-own-database')
-            _form.getComponent("chk-clear-own-database").setValue(false);
-        })
-        form.on('button-send-invite-emails', function(submission) {
-            socketio_transmit_event('button-send-invite-emails')
-            _form.getComponent("checkbox-enable-send-invite").setValue(false);
-        })
-        $('.formio-component-panel [ref=header]').on('click', panel_header_clicked);
     });
 });
 

@@ -1,12 +1,10 @@
-from flask import render_template, redirect, url_for, request
-from flask_login import login_required, current_user
+from flask import render_template
+from flask_login import login_required
 
-from .forms import AddForm, EditForm, ViewForm
-from app import db, log, admin_required, data
-from app.application import socketio as msocketio, event as mevent, guest as mguest
+from app import admin_required
+from app.application import socketio as msocketio, event as mevent
 from . import settings
 from app.application import settings as msettings
-from app.presentation.layout.utils import flash_plus, button_pressed
 import json
 
 @settings.route('/settings', methods=['GET', 'POST'])
@@ -19,20 +17,6 @@ def show():
         'template': settings_formio,
     }
     return render_template('/settings/settings.html', data=data)
-
-
-@settings.route('/settings/upload_guest_info', methods=['GET', 'POST'])
-@admin_required
-@login_required
-def upload_guest_info():
-    try:
-        if request.files['guest_info_file']:
-            mguest.import_guest_info(request.files['guest_info_file'])
-        flash_plus('Guest info file is imported')
-        return redirect(url_for('settings.show'))
-    except Exception as e:
-        flash_plus('Could not import guest file', e)
-        return redirect(url_for('settings.show'))
 
 
 def update_settings_cb(msg, client_sid=None):

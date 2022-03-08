@@ -4,23 +4,6 @@ from app import log, db
 import sys
 
 
-def add_guest_bulk(full_name=None, child_name=None, phone=None, email=None, code=None, misc_field=None):
-    try:
-        guest = Guest(full_name=full_name, child_name=child_name, phone=phone, email=email, code=code, misc_field=misc_field)
-        db.session.add(guest)
-        return guest
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return None
-
-
-def guest_bulk_commit():
-    try:
-        db.session.commit()
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-
-
 def add_guest(data):
     try:
         guest = Guest()
@@ -118,26 +101,6 @@ def update_guest(guest, data={}):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
-def update_guest_bulk(guest, full_name=None, child_name=None, phone=None, email=None, timeslot=None, note=None, misc_field=None):
-    try:
-        if full_name:
-            guest.child_last_name = full_name
-        if child_name:
-            guest.child_first_name = child_name
-        if phone:
-            guest.phone = phone
-        if email:
-            guest.email = email
-        if timeslot:
-            guest.timeslot = timeslot
-        if note is not None:
-            guest.note = note
-        if misc_field is not None:
-            guest.misc_field = misc_field
-        return guest
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return None
 
 def delete_guest(codes=None):
     try:
@@ -145,25 +108,6 @@ def delete_guest(codes=None):
             guest = get_first_guest({"code": code})
             db.session.delete(guest)
         db.session.commit()
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return None
-
-
-def update_timeslot(guest, timeslot):
-    try:
-        guest.timeslot = timeslot
-        db.session.commit()
-        return guest
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return None
-
-
-def get_first_not_sent_invite():
-    try:
-        guest = Guest.query.filter(Guest.enabled, not_(Guest.invite_email_tx)).first()
-        return guest
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None

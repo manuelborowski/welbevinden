@@ -2,7 +2,7 @@ from app.data import settings as msettings, guest as mguest
 from app.application import formio as mformio, util as mutil
 from app.data.models import Guest
 from app import email, log, email_scheduler, flask_app
-import datetime, time, re, sys
+import datetime, time, sys
 from flask_mail import Message
 
 
@@ -113,49 +113,10 @@ def send_register_cancel(**kwargs):
     return False
 
 
-def send_invite(**kwargs):
-    try:
-        if not msettings.get_configuration_setting('enable-send-invite-email'):
-            return False
-        guest = mguest.get_first_not_sent_invite()
-        if not guest:
-            return False
-        email_send_max_retries = msettings.get_configuration_setting('email-send-max-retries')
-        if guest.email_tot_nbr_tx >= email_send_max_retries:
-            guest.set(Guest.SUBSCRIBE.E_ENABLED, False)
-            return False
-        guest.set(Guest.SUBSCRIBE.E_EMAIL_TOT_NBR_TX, guest.email_tot_nbr_tx + 1)
-
-        email_subject = msettings.get_configuration_setting('invite-mail-subject-template')
-        email_content = msettings.get_configuration_setting('invite-mail-content-template')
-
-        if guest.invite_nbr_tx > 0:
-            email_reminder_subject_prefix = msettings.get_configuration_setting('invite-mail-subject-reminder-template')
-            email_subject = f'{email_reminder_subject_prefix}{email_subject}'
-        url_tag = re.search('{{.*\|TAG_URL}}', email_content)
-        url_text = url_tag.group(0).split('|')[0].split('{{')[1]
-        url = f'{msettings.get_configuration_setting("email-base-url")}/register?code={guest.code}'
-        url_template = f'<a href={url}>{url_text}</a>'
-        email_content = re.sub('{{.*\|TAG_URL}}', url_template, email_content)
-        log.info(f'"{email_subject}" to {guest.email}')
-        ret = send_email(guest.email, email_subject, email_content)
-        if ret:
-            guest.set(Guest.SUBSCRIBE.E_INVITE_EMAIL_TX, True)
-            guest.set(Guest.SUBSCRIBE.E_INVITE_NBR_TX, guest.invite_nbr_tx + 1)
-            return ret
-        return False
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return False
-
-
-
-
 send_email_config = [
     {'function': send_register_ack, 'args': {}},
     {'function': send_timeslot_register_ack, 'args': {}},
     {'function': send_register_cancel, 'args': {}},
-    {'function': send_invite, 'args': {}},
 ]
 
 

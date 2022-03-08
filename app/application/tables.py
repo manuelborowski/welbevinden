@@ -1,45 +1,5 @@
-from app.data.models import User
 from app.data.utils import raise_error
-from app import data
 
-configuration = {
-    'user': {
-        'title': 'Gebruikers',
-        'buttons': ['delete', 'add', 'edit'],
-        'delete_message': u'Wilt u deze gebruiker(s) verwijderen?',
-        'template': [
-            {'name': 'row_action', 'data': 'row_action', 'width': '2%'},
-            {'name': 'Gebruikersnaam', 'data': 'username', 'order_by': User.username, 'orderable': True},
-            {'name': 'Voornaam', 'data': 'first_name', 'order_by': User.first_name, 'orderable': True},
-            {'name': 'Naam', 'data': 'last_name', 'order_by': User.last_name, 'orderable': True},
-            {'name': 'Email', 'data': 'email', 'order_by': User.email, 'orderable': True},
-            {'name': 'Type', 'data': 'user_type', 'order_by': User.user_type, 'orderable': True},
-            {'name': 'Login', 'data': 'last_login', 'order_by': User.last_login, 'orderable': True},
-            {'name': 'Niveau', 'data': 'level', 'order_by': User.level, 'orderable': True}, ],
-        'filter': [],
-        # 'table_action': 'user.table_action',
-        # 'table_ajax': 'user.table_ajax',
-        # 'item_action': 'user.item_action',
-        'item': {
-            'edit': {'title': 'Wijzig een gebruiker', 'role': 'edit'},
-            'add': {'title': 'Voeg een gebruiker toe', 'role': 'add'},
-        },
-        'href': [],
-        'pre_filter': data.user.pre_filter,
-        'format_data': data.user.format_data,
-        'search_data': data.user.search_data,
-        'default_order': (1, 'asc')
-    },
-}
-
-def get_table_config(table):
-    try:
-        table_config = configuration[table]
-        table_config['table_action'] = f'{table}.table_action'
-        table_config['table_ajax'] = f'{table}.table_ajax'
-        return table_config
-    except Exception as e:
-        raise_error('Kan de configuratietabel niet ophalen', e)
 
 # create an exact copy of a configuration table
 def deepcopy(table):

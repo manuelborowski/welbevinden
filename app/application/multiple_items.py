@@ -1,11 +1,7 @@
 from flask import request
-from sqlalchemy import or_, func
-import time, datetime, json
-
-from app import data
-
-from app import log, db, data
-from app.application import tables
+from sqlalchemy import or_
+import time, json
+from app import log, data
 
 
 ######################################################################################################

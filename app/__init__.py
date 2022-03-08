@@ -77,10 +77,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.46: small bugfixes.  Improved handling of json-template-strings.  Clean up settings: delete unused and renamed.
 # V0.47: clean up: removed unused functions and imports
 # V0.48: added help page.  Minor updates
+# V0.49: help files were not in git
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.48', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.49', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

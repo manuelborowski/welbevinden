@@ -92,7 +92,7 @@ settings_formio = \
                 "tableView": false,
                 "defaultValue": false,
                 "persistent": false,
-                "key": "enable-send-ack-email",
+                "key": "generic-enable-send-ack-email",
                 "type": "checkbox",
                 "input": true
               }
@@ -131,7 +131,7 @@ settings_formio = \
                 "label": "Arm sending confirmation mail",
                 "tableView": false,
                 "defaultValue": false,
-                "key": "enable-send-register-ack-mail",
+                "key": "student-register-arm-send-ack-mail",
                 "type": "checkbox",
                 "input": true
               },
@@ -139,7 +139,7 @@ settings_formio = \
                 "label": "STUDENT registration (formio sandbox)",
                 "autoExpand": false,
                 "tableView": true,
-                "key": "register-template",
+                "key": "student-register-template",
                 "type": "textarea",
                 "input": true
               },
@@ -147,7 +147,7 @@ settings_formio = \
                 "label": "WEB RESPONSE templates (formio sandbox)",
                 "autoExpand": false,
                 "tableView": true,
-                "key": "web-response-template",
+                "key": "student-web-response-template",
                 "type": "textarea",
                 "input": true
               },
@@ -155,7 +155,7 @@ settings_formio = \
                 "label": "EMAIL RESPONSE templates (formio sandbox)",
                 "autoExpand": false,
                 "tableView": true,
-                "key": "email-response-template",
+                "key": "student-email-response-template",
                 "type": "textarea",
                 "input": true
               },
@@ -164,7 +164,7 @@ settings_formio = \
                 "autoExpand": false,
                 "tableView": true,
                 "persistent": false,
-                "key": "register-register-settings",
+                "key": "student-register-settings",
                 "type": "textarea",
                 "input": true
               }
@@ -203,7 +203,7 @@ settings_formio = \
                 "label": "Arm sending confirmation mail",
                 "tableView": false,
                 "defaultValue": false,
-                "key": "timeslot-enable-send-register-ack-mail",
+                "key": "timeslot-register-arm-send-ack-mail",
                 "type": "checkbox",
                 "input": true
               },
@@ -221,7 +221,7 @@ settings_formio = \
                 },
                 "enableMinDateInput": false,
                 "enableMaxDateInput": false,
-                "key": "open-timeslot-registration-datetime",
+                "key": "timeslot-open-registration-at",
                 "type": "datetime",
                 "input": true,
                 "widget": {
@@ -279,7 +279,7 @@ settings_formio = \
         "input": true,
         "components": [
           {
-            "title": "Timeslot configuration",
+            "title": "TIMESLOT configuration",
             "theme": "primary",
             "collapsible": true,
             "key": "RegistratieTemplate2",
@@ -312,7 +312,7 @@ settings_formio = \
                 "autoExpand": false,
                 "tableView": true,
                 "persistent": false,
-                "key": "timeslot-config-template",
+                "key": "timeslot-config-timeslots-template",
                 "type": "textarea",
                 "input": true
               }
@@ -347,62 +347,65 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "Aantal keer dat een e-mail geprobeerd wordt te verzenden",
+                "label": "# email send retries",
                 "labelPosition": "left-left",
                 "mask": false,
-                "spellcheck": false,
                 "tableView": false,
                 "delimiter": false,
                 "requireDecimal": false,
                 "inputFormat": "plain",
+                "truncateMultipleSpaces": false,
                 "key": "email-send-max-retries",
                 "type": "number",
+                "spellcheck": false,
                 "input": true
               },
               {
-                "label": "Tijd (seconden) tussen het verzenden van e-mails",
+                "label": "Time (sec) between sending emails",
                 "labelPosition": "left-left",
                 "mask": false,
-                "spellcheck": true,
                 "tableView": false,
                 "persistent": false,
                 "delimiter": false,
                 "requireDecimal": false,
                 "inputFormat": "plain",
+                "truncateMultipleSpaces": false,
                 "key": "email-task-interval",
                 "type": "number",
+                "spellcheck": true,
                 "input": true
               },
               {
-                "label": "Max aantal e-mails per minuut",
+                "label": "Max # emails per minute",
                 "labelPosition": "left-left",
                 "mask": false,
-                "spellcheck": true,
                 "tableView": false,
                 "persistent": false,
                 "delimiter": false,
                 "requireDecimal": false,
                 "inputFormat": "plain",
+                "truncateMultipleSpaces": false,
                 "key": "emails-per-minute",
                 "type": "number",
+                "spellcheck": true,
                 "input": true
               },
               {
-                "label": "Basis URL",
+                "label": "Base URL",
                 "labelPosition": "left-left",
                 "tableView": true,
-                "key": "base-url",
+                "key": "email-base-url",
                 "type": "textfield",
                 "input": true
               },
               {
-                "label": "E-mails mogen worden verzonden",
+                "label": "Enable sending emails",
                 "tableView": false,
+                "defaultValue": false,
                 "persistent": false,
-                "key": "enable-send-email",
+                "key": "email-enable-send-email",
                 "type": "checkbox",
-                "input": true,
-                "defaultValue": false
+                "input": true
               }
             ],
             "collapsed": true

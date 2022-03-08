@@ -23,13 +23,13 @@ def timeslot_configuration_changed_cb(value, opaque):
             tcs = mtc.get_timeslot_configurations()
             mtc.delete_timeslot_configuration(tc_list = tcs)
             for tc in new_tcs:
-                mtc.add_timeslot_configuration(datetime.datetime(tc['jaar'], tc['maand'], tc['dag'], tc['uur'], tc['minuut']),
-                                               tc['lengte'], tc['aantal'], tc['plaatsen'])
+                mtc.add_timeslot_configuration(datetime.datetime(tc['year'], tc['month'], tc['day'], tc['hour'], tc['minute']),
+                                               tc['length'], tc['number'], tc['places'])
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-msettings.subscribe_setting_changed('timeslot-config-template', timeslot_configuration_changed_cb, None)
+msettings.subscribe_setting_changed('timeslot-config-timeslots-template', timeslot_configuration_changed_cb, None)
 
 
 

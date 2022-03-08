@@ -52,65 +52,26 @@ def get_test_server():
 
 
 default_configuration_settings = {
-    'invite-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'invite-mail-subject-reminder-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'invite-mail-content-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'generic-enable-send-ack-email': (False, Settings.SETTING_TYPE.E_BOOL),
 
-    'register-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'register-ack-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'register-mail-ack-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'register-mail-ack-content-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'student-register-arm-send-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
+    'student-register-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'student-web-response-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'student-email-response-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'student-register-settings': ('', Settings.SETTING_TYPE.E_STRING),
 
-    'register-timeslot-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'register-timeslot-ack-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'register-timeslot-mail-ack-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'register-timeslot-mail-ack-content-template': ('', Settings.SETTING_TYPE.E_STRING),
-
-    'web-response-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'email-response-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'register-register-settings': ('', Settings.SETTING_TYPE.E_STRING),
-    'register-items-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'enable-send-register-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
-
+    'timeslot-register-arm-send-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
     'timeslot-register-template': ('', Settings.SETTING_TYPE.E_STRING),
     'timeslot-web-response-template': ('', Settings.SETTING_TYPE.E_STRING),
     'timeslot-email-response-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'timeslot-enable-send-register-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
-    'open-timeslot-registration-datetime': ('', Settings.SETTING_TYPE.E_STRING),
-
-    'cancel-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'cancel-mail-content-template': ('', Settings.SETTING_TYPE.E_STRING),
-
-
+    'timeslot-open-registration-at': ('', Settings.SETTING_TYPE.E_STRING),
+    'timeslot-config-timeslots-template': ('', Settings.SETTING_TYPE.E_STRING),
 
     'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
     'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),
     'email-send-max-retries': (2, Settings.SETTING_TYPE.E_INT),
-
-    'base-url': ('localhost:5000', Settings.SETTING_TYPE.E_STRING),
-
-    'enable-send-invite-email': (False, Settings.SETTING_TYPE.E_BOOL),
-    'enable-send-ack-email': (False, Settings.SETTING_TYPE.E_BOOL),
-    'enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
-
-    'timeslot-config-template': ('', Settings.SETTING_TYPE.E_STRING),
-
-    'import-parentname-field': ('', Settings.SETTING_TYPE.E_STRING),
-    'import-childname-field': ('', Settings.SETTING_TYPE.E_STRING),
-    'import-phone-field': ('', Settings.SETTING_TYPE.E_STRING),
-    'import-email1-field': ('', Settings.SETTING_TYPE.E_STRING),
-    'import-email2-field': ('', Settings.SETTING_TYPE.E_STRING),
-
-    'enable-import-misc-field': (False, Settings.SETTING_TYPE.E_BOOL),
-    'import-misc-field': ('', Settings.SETTING_TYPE.E_STRING),
-    'import-misc-column-0': ('', Settings.SETTING_TYPE.E_STRING),
-    'import-misc-column-1': ('', Settings.SETTING_TYPE.E_STRING),
-    'import-misc-column-2': ('', Settings.SETTING_TYPE.E_STRING),
-    'import-misc-column-3': ('', Settings.SETTING_TYPE.E_STRING),
-
-    'import-misc-fields': ('{}', Settings.SETTING_TYPE.E_STRING),
-
-    'all-templates': ('', Settings.SETTING_TYPE.E_STRING),
+    'email-base-url': ('localhost:5000', Settings.SETTING_TYPE.E_STRING),
+    'email-enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
 }
 
 

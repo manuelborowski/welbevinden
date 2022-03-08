@@ -25,9 +25,9 @@ def show(table_configuration):
     filters = []
     show_info = []
     config = None
-    if 'get_filters' in table_configuration:
-        filters = table_configuration['get_filters']()
     try:
+        if 'get_filters' in table_configuration:
+            filters = table_configuration['get_filters']()
         config = tables.prepare_config_table_for_view(table_configuration)
     except Exception as e:
         flash_plus(f'Tabel kan niet getoond worden (show)', e)

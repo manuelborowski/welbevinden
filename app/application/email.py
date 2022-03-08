@@ -1,9 +1,8 @@
-from app.application.util import datetime_to_dutch_datetime_string
 from app.data import settings as msettings, guest as mguest
-from app.application import formio as mformio
+from app.application import formio as mformio, util as mutil
 from app.data.models import Guest
 from app import email, log, email_scheduler, flask_app
-import datetime, time, re, sys, json
+import datetime, time, re, sys
 from flask_mail import Message
 
 
@@ -20,7 +19,7 @@ def send_email(to, subject, content):
 
 def send_register_ack(**kwargs):
     try:
-        if not msettings.get_configuration_setting('enable-send-ack-email'):
+        if not msettings.get_configuration_setting('generic-enable-send-ack-email'):
             return False
         guest = mguest.get_first_not_sent_register_ack()
         if not guest:
@@ -30,9 +29,9 @@ def send_register_ack(**kwargs):
             guest.enabled = False
             return False
 
-        template = json.loads(msettings.get_configuration_setting('email-response-template'))
+        template = mutil.get_json_template('student-email-response-template')
         if guest.status == guest.Status.E_REGISTERED:
-            link = f'{msettings.get_configuration_setting("base-url")}/timeslot/register?code={guest.code}'
+            link = f'{msettings.get_configuration_setting("email-base-url")}/timeslot/register?code={guest.code}'
             email_subject = mformio.extract_sub_component(template, 'register-child-ack-ok-subject')['html']
             email_content = mformio.extract_sub_component(template, 'register-child-ack-ok-content', guest,
                                                       {'timeslot_registration_link': link})['html']
@@ -58,7 +57,7 @@ def send_register_ack(**kwargs):
 
 def send_timeslot_register_ack(**kwargs):
     try:
-        if not msettings.get_configuration_setting('enable-send-ack-email'):
+        if not msettings.get_configuration_setting('generic-enable-send-ack-email'):
             return False
         guest = mguest.get_first_not_sent_timeslot_register_ack()
         if not guest:
@@ -68,8 +67,8 @@ def send_timeslot_register_ack(**kwargs):
             guest.enabled = False
             return False
 
-        template = json.loads(msettings.get_configuration_setting('timeslot-email-response-template'))
-        link = f'{msettings.get_configuration_setting("base-url")}/timeslot/register?code={guest.code}'
+        template = mutil.get_json_template('timeslot-email-response-template')
+        link = f'{msettings.get_configuration_setting("email-base-url")}/timeslot/register?code={guest.code}'
         email_subject = mformio.extract_sub_component(template, 'timeslot-register-ack-ok-subject', guest)['html']
         email_content = mformio.extract_sub_component(template, 'timeslot-register-ack-ok-content', guest,
                                                       {'timeslot_registration_link': link})['html']
@@ -89,7 +88,7 @@ def send_timeslot_register_ack(**kwargs):
 
 def send_register_cancel(**kwargs):
     try:
-        if not msettings.get_configuration_setting('enable-send-ack-email'):
+        if not msettings.get_configuration_setting('generic-enable-send-ack-email'):
             return False
         guest = mguest.get_first_not_sent_cancel()
         if not guest:
@@ -135,7 +134,7 @@ def send_invite(**kwargs):
             email_subject = f'{email_reminder_subject_prefix}{email_subject}'
         url_tag = re.search('{{.*\|TAG_URL}}', email_content)
         url_text = url_tag.group(0).split('|')[0].split('{{')[1]
-        url = f'{msettings.get_configuration_setting("base-url")}/register?code={guest.code}'
+        url = f'{msettings.get_configuration_setting("email-base-url")}/register?code={guest.code}'
         url_template = f'<a href={url}>{url_text}</a>'
         email_content = re.sub('{{.*\|TAG_URL}}', url_template, email_content)
         log.info(f'"{email_subject}" to {guest.email}')
@@ -172,7 +171,7 @@ def send_email_task():
             while at_least_one_email_sent:
                 at_least_one_email_sent = False
                 for send_email in send_email_config:
-                    if run_email_task and msettings.get_configuration_setting('enable-send-email'):
+                    if run_email_task and msettings.get_configuration_setting('email-enable-send-email'):
                         ret = send_email['function'](**send_email['args'])
                         if ret:
                             nbr_sent_per_minute += 1
@@ -194,7 +193,7 @@ def send_email_task():
 
 
 def set_base_url(url):
-    msettings.set_configuration_setting('base-url', url)
+    msettings.set_configuration_setting('email-base-url', url)
 
 
 def stop_send_email_task():

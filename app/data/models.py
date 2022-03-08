@@ -271,6 +271,7 @@ class Guest(db.Model):
         'cancel_email_sent': self.cancel_email_tx,
         'nbr_cancel_sent': self.cancel_nbr_tx,
         'timeslot': self.timeslot,
+        'timeslot_dutch_short': datetime_to_dutch_short(self.timeslot),
         'timeslot_dutch': datetime_to_dutch_datetime_string(self.timeslot),
         'full_name': f"{self.last_name} {self.first_name}",
         'child_name': f"{self.child_last_name} {self.child_first_name}",

@@ -1,6 +1,6 @@
-from app.application.util import datetime_to_dutch_datetime_string, create_random_string
-from app.application import guest as maguest, formio as mformio
-from app.data import utils as mutils, guest as mguest, settings as msettings, timeslot_configuration as mtc
+from app.application import formio as mformio, util as mutil
+from app.data import utils as mdutils, guest as mguest, settings as msettings, timeslot_configuration as mtc
+from app.data.guest import get_guests, get_guest_register_last_timestamp
 from app.data.models import Guest
 from app import log
 import datetime, json, sys
@@ -13,7 +13,7 @@ class MessageType:
 
 def prepare_registration():
     try:
-        return {'template': json.loads(msettings.get_configuration_setting('register-template'))}
+        return {'template': mutil.get_json_template('student-register-template')}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         raise e
@@ -22,7 +22,7 @@ def prepare_registration():
 def prepare_edit_registration_form(code):
     try:
         guest = mguest.get_first_guest({"code": code})
-        template = json.loads(msettings.get_configuration_setting('register-template'))
+        template = mutil.get_json_template('student-register-template')
         template = mformio.prepare_for_edit(template)
         return {'template': template,
                 'defaults': guest.flat()}
@@ -33,7 +33,7 @@ def prepare_edit_registration_form(code):
 
 def prepare_add_registration_form():
     try:
-        template = json.loads(msettings.get_configuration_setting('register-template'))
+        template = mutil.get_json_template('student-register-template')
         template = mformio.prepare_for_edit(template)
         return {'template': template}
     except Exception as e:
@@ -43,7 +43,7 @@ def prepare_add_registration_form():
 
 def get_confirmation_document(code):
     try:
-        template = json.loads(msettings.get_configuration_setting('web-response-template'))
+        template = mutil.get_json_template('student-web-response-template')
         guest = mguest.get_first_guest({'code': code})
         if _check_register_status(guest):
             template = mformio.prepare_sub_component(template, 'register-child-ack-document-ok', guest)
@@ -59,7 +59,7 @@ def get_confirmation_document(code):
 # TODO : check if registration fits in register...
 def registration_done(code):
     try:
-        template = json.loads(msettings.get_configuration_setting('web-response-template'))
+        template = mutil.get_json_template('student-web-response-template')
         guest = mguest.get_first_guest({'code': code})
         #check the register settings to see if the student is registered or is on the waiting list
         if _check_register_status(guest):
@@ -67,7 +67,7 @@ def registration_done(code):
         else:
             template = mformio.prepare_sub_component(template, 'register-child-ack-waiting-list', guest)
         # send confirmation e-mail
-        if msettings.get_configuration_setting('enable-send-register-ack-mail'):
+        if msettings.get_configuration_setting('student-register-arm-send-ack-mail'):
             mguest.update_guest(guest, {"reg_ack_nbr_tx": 0, "reg_ack_email_tx": False})
         return {'template': template}
     except Exception as e:
@@ -78,11 +78,11 @@ def registration_done(code):
 
 def timeslot_registration_done(code):
     try:
-        template = json.loads(msettings.get_configuration_setting('timeslot-web-response-template'))
+        template = mutil.get_json_template('timeslot-web-response-template')
         guest = mguest.get_first_guest({'code': code})
         template = mformio.prepare_sub_component(template, 'timeslot-register-ack-ok', guest)
         # send confirmation e-mail
-        if msettings.get_configuration_setting('timeslot-enable-send-register-ack-mail'):
+        if msettings.get_configuration_setting('timeslot-register-arm-send-ack-mail'):
             mguest.update_guest(guest, {"tsl_ack_nbr_tx": 0, "tsl_ack_email_tx": False})
         return {'template': template}
     except Exception as e:
@@ -112,11 +112,11 @@ def registration_add(data, suppress_send_ack_email=False):
         duplicate_guest = mguest.get_first_guest(data_selection)
         if duplicate_guest:
             return {"status": False, "data": f"Fout, de student {duplicate_guest.child_first_name} {duplicate_guest.child_last_name} en mailadres {duplicate_guest.email}\n is reeds geregistreerd."}
-        misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
+        misc_config = mutil.get_json_template('import-misc-fields')
         extra_fields = [c['veldnaam'] for c in misc_config]
         extra_field = {f: '' for f in extra_fields}
         data['misc_field'] = json.dumps(extra_field)
-        data['code'] = create_random_string()
+        data['code'] = mutil.create_random_string()
         data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
         data['register_timestamp'] = datetime.datetime.now()
         guest = mguest.add_guest(data)
@@ -134,7 +134,7 @@ def registration_add(data, suppress_send_ack_email=False):
 
 def _update_register_status(guest):
     reg_label = guest.field_of_study.split('-')[0]
-    register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
+    register_settings = mutil.get_json_template('student-register-settings')
     max_nbr_regular = register_settings[reg_label]['max-number-regular-registrations']
     max_nbr_indicator = register_settings[reg_label]['max-number-indicator-registrations']
     overflow = register_settings[reg_label]['overflow-indicator-to-regular']
@@ -172,19 +172,19 @@ def prepare_timeslot_registration(code=None):
     try:
         guest = mguest.get_first_guest({'code': code})
         if not guest:
-            template = json.loads(msettings.get_configuration_setting('timeslot-web-response-template'))
+            template = mutil.get_json_template('timeslot-web-response-template')
             template = mformio.prepare_sub_component(template, 'timeslot-register-error-wrong-code')
             return {'template': template}
         now = datetime.datetime.now()
-        timeslot_registration_open = msettings.get_configuration_setting('open-timeslot-registration-datetime')
+        timeslot_registration_open = msettings.get_configuration_setting('timeslot-open-registration-at')
         timeslot_registration_open = mformio.formiodate_to_datetime(timeslot_registration_open)
         if now < timeslot_registration_open:
-            template = json.loads(msettings.get_configuration_setting('timeslot-web-response-template'))
+            template = mutil.get_json_template('timeslot-web-response-template')
             template = mformio.prepare_sub_component(template, 'timeslot-registration-not-open',
-                     additional_fields={'timeslot_registration_open_dutch': mutils.datetime_to_dutch_datetime_string(timeslot_registration_open)})
+                                                     additional_fields={'timeslot_registration_open_dutch': mdutils.datetime_to_dutch_datetime_string(timeslot_registration_open)})
             return {'template': template}
         available_timeslots = get_available_timeslots(guest.timeslot)
-        template = json.loads(msettings.get_configuration_setting('timeslot-register-template'))
+        template = mutil.get_json_template('timeslot-register-template')
         mformio.update_available_timeslots(available_timeslots, template, 'radio-timeslot')
         data = {
             'template': template,
@@ -195,7 +195,7 @@ def prepare_timeslot_registration(code=None):
 
 
 def prepare_message(type = MessageType.E_GENERIC, message = None):
-    template = json.loads(msettings.get_configuration_setting('web-response-template'))
+    template = mutil.get_json_template('student-web-response-template')
     template = mformio.prepare_sub_component(template, type, None, {'message': message})
     return RegisterResult(RegisterResult.Result.E_OK, {'template': template})
 
@@ -269,7 +269,7 @@ def get_registration_counters():
 
 
 def display_register_counters():
-    register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
+    register_settings = mutil.get_json_template('student-register-settings')
     display = []
     for reg, data in register_settings.items():
         nbr_regular_guests = mguest.get_guest_register_count(reg, indicator=False)
@@ -296,7 +296,7 @@ def get_available_timeslots(default_date=None, ignore_availability=False):
                     available += 1
                 if available > 0 or ignore_availability:
                     timeslots.append({
-                        'label':  f"({available}) {datetime_to_dutch_datetime_string(date)}",
+                        'label':  f"({available}) {mutil.datetime_to_dutch_datetime_string(date)}",
                         'value': mformio.datetime_to_formio_datetime(date),
                         'available': available,
                         'default': default_flag,
@@ -360,3 +360,71 @@ class RegisterResult:
     result = Result.E_OK
     data = {}
 
+
+def format_data(db_list):
+    register_settings = mutil.get_json_template('student-register-settings')
+    register_info = {}
+    for r, d in register_settings.items():
+        max_nbr_indicator = d['max-number-indicator-registrations']
+        max_nbr_regular = d['max-number-regular-registrations']
+        info = {'regular_timestamp': None, 'indicator_timestamp': None, 'regular_counter': 1, 'indicator_counter': 1}
+        if d['overflow-indicator-to-regular']:
+            guests = get_guests(data={'enabled': True}, special={'field_of_study_like': r}, order_by='register_timestamp')
+            for g in guests:
+                if g.indicator:
+                    if max_nbr_indicator > 0:
+                        max_nbr_indicator -= 1
+                        info['indicator_timestamp'] = g.register_timestamp
+                    elif max_nbr_regular > 0:
+                        max_nbr_regular -= 1
+                        info['indicator_timestamp'] = g.register_timestamp
+                elif max_nbr_regular > 0:
+                    max_nbr_regular -= 1
+                    info['regular_timestamp'] = g.register_timestamp
+        else:
+            regular_guest = get_guest_register_last_timestamp(r, max_nbr_regular, indicator=False)
+            indicator_guest = get_guest_register_last_timestamp(r, max_nbr_indicator, indicator=True)
+            if regular_guest:
+                info['regular_timestamp'] = regular_guest.register_timestamp
+            if indicator_guest:
+                info['indicator_timestamp'] = indicator_guest.register_timestamp
+        register_info[r] = info
+    out = []
+    for i in db_list:
+        em = i.flat()
+        em.update({
+            'row_action': i.code,
+            'id': i.id,
+            'DT_RowId': i.code
+        })
+        em['sequence_counter'] = ""
+        if i.enabled:
+            info = register_info[em['register']]
+            timestamp = info['indicator_timestamp' if i.indicator else 'regular_timestamp']
+            if timestamp and i.register_timestamp > timestamp:
+                em['overwrite_cell_color'].append(['register_timestamp_dutch', 'yellow'])
+            else:
+                em['overwrite_cell_color'].append(['register_timestamp_dutch', 'greenyellow'])
+                if i.indicator:
+                    em['sequence_counter'] = info['indicator_counter']
+                    info['indicator_counter'] += 1
+                    em['overwrite_cell_color'].append(['sequence_counter', 'aqua'])
+                else:
+                    em['sequence_counter'] = info['regular_counter']
+                    info['regular_counter'] += 1
+                    em['overwrite_cell_color'].append(['sequence_counter', 'turquoise'])
+            if i.status == Guest.Status.E_REGISTERED:
+                em['overwrite_cell_color'].append(['status', 'greenyellow'])
+            else:
+                em['overwrite_cell_color'].append(['status', 'yellow'])
+        else:
+            em['overwrite_cell_color'].append(['enabled', 'red'])
+        if i.reg_ack_nbr_tx == 0:
+            em['overwrite_cell_color'].append(['reg_ack_nbr_tx', 'orange'])
+            em['overwrite_cell_color'].append(['reg_ack_email_tx', 'orange'])
+        if i.tsl_ack_nbr_tx == 0:
+            em['overwrite_cell_color'].append(['tsl_ack_nbr_tx', 'orange'])
+            em['overwrite_cell_color'].append(['tsl_ack_email_tx', 'orange'])
+
+        out.append(em)
+    return out

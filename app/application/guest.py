@@ -89,7 +89,7 @@ def import_guest_info(file_storeage):
         phone_field = msettings.get_configuration_setting('import-phone-field')
         email1_field = msettings.get_configuration_setting('import-email1-field')
         email2_field = msettings.get_configuration_setting('import-email2-field')
-        misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
+        misc_config = mutil.get_json_template('import-misc-fields')
         guests = mguest.get_guests(enabled=True)
         key_cache = {g.child_first_name + g.email: g for g in guests}
         guest_dict = XLSXDictReader(BytesIO(file_storeage.read()))

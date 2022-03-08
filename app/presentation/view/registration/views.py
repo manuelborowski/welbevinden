@@ -1,3 +1,4 @@
+import app.application.registration
 from . import registration
 from app import log, supervisor_required
 from flask import redirect, url_for, request, render_template
@@ -5,7 +6,7 @@ from flask_login import login_required
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus, button_pressed
 from app.data import guest as mguest
-from app.application import socketio as msocketio, registration as mregistration, settings as msettings
+from app.application import socketio as msocketio, registration as mregistration, settings as msettings, util as mutil
 from app.data.models import Guest
 import json, sys
 
@@ -14,7 +15,7 @@ import json, sys
 @login_required
 @supervisor_required
 def show():
-    misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
+    misc_config = mutil.get_json_template('import-misc-fields')
     misc_fields = [c['veldnaam'] for c in misc_config]
     base_multiple_items.update(table_configuration, misc_fields)
     return base_multiple_items.show(table_configuration)
@@ -24,7 +25,7 @@ def show():
 @login_required
 @supervisor_required
 def table_ajax():
-    misc_config = json.loads(msettings.get_configuration_setting('import-misc-fields'))
+    misc_config = mutil.get_json_template('import-misc-fields')
     misc_fields = [c['veldnaam'] for c in misc_config]
     base_multiple_items.update(table_configuration, misc_fields)
     return base_multiple_items.ajax(table_configuration)
@@ -132,7 +133,8 @@ def get_misc_fields(extra_fields, form):
 
 
 def get_filters():
-    register_settings = json.loads(msettings.get_configuration_setting('register-register-settings'))
+    # register_settings = mutil.get_json_template('student-register-settings')
+    register_settings = mutil.get_json_template('student-register-settings')
     choices = [['default', 'Alles']]
     for reg, data in register_settings.items():
         choices.append([f"{reg}-N", f"{reg}"])
@@ -168,7 +170,7 @@ table_configuration = {
         {'name': 'R', 'data': 'register', 'order_by': Guest.field_of_study, 'orderable': True, 'width': '2%', 'visible': 'yes'},
         {'name': 'I', 'data': 'indicator_dutch', 'order_by': Guest.indicator, 'orderable': True, 'width': '1%', 'className': 'dt-center', 'visible': 'yes'},
         {'name': 'Nr', 'data': 'sequence_counter', 'order_by': Guest.register_timestamp, 'orderable': True, 'width': '1%', 'visible': 'yes'},
-        {'name': 'Tijdslot', 'data': 'timeslot', 'order_by': Guest.timeslot, 'orderable': True, 'width': '8%', 'visible': 'yes'},
+        {'name': 'Tijdslot', 'data': 'timeslot_dutch_short', 'order_by': Guest.timeslot, 'orderable': True, 'width': '8%', 'visible': 'yes'},
         {'name': 'Email', 'data': 'email', 'order_by': Guest.email, 'orderable': True, 'width': '12%', 'visible': 'yes'},
         {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.child_last_name, 'orderable': True, 'width': '6%', 'visible': 'no'},
         {'name': 'Kind', 'data': 'child_name', 'order_by': Guest.child_first_name, 'orderable': True, 'width': '6%', 'visible': 'yes'},
@@ -193,7 +195,7 @@ table_configuration = {
     },
     'href': [],
     'pre_filter': mguest.pre_filter,
-    'format_data': mguest.format_data,
+    'format_data': app.application.registration.format_data,
     'filter_data': mguest.filter_data,
     'search_data': mguest.search_data,
     'default_order': (1, 'asc'),

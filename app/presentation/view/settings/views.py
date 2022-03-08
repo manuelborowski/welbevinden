@@ -88,84 +88,20 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "Uitnodigingse-mails worden verzonden",
-                "tableView": false,
-                "defaultValue": false,
-                "persistent": false,
-                "key": "enable-send-invite-email",
-                "type": "checkbox",
-                "input": true
-              },
-              {
-                "label": "Bevestigingse-mails worden verzonden",
+                "label": "Send confirmation mails",
                 "tableView": false,
                 "defaultValue": false,
                 "persistent": false,
                 "key": "enable-send-ack-email",
                 "type": "checkbox",
                 "input": true
-              },
-              {
-                "label": "Columns",
-                "columns": [
-                  {
-                    "components": [
-                      {
-                        "label": "Opgepast: stuur een uitnodiging naar alle gasten",
-                        "tableView": false,
-                        "key": "checkbox-enable-send-invite",
-                        "type": "checkbox",
-                        "input": true,
-                        "defaultValue": false,
-                        "hideOnChildrenHidden": false
-                      }
-                    ],
-                    "width": 6,
-                    "offset": 0,
-                    "push": 0,
-                    "pull": 0,
-                    "size": "md",
-                    "currentWidth": 6
-                  },
-                  {
-                    "components": [
-                      {
-                        "label": "Stuur uitnodigingse-mails naar alle gasten",
-                        "action": "event",
-                        "showValidations": false,
-                        "theme": "danger",
-                        "tableView": false,
-                        "key": "button-send-invite-emails",
-                        "conditional": {
-                          "show": true,
-                          "when": "checkbox-enable-send-invite",
-                          "eq": "true"
-                        },
-                        "type": "button",
-                        "input": true,
-                        "event": "button-send-invite-emails",
-                        "hideOnChildrenHidden": false
-                      }
-                    ],
-                    "width": 6,
-                    "offset": 0,
-                    "push": 0,
-                    "pull": 0,
-                    "size": "md",
-                    "currentWidth": 6
-                  }
-                ],
-                "key": "columns",
-                "type": "columns",
-                "input": false,
-                "tableView": false
               }
             ]
           }
         ]
       },
       {
-        "label": "Visitors",
+        "label": "Student registration",
         "tableView": false,
         "key": "visitors",
         "type": "container",
@@ -192,12 +128,12 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "Send confirmation email when registered",
+                "label": "Arm sending confirmation mail",
                 "tableView": false,
+                "defaultValue": false,
                 "key": "enable-send-register-ack-mail",
                 "type": "checkbox",
-                "input": true,
-                "defaultValue": false
+                "input": true
               },
               {
                 "label": "STUDENT registration (formio sandbox)",
@@ -237,7 +173,7 @@ settings_formio = \
         ]
       },
       {
-        "label": "Visitors",
+        "label": "Timeslot registration",
         "tableView": false,
         "key": "visitors1",
         "type": "container",
@@ -264,12 +200,48 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "Send confirmation email when registered",
+                "label": "Arm sending confirmation mail",
                 "tableView": false,
                 "defaultValue": false,
                 "key": "timeslot-enable-send-register-ack-mail",
                 "type": "checkbox",
                 "input": true
+              },
+              {
+                "label": "Open timeslot registration at:",
+                "labelPosition": "left-left",
+                "format": "dd/MM/yyyy HH:mm ",
+                "tableView": false,
+                "datePicker": {
+                  "disableWeekends": false,
+                  "disableWeekdays": false
+                },
+                "timePicker": {
+                  "showMeridian": false
+                },
+                "enableMinDateInput": false,
+                "enableMaxDateInput": false,
+                "key": "open-timeslot-registration-datetime",
+                "type": "datetime",
+                "input": true,
+                "widget": {
+                  "type": "calendar",
+                  "displayInTimezone": "viewer",
+                  "locale": "en",
+                  "useLocaleSettings": false,
+                  "allowInput": true,
+                  "mode": "single",
+                  "enableTime": true,
+                  "noCalendar": false,
+                  "format": "dd/MM/yyyy HH:mm ",
+                  "hourIncrement": 1,
+                  "minuteIncrement": 1,
+                  "time_24hr": true,
+                  "minDate": null,
+                  "disableWeekends": false,
+                  "disableWeekdays": false,
+                  "maxDate": null
+                }
               },
               {
                 "label": "TIMESLOT registration (formio sandbox)",
@@ -307,12 +279,13 @@ settings_formio = \
         "input": true,
         "components": [
           {
-            "title": "Tijdslot configuratie",
+            "title": "Timeslot configuration",
             "theme": "primary",
             "collapsible": true,
             "key": "RegistratieTemplate2",
             "type": "panel",
             "label": "BEZOEKERS : Registratie template en e-mail",
+            "collapsed": true,
             "input": false,
             "tableView": false,
             "components": [
@@ -343,8 +316,7 @@ settings_formio = \
                 "type": "textarea",
                 "input": true
               }
-            ],
-            "collapsed": true
+            ]
           }
         ]
       },
@@ -431,100 +403,6 @@ settings_formio = \
                 "type": "checkbox",
                 "input": true,
                 "defaultValue": false
-              }
-            ],
-            "collapsed": true
-          }
-        ]
-      },
-      {
-        "label": "Import",
-        "tableView": false,
-        "key": "import",
-        "type": "container",
-        "input": true,
-        "components": [
-          {
-            "title": "Importeer gasten configuratie",
-            "theme": "primary",
-            "collapsible": true,
-            "key": "eMailServerSettings1",
-            "type": "panel",
-            "label": "E-mail server settings",
-            "input": false,
-            "tableView": false,
-            "components": [
-              {
-                "label": "Submit",
-                "showValidations": false,
-                "theme": "warning",
-                "tableView": false,
-                "key": "submit",
-                "type": "button",
-                "input": true,
-                "saveOnEnter": false
-              },
-              {
-                "label": "Voornaam en naam ouder",
-                "labelPosition": "left-left",
-                "tableView": true,
-                "persistent": false,
-                "key": "import-parentname-field",
-                "type": "textfield",
-                "input": true
-              },
-              {
-                "label": "Voornaam en naam kind",
-                "labelPosition": "left-left",
-                "tableView": true,
-                "persistent": false,
-                "key": "import-childname-field",
-                "type": "textfield",
-                "input": true
-              },
-              {
-                "label": "Telefoon",
-                "labelPosition": "left-left",
-                "tableView": true,
-                "persistent": false,
-                "key": "import-phone-field",
-                "type": "textfield",
-                "input": true
-              },
-              {
-                "label": "E-mailadres nummer 1",
-                "labelPosition": "left-left",
-                "tableView": true,
-                "persistent": false,
-                "key": "import-email1-field",
-                "type": "textfield",
-                "input": true
-              },
-              {
-                "label": "E-mailadres nummer 2",
-                "labelPosition": "left-left",
-                "tableView": true,
-                "persistent": false,
-                "key": "import-email2-field",
-                "type": "textfield",
-                "input": true
-              },
-              {
-                "html": "<p>Configureer extra velden:&nbsp;<br>[<br>&nbsp; {<br>&nbsp; &nbsp; \"veldnaam\": \"studierichting\",<br>&nbsp; &nbsp; \"kolomnamen\": [\"kolom A\", \"kolom B\", \"kolom C\"]<br>&nbsp; }<br>]</p>",
-                "label": "Content",
-                "refreshOnChange": false,
-                "key": "content",
-                "type": "content",
-                "input": false,
-                "tableView": false
-              },
-              {
-                "label": "Extra velden",
-                "autoExpand": false,
-                "tableView": true,
-                "key": "import-misc-fields",
-                "type": "textarea",
-                "input": true
               }
             ],
             "collapsed": true

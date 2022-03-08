@@ -73,11 +73,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.43: added support to reserve a timeslot and minor updates
 # V0.44: filter and column-visibility: split out per page
 # debugged timeslot and user pages
-
+# V0.45: added setting (time/date) to allow prohibit timeslot registration.  Small cleanups
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.44', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.45', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

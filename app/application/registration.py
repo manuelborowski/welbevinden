@@ -175,6 +175,14 @@ def prepare_timeslot_registration(code=None):
             template = json.loads(msettings.get_configuration_setting('timeslot-web-response-template'))
             template = mformio.prepare_sub_component(template, 'timeslot-register-error-wrong-code')
             return {'template': template}
+        now = datetime.datetime.now()
+        timeslot_registration_open = msettings.get_configuration_setting('open-timeslot-registration-datetime')
+        timeslot_registration_open = mformio.formiodate_to_datetime(timeslot_registration_open)
+        if now < timeslot_registration_open:
+            template = json.loads(msettings.get_configuration_setting('timeslot-web-response-template'))
+            template = mformio.prepare_sub_component(template, 'timeslot-registration-not-open',
+                     additional_fields={'timeslot_registration_open_dutch': mutils.datetime_to_dutch_datetime_string(timeslot_registration_open)})
+            return {'template': template}
         available_timeslots = get_available_timeslots(guest.timeslot)
         template = json.loads(msettings.get_configuration_setting('timeslot-register-template'))
         mformio.update_available_timeslots(available_timeslots, template, 'radio-timeslot')

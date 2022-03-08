@@ -118,17 +118,22 @@ def iterate_components(form):
 
 
 def formiodate_to_datetime(formio_date):
-    date_time = datetime.datetime.strptime(':'.join(formio_date.split(':')[:2]), '%d/%m/%YT%H:%M')
+    date_time = datetime.datetime.strptime(formio_date.split('+')[0], '%Y-%m-%dT%H:%M:%S')
+    # date_time = datetime.datetime.strptime(':'.join(formio_date.split(':')[:2]), '%d/%m/%YT%H:%M')
     return date_time
 
 
+
 def formiodate_to_date(formio_date):
-    date = datetime.datetime.strptime(formio_date, "%d/%m/%Y")
+    try:
+        date = datetime.datetime.strptime(formio_date, "%Y-%m-%d") #bug in datetime component of formio?
+    except:
+        date = datetime.datetime.strptime(formio_date, "%d/%m/%Y")
     return date
 
 
 def datetime_to_formio_datetime(date):
-    string = f"{datetime.datetime.strftime(date, '%d/%m/%YT%H:%M')}:00+01:00"
+    string = f"{datetime.datetime.strftime(date, '%Y-%m-%dT%H:%M')}:00+01:00"
     return string
 
 

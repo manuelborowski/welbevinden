@@ -76,6 +76,7 @@ default_configuration_settings = {
     'timeslot-web-response-template': ('', Settings.SETTING_TYPE.E_STRING),
     'timeslot-email-response-template': ('', Settings.SETTING_TYPE.E_STRING),
     'timeslot-enable-send-register-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
+    'open-timeslot-registration-datetime': ('', Settings.SETTING_TYPE.E_STRING),
 
     'cancel-mail-subject-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cancel-mail-content-template': ('', Settings.SETTING_TYPE.E_STRING),

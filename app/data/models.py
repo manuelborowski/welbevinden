@@ -15,7 +15,7 @@ def datetime_to_dutch_datetime_string(date, include_seconds=False):
     except:
         return ''
 
-
+#24/2/2022 22:12:23
 def datetime_to_dutch_short(date, include_seconds=False, include_time=True):
     try:
         in_string = "%d/%m/%Y"

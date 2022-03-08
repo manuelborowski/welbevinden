@@ -2,8 +2,7 @@ from flask import render_template, request
 from . import guest
 from app import log
 from app.application import email as memail, registration as mregistration
-import json, re, urllib
-from app.presentation.view import prepare_registration_form
+import re
 
 
 @guest.route('/guest/get_form', methods=['POST', 'GET'])
@@ -13,7 +12,8 @@ def get_form():
             data = mregistration.prepare_registration()
             data.update({
                 'post_data_endpoint': 'api.register_add',
-                'form_on_submit': 'register-done'
+                'form_on_submit': 'register-done',
+                'cancel_endpoint': 'guest.register'
             })
         elif request.values['form'] == 'register-done':
             data = mregistration.registration_done(request.values['extra'])
@@ -79,29 +79,5 @@ def register_timeslot():
         message = f'could not display timeslot registration form {request.args}: {e}'
         log.error(message)
         return render_template('errors/500.html', message=message)
-
-
-@guest.route('/register_timeslot_save/<string:form_data>', methods=['POST', 'GET'])
-def register_timeslot_save(form_data):
-    try:
-        data = json.loads(urllib.parse.unquote(form_data))
-        if 'cancel-registration' in data and data['cancel-registration']:
-            try:
-                mregistration.delete_registration(data['registration-code'])
-                return render_template('guest/messages.html', type='cancel-ok')
-            except Exception as e:
-                return render_template('guest/messages.html', type='could-not-cancel', message=e)
-        else:
-            try:
-                ret = mregistration.add_or_update_registration(data)
-                if ret.result == ret.Result.E_OK:
-                    return render_template('guest/messages.html', type='register-ok', info=ret.data)
-                if ret.result == ret.Result.E_TIMESLOT_FULL:
-                    return render_template('guest/messages.html', type='timeslot-full', info=ret.data)
-            except Exception as e:
-                return render_template('guest/messages.html', type='could-not-register', message=e)
-            return render_template('guest/messages.html', type='could-not-register')
-    except Exception as e:
-        return render_template('guest/messages.html', type='unknown-error', message=e)
 
 

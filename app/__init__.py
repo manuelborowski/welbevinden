@@ -80,10 +80,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.49: help files were not in git
 # V0.50: update in help
 # V0.51: update in help
+# V0.52: update in help.  Added program to flatten timeslots
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.51', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.52', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

@@ -44,19 +44,26 @@ def extract_sub_component(form, key, item ={}, additional_fields = {}):
 # -hide the 'header'
 # -unhide additional components
 # -make all components 'not required'
-def prepare_for_edit(form):
+# display the print-document-button
+# update the url in the print-document-iframe
+def prepare_for_edit(form, flat={}):
     def cb(component):
         if component['key'] == 'header':
             component['hidden'] = True
         if component['key'] == 'mail-confirm':
             component['hidden'] = True
             component['disabled'] = True
+        if component['key'] == 'button-print-document':
+            component['hidden'] = False
         if 'validate' in component and 'required' in component['validate']:
             component['validate']['required'] = False
         if 'tags' in component and 'show-when-edit' in component['tags']:
             component['hidden'] = False
 
     iterate_components_cb(form, cb)
+    iframe = search_component(form, 'container-iframe-document')
+    fill_in_tags(iframe, flat)
+    iframe['hidden'] = False
     return form
 
 

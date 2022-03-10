@@ -84,11 +84,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.53: small updates.  Added registration-cache to speed up registrated/waiting-list issues
 # V0.54: cosmetic update
 # V0.55: if the register-settings are changed, rebuild the cache
+# V0.56: when editing a registration, a print button is visible to print the confirmation document
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.55', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.56', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

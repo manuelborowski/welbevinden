@@ -410,8 +410,6 @@ def display_register_counters():
         nbr_indicator_guests = mguest.get_guest_register_count(reg, indicator=True)
         max_nbr_regular = data['max-number-regular-registrations']
         max_nbr_indicator = data['max-number-indicator-registrations']
-        overflow = " (overloop)" if data['overflow-indicator-to-regular'] else " (geen overloop)"
-
         overflow_setting = data['overflow']
         overflow = ' '
         if overflow_setting == 'regular-to-indicator':
@@ -423,8 +421,8 @@ def display_register_counters():
 
         regular_style = "style='background: orange;'" if nbr_regular_guests > max_nbr_regular else ""
         indicator_style = "style='background: orange;'" if nbr_indicator_guests > max_nbr_indicator else ""
-        display.append(f"{reg}{overflow}, <span {regular_style}>regulier: {nbr_regular_guests}/{max_nbr_regular}</span>, "
-                       f"<span {indicator_style}>indicator: {nbr_indicator_guests}/{max_nbr_indicator}</span>")
+        display.append(f"{reg}{overflow}, <span style='background: aqua;'> regulier:</span> <span {regular_style}>{nbr_regular_guests}/{max_nbr_regular}</span>, "
+                       f"<span style='background: turquoise;'>indicator:</span> <span {indicator_style}>{nbr_indicator_guests}/{max_nbr_indicator}</span>")
         # display.append(f"{reg}{overflow}, regulier: {nbr_regular_guests}/{max_nbr_regular}, indicator: {nbr_indicator_guests}/{max_nbr_indicator}")
     return display
 

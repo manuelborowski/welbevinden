@@ -219,7 +219,7 @@ def prepare_edit_registration_form(code):
 def prepare_add_registration_form():
     try:
         template = mutil.get_json_template('student-register-template')
-        template = mformio.prepare_for_edit(template)
+        template = mformio.prepare_for_add(template)
         return {'template': template}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

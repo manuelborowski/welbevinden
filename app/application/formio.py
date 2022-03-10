@@ -67,6 +67,26 @@ def prepare_for_edit(form, flat={}):
     return form
 
 
+# update the register-form:
+# -hide the 'header'
+# -unhide additional components
+# -make all components 'not required'
+def prepare_for_add(form):
+    def cb(component):
+        if component['key'] == 'header':
+            component['hidden'] = True
+        if component['key'] == 'mail-confirm':
+            component['hidden'] = True
+            component['disabled'] = True
+        if 'validate' in component and 'required' in component['validate']:
+            component['validate']['required'] = False
+        if 'tags' in component and 'show-when-edit' in component['tags']:
+            component['hidden'] = False
+
+    iterate_components_cb(form, cb)
+    return form
+
+
 def update_available_timeslots(timeslots, form, key):
     components = form['components']
     for component in components:

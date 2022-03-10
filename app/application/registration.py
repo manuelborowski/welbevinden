@@ -13,7 +13,8 @@ class MessageType:
 
 class RegisterCache:
     class Register:
-        def __init__(self, max_regular, max_indicator, overflow_setting):
+        def __init__(self, register, max_regular, max_indicator, overflow_setting):
+            self.register = register
             self.max_regular = max_regular
             self.max_indicator = max_indicator
             self.overflow = not overflow_setting == 'none'
@@ -133,7 +134,7 @@ class RegisterCache:
     def __init__(self): #read the database and the register settings and initialize the caches
         register_settings = mutil.get_json_template('student-register-settings')
         for r, d in register_settings.items():
-            self.register_cache[r] = RegisterCache.Register(d['max-number-regular-registrations'],
+            self.register_cache[r] = RegisterCache.Register(r, d['max-number-regular-registrations'],
                                       d['max-number-indicator-registrations'],
                                       d['overflow'])
 
@@ -158,6 +159,8 @@ class RegisterCache:
         for guest in guests:
             self.register_cache[reg_label].add_guest(guest)
 
+    def restart_cache(self):
+        self.__init__()
 
 
     def get_registers_info(self):
@@ -523,3 +526,10 @@ def format_data(db_list):
 
         out.append(em)
     return out
+
+
+def register_settings_changed_cb(value, null):
+    register_cache.restart_cache()
+    log.info(f'register settings are changed')
+
+msettings.subscribe_setting_changed('student-register-settings', register_settings_changed_cb, None)

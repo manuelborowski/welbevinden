@@ -11,6 +11,13 @@ def register_add():
     return(json.dumps(ret))
 
 
+@api.route('/api/register/done', methods=['POST', 'GET'])
+def register_done():
+    data = json.loads(request.data)
+    ret = mregistration.registration_done(data['code'])
+    return(json.dumps({"status": True}))
+
+
 @api.route('/api/register/update', methods=['POST', 'GET'])
 def register_update():
     data = json.loads(request.data)

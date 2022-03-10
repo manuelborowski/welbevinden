@@ -83,11 +83,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.52: update in help.  Added program to flatten timeslots
 # V0.53: small updates.  Added registration-cache to speed up registrated/waiting-list issues
 # V0.54: cosmetic update
+# V0.55: if the register-settings are changed, rebuild the cache
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.54', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.55', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

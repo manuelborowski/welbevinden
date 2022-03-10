@@ -209,6 +209,10 @@ class Guest(db.Model):
     indicator = db.Column(db.Boolean, default=False)   #kansarm
     reason_priority = db.Column(db.String(256), default='')   #reden van voorrang
 
+    def get_register(self):
+        return self.field_of_study.split('-')[0]
+    register = property(get_register)
+
     def __setattr__(self, key, value):
         super(Guest, self).__setattr__(key, value)
         if key in self.SUBSCRIBE.fields:

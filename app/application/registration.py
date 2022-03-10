@@ -140,20 +140,20 @@ class RegisterCache:
 
         guests = mguest.get_guests({'enabled': True}, order_by='register_timestamp')
         for guest in guests:
-            self.register_cache[guest.field_of_study.split('-')[0]].add_guest(guest)
+            self.register_cache[guest.register].add_guest(guest)
 
     def add_guest(self, guest):
-        return self.register_cache[guest.field_of_study.split('-')[0]].add_guest(guest)
+        return self.register_cache[guest.register].add_guest(guest)
 
     def delete_guest(self, guest):
-        return self.register_cache[guest.field_of_study.split('-')[0]].delete_guest(guest)
+        return self.register_cache[guest.register].delete_guest(guest)
 
     # return true if a guest is in the register, return false if a guest is on the waiting list
     def get_guest_status_indicaton(self, guest):
-        return self.register_cache[guest.field_of_study.split('-')[0]].get_guest_status_indication(guest)
+        return self.register_cache[guest.register].get_guest_status_indication(guest)
 
     def refresh_cache(self, guest):
-        reg_label = guest.field_of_study.split('-')[0]
+        reg_label = guest.register
         self.register_cache[reg_label].purge()
         guests = mguest.get_guests({'enabled': True}, {'field_of_study_like': reg_label}, order_by='register_timestamp')
         for guest in guests:
@@ -295,7 +295,11 @@ def registration_add(data):
         }
         duplicate_guest = mguest.get_first_guest(data_selection)
         if duplicate_guest:
-            return {"status": False, "data": f"Fout, de student {duplicate_guest.child_first_name} {duplicate_guest.child_last_name} en mailadres {duplicate_guest.email}\n is reeds geregistreerd."}
+            #check if a guest can register on multiple registers
+            register_settings = mutil.get_json_template('student-register-settings')
+            new_register = data['field_of_study'].split('-')[0]
+            if 'multiple-registrations' not in register_settings[duplicate_guest.register] or new_register not in register_settings[duplicate_guest.register]['multiple-registrations']:
+                return {"status": False, "data": f"Fout, de student {duplicate_guest.child_first_name} {duplicate_guest.child_last_name} en mailadres {duplicate_guest.email}\n is reeds geregistreerd."}
         misc_config = mutil.get_json_template('import-misc-fields')
         extra_fields = [c['veldnaam'] for c in misc_config]
         extra_field = {f: '' for f in extra_fields}

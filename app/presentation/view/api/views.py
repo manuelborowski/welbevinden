@@ -32,3 +32,8 @@ def timeslot_add():
     return(json.dumps(ret))
 
 
+@api.route('/api/registers/info', methods=['POST', 'GET'])
+def registers_get_info():
+    ret = mregistration.register_cache.get_registers_info()
+    return(json.dumps(ret))
+

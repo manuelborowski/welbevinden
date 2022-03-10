@@ -6,8 +6,8 @@ from app import flask_app, log, data, db
 from app.data import models as mmodels
 
 
-def datetime_to_dutch_datetime_string(date):
-    return mmodels.datetime_to_dutch_datetime_string(date)
+def datetime_to_dutch_datetime_string(date, include_seconds=False):
+    return mmodels.datetime_to_dutch_datetime_string(date, include_seconds=include_seconds)
 
 
 def raise_error(message, details=None):

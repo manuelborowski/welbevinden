@@ -225,9 +225,9 @@ $(document).ready(function () {
     }
 
     if (current_user_is_at_least_admin) {
-        datatable_config["lengthMenu"] = [50, 100, 200, 500, 1000];
+        datatable_config["lengthMenu"] = [500, 1000];
     } else {
-        datatable_config["lengthMenu"] = [50, 100, 200, 500];
+        datatable_config["lengthMenu"] = [200, 500];
     }
 
     if ("default_order" in table_config) {

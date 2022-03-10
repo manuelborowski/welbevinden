@@ -8,27 +8,33 @@ from app.presentation.layout.utils import flash_plus, button_pressed
 from app.data import guest as mguest
 from app.application import socketio as msocketio, registration as mregistration, settings as msettings, util as mutil
 from app.data.models import Guest
-import json, sys
+import sys, datetime
 
 
 @registration.route('/registration/registration', methods=['POST', 'GET'])
 @login_required
 @supervisor_required
 def show():
+    # start = datetime.datetime.now()
     misc_config = mutil.get_json_template('import-misc-fields')
     misc_fields = [c['veldnaam'] for c in misc_config]
     base_multiple_items.update(table_configuration, misc_fields)
-    return base_multiple_items.show(table_configuration)
+    ret = base_multiple_items.show(table_configuration)
+    # print('registration.show', datetime.datetime.now() - start)
+    return ret
 
 
 @registration.route('/registration/table_ajax', methods=['GET', 'POST'])
 @login_required
 @supervisor_required
 def table_ajax():
+    # start = datetime.datetime.now()
     misc_config = mutil.get_json_template('import-misc-fields')
     misc_fields = [c['veldnaam'] for c in misc_config]
     base_multiple_items.update(table_configuration, misc_fields)
-    return base_multiple_items.ajax(table_configuration)
+    ret =  base_multiple_items.ajax(table_configuration)
+    # print('registration.table_ajax', datetime.datetime.now() - start)
+    return ret
 
 
 @registration.route('/registration/table_action', methods=['GET', 'POST'])
@@ -72,7 +78,7 @@ def get_form():
 def item_delete():
     try:
         chbx_code_list = request.form.getlist('chbx')
-        mguest.delete_guest(chbx_code_list)
+        mregistration.registration_delete(chbx_code_list)
     except Exception as e:
         log.error(f'could not delete guest {request.args}: {e}')
     return redirect(url_for('registration.show'))

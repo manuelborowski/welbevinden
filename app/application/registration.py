@@ -11,6 +11,188 @@ class MessageType:
     E_ERROR = 'message-error'
 
 
+class RegisterCache:
+    class Register:
+        def __init__(self, max_regular, max_indicator, overflow_setting):
+            self.max_regular = max_regular
+            self.max_indicator = max_indicator
+            self.overflow = not overflow_setting == 'none'
+            self.overflow_r2i = overflow_setting == 'regular-to-indicator'
+            self.overflow_i2r = overflow_setting == 'indicator-to-regular'
+            self.overflow_both = overflow_setting == 'both'
+            self.regular_ok = []
+            self.regular_wait = []
+            self.indicator_ok = []
+            self.indicator_wait = []
+            self.guest_cache = {}
+
+        def _check_overflow_one_direction(self, guest, is_i2r):
+            check1 = self.check_indicator if is_i2r else self.check_regular
+            check2 = self.check_regular if is_i2r else self.check_indicator
+            indicator = guest.indicator if is_i2r else not guest.indicator
+            list1_ok = self.indicator_ok if is_i2r else self.regular_ok
+            list2_ok = self.regular_ok if is_i2r else self.indicator_ok
+            list1_wait = self.indicator_wait if is_i2r else self.regular_wait
+            list2_wait = self.regular_wait if is_i2r else self.indicator_wait
+            if indicator:
+                if check1:
+                    list1_ok.append(guest.id)
+                    return True
+                elif self.check_both:
+                    list2_ok.append(guest.id)
+                    return True
+                list1_wait.append(guest.id)
+                list2_wait.append(guest.id)
+                return False
+            if self.check_both and check2:
+                list2_ok.append(guest.id)
+                return True
+            list2_wait.append(guest.id)
+            return False
+
+        def _check_overflow_both_directions(self, guest):
+            check1 = self.check_indicator if guest.indicator else self.check_regular
+            list1_ok = self.indicator_ok if guest.indicator else self.regular_ok
+            list2_ok = self.regular_ok if guest.indicator else self.indicator_ok
+            list1_wait = self.indicator_wait if guest.indicator else self.regular_wait
+            list2_wait = self.regular_wait if guest.indicator else self.indicator_wait
+            if check1:
+                list1_ok.append(guest.id)
+                return True
+            elif self.check_both:
+                list2_ok.append(guest.id)
+                return True
+            list1_wait.append(guest.id)
+            list2_wait.append(guest.id)
+            return False
+
+        def _check_overflow_none(self, guest):
+            check1 = self.check_indicator if guest.indicator else self.check_regular
+            list1_ok = self.indicator_ok if guest.indicator else self.regular_ok
+            list1_wait = self.indicator_wait if guest.indicator else self.regular_wait
+            if check1:
+                list1_ok.append(guest.id)
+                return True
+            list1_wait.append(guest.id)
+            return False
+
+        def add_guest(self, guest):
+            self.check_regular = len(self.regular_ok) < self.max_regular
+            self.check_indicator = len(self.indicator_ok) < self.max_indicator
+            self.check_both = len(self.regular_ok) + len(self.indicator_ok) < self.max_regular + self.max_indicator
+            self.guest_cache[guest.id] = guest
+            if self.overflow:
+                if self.overflow_i2r:
+                    return self._check_overflow_one_direction(guest, True)
+                elif self.overflow_r2i:
+                    return self._check_overflow_one_direction(guest, False)
+                else:
+                    return self._check_overflow_both_directions(guest)
+            else:
+                return self._check_overflow_none(guest)
+
+        def get_guest_status_indication(self, guest):
+            if guest.id in self.regular_ok:
+                return (True, 'regular', self.regular_ok.index(guest.id))
+            if guest.id in self.indicator_ok:
+                return (True, 'indicator', self.indicator_ok.index(guest.id))
+            return (False, 'wait', -1)
+
+        def delete_guest(self, guest):
+            if guest.id in self.guest_cache:
+                del self.guest_cache[guest.id]
+            if guest.id in self.regular_ok:
+                self.regular_ok.remove(guest.id)
+                try:
+                    id = self.regular_wait.pop(0)
+                    self.regular_ok.append(id)
+                except:
+                    pass #waiting list is empty
+            if guest.id in self.indicator_ok:
+                self.indicator_ok.remove(guest.id)
+                try:
+                    id = self.indicator_wait.pop(0)
+                    self.indicator_ok.append(id)
+                except:
+                    pass #waiting list empty
+            if guest.id in self.regular_wait:
+                self.regular_wait.remove(guest.id)
+            if guest.id in self.indicator_wait:
+                self.indicator_wait.remove(guest.id)
+
+        def purge(self):
+            self.regular_ok = []
+            self.regular_wait = []
+            self.indicator_ok = []
+            self.indicator_wait = []
+            self.guest_cache = {}
+
+
+    guest_cache = {}
+    register_cache = {}
+    def __init__(self): #read the database and the register settings and initialize the caches
+        register_settings = mutil.get_json_template('student-register-settings')
+        for r, d in register_settings.items():
+            self.register_cache[r] = RegisterCache.Register(d['max-number-regular-registrations'],
+                                      d['max-number-indicator-registrations'],
+                                      d['overflow'])
+
+        guests = mguest.get_guests({'enabled': True}, order_by='register_timestamp')
+        for guest in guests:
+            self.register_cache[guest.field_of_study.split('-')[0]].add_guest(guest)
+
+    def add_guest(self, guest):
+        return self.register_cache[guest.field_of_study.split('-')[0]].add_guest(guest)
+
+    def delete_guest(self, guest):
+        return self.register_cache[guest.field_of_study.split('-')[0]].delete_guest(guest)
+
+    # return true if a guest is in the register, return false if a guest is on the waiting list
+    def get_guest_status_indicaton(self, guest):
+        return self.register_cache[guest.field_of_study.split('-')[0]].get_guest_status_indication(guest)
+
+    def refresh_cache(self, guest):
+        reg_label = guest.field_of_study.split('-')[0]
+        self.register_cache[reg_label].purge()
+        guests = mguest.get_guests({'enabled': True}, {'field_of_study_like': reg_label}, order_by='register_timestamp')
+        for guest in guests:
+            self.register_cache[reg_label].add_guest(guest)
+
+
+
+    def get_registers_info(self):
+        out = []
+        for register_label, register in self.register_cache.items():
+            out_register = {
+                'name': register_label,
+                'max-regular': register.max_regular,
+                'nbr-regular-ok': len(register.regular_ok),
+                'nbr-regular-wait': len(register.regular_wait),
+                'max-indicator': register.max_indicator,
+                'nbr-indicator-ok': len(register.indicator_ok),
+                'nbr-indicator-wait': len(register.indicator_wait),
+                'guests': []
+            }
+            for g in register.regular_ok:
+                out_register['guests'].append({'list': 'regular-ok', 'register_timestamp': mdutils.datetime_to_dutch_datetime_string(g.register_timestamp, True),'status': g.status,})
+            for g in register.regular_wait:
+                out_register['guests'].append({'list': 'regular-wait', 'register_timestamp': mdutils.datetime_to_dutch_datetime_string(g.register_timestamp, True),'status': g.status,})
+            for g in register.indicator_ok:
+                out_register['guests'].append({'list': 'indicator-ok', 'register_timestamp': mdutils.datetime_to_dutch_datetime_string(g.register_timestamp, True),'status': g.status,})
+            for g in register.indicator_wait:
+                out_register['guests'].append({'list': 'indicator-wait', 'register_timestamp': mdutils.datetime_to_dutch_datetime_string(g.register_timestamp, True),'status': g.status,})
+
+            out.append(out_register)
+        return out
+
+
+
+try:
+    register_cache = RegisterCache()
+except Exception as e:
+    log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
 def prepare_registration():
     try:
         return {'template': mutil.get_json_template('student-register-template')}
@@ -119,7 +301,8 @@ def registration_add(data):
         data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
         data['register_timestamp'] = datetime.datetime.now()
         guest = mguest.add_guest(data)
-        _update_register_status(guest)
+        registration_ok = register_cache.add_guest(guest)
+        mguest.update_guest(guest, {'status': guest.Status.E_REGISTERED if registration_ok else guest.Status.E_WAITINGLIST})
         notify_registration_changed()
         log.info(f"New registration: {guest.email}, {guest.child_last_name} {guest.child_first_name} {guest.register_timestamp}")
         return {"status": True, "data": guest.code}
@@ -129,37 +312,6 @@ def registration_add(data):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         log.error(data)
         return {"status": False, "data": f'generic error {e}'}
-
-
-def _update_register_status(guest):
-    reg_label = guest.field_of_study.split('-')[0]
-    register_settings = mutil.get_json_template('student-register-settings')
-    max_nbr_regular = register_settings[reg_label]['max-number-regular-registrations']
-    max_nbr_indicator = register_settings[reg_label]['max-number-indicator-registrations']
-    overflow = register_settings[reg_label]['overflow-indicator-to-regular']
-    if overflow:
-        guests = mguest.get_guests(data={'enabled': True}, special={'register_timestamp_<=': guest.register_timestamp,
-                                            'field_of_study_like': guest.field_of_study}, order_by='register_timestamp')
-        for g in guests:
-            if g.indicator:
-                max_nbr_indicator -= 1
-                if max_nbr_indicator < 0:
-                    max_nbr_regular -= 1
-            else:
-                max_nbr_regular -= 1
-        if guest.indicator:
-            status = guest.Status.E_REGISTERED if max_nbr_indicator >= 0 or max_nbr_regular >= 0 else guest.Status.E_WAITINGLIST
-        else:
-            status = guest.Status.E_REGISTERED if max_nbr_regular >= 0 else guest.Status.E_WAITINGLIST
-    else:
-        if guest.indicator:
-            nbr_indicator_guests = mguest.get_guest_register_count(reg_label, guest.register_timestamp, True)
-            status = guest.Status.E_REGISTERED if nbr_indicator_guests <= max_nbr_indicator else guest.Status.E_WAITINGLIST
-        else:
-            nbr_regular_guests = mguest.get_guest_register_count(reg_label, guest.register_timestamp, False)
-            status = guest.Status.E_REGISTERED if nbr_regular_guests <= max_nbr_regular else guest.Status.E_WAITINGLIST
-    mguest.update_guest(guest, {'status': status})
-    return status != guest.Status.E_WAITINGLIST
 
 
 # return True if the guest is not in the waiting-list
@@ -198,15 +350,23 @@ def registration_update(code, data):
             data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
         if 'status' in data:    #reset the email tx counter when the status is changed
             data['reg_ack_nbr_tx'] = 0
-        if 'status' in data and data['status'] == Guest.Status.E_UNREGISTERED:
-            data['unregister_timestamp'] = datetime.datetime.now()
-            data['enabled'] = False
+        if 'status' in data:
+            if data['status'] == Guest.Status.E_UNREGISTERED:
+                data['unregister_timestamp'] = datetime.datetime.now()
+                data['enabled'] = False
+            if data['status'] == Guest.Status.E_REGISTERED or data['status'] == Guest.Status.E_WAITINGLIST:
+                data['enabled'] = True
         if 'radio-timeslot' in data:
             timeslot = mformio.formiodate_to_datetime(data['radio-timeslot'])
             if timeslot != guest.timeslot and not check_requested_timeslot(timeslot):
                 return {"status": False, "data": "Opgepast, het gekozen tijdslot is zojuist volzet geraakt.\nGelieve een nieuw tijdslot te kiezen."}
             data['timeslot'] = timeslot
         mguest.update_guest(guest, data)
+        if 'enabled' in data:
+            if data['enabled']:
+                register_cache.refresh_cache(guest)
+            else:
+                register_cache.delete_guest(guest)
         return {"status": True, "data": guest.code}
     except JSONDecodeError as e:
         return {"status": False, "data": f'error: JSON decoder: {e}'}
@@ -214,6 +374,13 @@ def registration_update(code, data):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         log.error(data)
         return {"status": False, "data": f'generic error {e}'}
+
+
+def registration_delete(codes):
+    for code in codes:
+        guest = mguest.get_first_guest({"code": code})
+        register_cache.delete_guest(guest)
+    mguest.delete_guest(codes)
 
 
 def notify_registration_changed(value=None):
@@ -244,6 +411,16 @@ def display_register_counters():
         max_nbr_regular = data['max-number-regular-registrations']
         max_nbr_indicator = data['max-number-indicator-registrations']
         overflow = " (overloop)" if data['overflow-indicator-to-regular'] else " (geen overloop)"
+
+        overflow_setting = data['overflow']
+        overflow = ' '
+        if overflow_setting == 'regular-to-indicator':
+            overflow = ' (R -> I)'
+        elif overflow_setting == 'indicator-to-regular':
+            overflow = ' (R <- I)'
+        elif overflow_setting == 'both':
+            overflow = ' (R <-> I)'
+
         regular_style = "style='background: orange;'" if nbr_regular_guests > max_nbr_regular else ""
         indicator_style = "style='background: orange;'" if nbr_indicator_guests > max_nbr_indicator else ""
         display.append(f"{reg}{overflow}, <span {regular_style}>regulier: {nbr_regular_guests}/{max_nbr_regular}</span>, "
@@ -316,67 +493,33 @@ def check_requested_timeslot(date):
 
 
 def format_data(db_list):
-    register_settings = mutil.get_json_template('student-register-settings')
-    register_info = {}
-    for r, d in register_settings.items():
-        max_nbr_indicator = d['max-number-indicator-registrations']
-        max_nbr_regular = d['max-number-regular-registrations']
-        info = {'regular_timestamp': None, 'indicator_timestamp': None, 'regular_counter': 1, 'indicator_counter': 1}
-        if d['overflow-indicator-to-regular']:
-            guests = get_guests(data={'enabled': True}, special={'field_of_study_like': r}, order_by='register_timestamp')
-            for g in guests:
-                if g.indicator:
-                    if max_nbr_indicator > 0:
-                        max_nbr_indicator -= 1
-                        info['indicator_timestamp'] = g.register_timestamp
-                    elif max_nbr_regular > 0:
-                        max_nbr_regular -= 1
-                        info['indicator_timestamp'] = g.register_timestamp
-                elif max_nbr_regular > 0:
-                    max_nbr_regular -= 1
-                    info['regular_timestamp'] = g.register_timestamp
-        else:
-            regular_guest = get_guest_register_last_timestamp(r, max_nbr_regular, indicator=False)
-            indicator_guest = get_guest_register_last_timestamp(r, max_nbr_indicator, indicator=True)
-            if regular_guest:
-                info['regular_timestamp'] = regular_guest.register_timestamp
-            if indicator_guest:
-                info['indicator_timestamp'] = indicator_guest.register_timestamp
-        register_info[r] = info
     out = []
-    for i in db_list:
-        em = i.flat()
+    for guest in db_list:
+        em = guest.flat()
         em.update({
-            'row_action': i.code,
-            'id': i.id,
-            'DT_RowId': i.code
+            'row_action': guest.code,
+            'id': guest.id,
+            'DT_RowId': guest.code
         })
         em['sequence_counter'] = ""
-        if i.enabled:
-            info = register_info[em['register']]
-            timestamp = info['indicator_timestamp' if i.indicator else 'regular_timestamp']
-            if timestamp and i.register_timestamp > timestamp:
-                em['overwrite_cell_color'].append(['register_timestamp_dutch', 'yellow'])
-            else:
+        if guest.enabled:
+            status_indication, register, index = register_cache.get_guest_status_indicaton(guest)
+            if status_indication:
                 em['overwrite_cell_color'].append(['register_timestamp_dutch', 'greenyellow'])
-                if i.indicator:
-                    em['sequence_counter'] = info['indicator_counter']
-                    info['indicator_counter'] += 1
-                    em['overwrite_cell_color'].append(['sequence_counter', 'aqua'])
-                else:
-                    em['sequence_counter'] = info['regular_counter']
-                    info['regular_counter'] += 1
-                    em['overwrite_cell_color'].append(['sequence_counter', 'turquoise'])
-            if i.status == Guest.Status.E_REGISTERED:
+                em['sequence_counter'] = index + 1
+                em['overwrite_cell_color'].append(['sequence_counter', 'aqua' if register == 'regular' else 'turquoise'])
+            else:
+                em['overwrite_cell_color'].append(['register_timestamp_dutch', 'yellow'])
+            if guest.status == Guest.Status.E_REGISTERED:
                 em['overwrite_cell_color'].append(['status', 'greenyellow'])
             else:
                 em['overwrite_cell_color'].append(['status', 'yellow'])
         else:
             em['overwrite_cell_color'].append(['enabled', 'red'])
-        if i.reg_ack_nbr_tx == 0:
+        if guest.reg_ack_nbr_tx == 0:
             em['overwrite_cell_color'].append(['reg_ack_nbr_tx', 'orange'])
             em['overwrite_cell_color'].append(['reg_ack_email_tx', 'orange'])
-        if i.tsl_ack_nbr_tx == 0:
+        if guest.tsl_ack_nbr_tx == 0:
             em['overwrite_cell_color'].append(['tsl_ack_nbr_tx', 'orange'])
             em['overwrite_cell_color'].append(['tsl_ack_email_tx', 'orange'])
 

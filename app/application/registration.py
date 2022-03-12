@@ -488,7 +488,7 @@ def check_requested_timeslot(date):
         for tc in tcs:
             start_date = tc.date
             end_date = tc.date + datetime.timedelta(minutes=(tc.nbr_of_timeslots * tc.length))
-            if start_date <= date <= end_date:
+            if start_date <= date < end_date:
                 guest_count = mguest.get_guest_count({'timeslot': date, 'enabled': True})
                 return guest_count < tc.items_per_timeslot
         return False

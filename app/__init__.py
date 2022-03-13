@@ -88,11 +88,17 @@ flask_app.config.from_pyfile('config.py')
 # V0.57: bugix when adding a registration
 # V0.58: optimization and added functionality to register in multiple registers
 # V0.59: bugfix in checking timeslot
+# V0.60: add todo's
+
+#TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
+#TODO: add statistic counters, e.g. number per field-of-study, ...
+#TODO: add note, when printing confirmation document, to print 2 copies
+#TODO: after printing confirmation document, go to new registration automatically
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.59', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.60', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

@@ -2,6 +2,7 @@ import requests, json, time
 
 WAIT_TIME = 0.2   #seconds
 URL = 'http://localhost:5035'
+# URL = 'https://opendag-inschrijvingen.ict.campussintursula.be'
 
 def import_pre_register():
     with open('pre-reg-out.json',) as pre_reg_file:

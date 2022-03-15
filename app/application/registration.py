@@ -208,6 +208,8 @@ def prepare_edit_registration_form(code):
     try:
         guest = mguest.get_first_guest({"code": code})
         template = mutil.get_json_template('student-register-template')
+        available_timeslots = get_available_timeslots(guest.timeslot)
+        mformio.update_available_timeslots(available_timeslots, template, 'radio-timeslot')
         template = mformio.prepare_for_edit(template, guest.flat())
         return {'template': template,
                 'defaults': guest.flat()}

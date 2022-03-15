@@ -64,6 +64,8 @@ def prepare_for_edit(form, flat={}):
     iframe = search_component(form, 'container-iframe-document')
     fill_in_tags(iframe, flat)
     iframe['hidden'] = False
+    timeslots = search_component(form, 'radio-timeslots')
+    timeslots['hidden'] = False
     return form
 
 

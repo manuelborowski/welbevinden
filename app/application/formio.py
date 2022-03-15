@@ -152,9 +152,13 @@ def formiodate_to_datetime(formio_date):
 
 
 
+# formio returns:
+# 2022-3-4T13:34:23+02:00 OR SOMETIMES
+# 2022-3-4 OR SOMETIMES
+# 4/3/2022.  WHO KNOWS WHY???
 def formiodate_to_date(formio_date):
     try:
-        date = datetime.datetime.strptime(formio_date, "%Y-%m-%d") #bug in datetime component of formio?
+        date = datetime.datetime.strptime(formio_date.split('T')[0], "%Y-%m-%d")
     except:
         date = datetime.datetime.strptime(formio_date, "%d/%m/%Y")
     return date

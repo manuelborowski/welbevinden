@@ -91,6 +91,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.60: add todo's
 # V0.61: add todo's
 # V0.62: bugfix when retrieving a list of guest.  Implemented code to add pre-registers.  Added a column in the registration table.
+# V0.63: bugfix: format of date returned from formio is not always the same
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -105,7 +106,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.62', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.63', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

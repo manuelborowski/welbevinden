@@ -240,6 +240,13 @@ $(document).ready(function () {
 
     var table = $('#datatable').DataTable(datatable_config);
 
+    //double click a row to edit
+    table.on('dblclick', 'tr', function () {
+        document.querySelector(`input[value="${this.id}"]`).checked = true;
+        $("#button-pressed").val("edit");
+        $("#action_form").submit();
+    } );
+
     //Toggle column visibility
     let column_visible_div = document.querySelector('.column-visible-div');
     let column_visible_settings = JSON.parse(localStorage.getItem(`ColumnsVisible-${view}`));

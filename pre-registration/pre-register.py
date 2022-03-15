@@ -1,6 +1,6 @@
 import requests, json, time
 
-WAIT_TIME = 1   #seconds
+WAIT_TIME = 0.2   #seconds
 URL = 'http://localhost:5035'
 
 def import_pre_register():

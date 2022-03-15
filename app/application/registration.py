@@ -383,7 +383,7 @@ def prepare_timeslot_registration(code=None):
 def registration_update(code, data):
     try:
         guest = mguest.get_first_guest({"code": code})
-        if 'date_of_birth_dutch' in data:
+        if 'date_of_birth_dutch' in data and data['date_of_birth_dutch'] != '':
             data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
         if 'status' in data:    #reset the email tx counter when the status is changed
             data['reg_ack_nbr_tx'] = 0

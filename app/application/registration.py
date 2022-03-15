@@ -1,4 +1,4 @@
-from app.application import formio as mformio, util as mutil
+from app.application import formio as mformio, util as mutil, timeslot_configuration as matc
 from app.data import utils as mdutils, guest as mguest, settings as msettings, timeslot_configuration as mtc
 from app.data.guest import get_guests, get_guest_register_last_timestamp
 from app.data.models import Guest
@@ -288,6 +288,36 @@ def check_register_status(code):
 
 def registration_add(data):
     try:
+        if 'pre_register' in data and data['pre_register']:
+            if 'code' not in data:
+                data['code'] = mutil.create_random_string()
+            if 'register_timestamp' in data:
+                register_settings = mutil.get_json_template('student-register-settings')
+                register = data['field_of_study'].split('-')[0]
+                register_type = 'max-number-indicator-registrations' if data['indicator'] else 'max-number-regular-registrations'
+                register_settings[register][register_type] += 1
+                mutil.set_json_template('student-register-settings', register_settings)
+                data['register_timestamp'] = mformio.formiodate_to_datetime(data['register_timestamp'])
+            if 'timeslot' in data:
+                matc.flatten_timeslots()
+                ts = mformio.formiodate_to_datetime(data['timeslot'])
+                timeslot_compare = {'year': ts.year, 'month': ts.month, 'day': ts.day, 'hour': ts.hour, 'minute': ts.minute}
+                timeslot_settings = mutil.get_json_template('timeslot-config-timeslots-template')
+                found = False
+                for ts in timeslot_settings:
+                    if timeslot_compare.items() <= ts.items():
+                        found = True
+                        ts['places'] += 1
+                        break
+                if not found:
+                    return {"status": False, "data": f'error: timeslot {data["timeslot"]} not found for {data["email"]}'}
+                mutil.set_json_template('timeslot-config-timeslots-template', timeslot_settings)
+            data['status'] = Guest.Status.E_REGISTERED
+            guest = mguest.add_guest(data)
+            log.info(
+                f"New pre-registration: {guest.email}, {guest.child_last_name} {guest.child_first_name} {guest.register_timestamp}")
+            return {"status": True, "data": guest.code}
+
         data_selection = {  #duplicates are detetected when email AND childs name are already in database
             'email': data['email'],
             'child_first_name': data['child_first_name'],
@@ -365,7 +395,7 @@ def registration_update(code, data):
                 data['enabled'] = True
         if 'radio-timeslot' in data:
             timeslot = mformio.formiodate_to_datetime(data['radio-timeslot'])
-            if timeslot != guest.timeslot and not check_requested_timeslot(timeslot):
+            if timeslot != guest.timeslot and not _check_requested_timeslot(timeslot):
                 return {"status": False, "data": "Opgepast, het gekozen tijdslot is zojuist volzet geraakt.\nGelieve een nieuw tijdslot te kiezen."}
             data['timeslot'] = timeslot
         mguest.update_guest(guest, data)
@@ -482,7 +512,7 @@ def datatable_get_timeslots():
 
 
 # return true if the current number of guests is less than the maximum
-def check_requested_timeslot(date):
+def _check_requested_timeslot(date):
     try:
         tcs = mtc.get_timeslot_configurations()
         for tc in tcs:

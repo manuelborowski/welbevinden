@@ -182,6 +182,7 @@ table_configuration = {
         {'name': 'Kind', 'data': 'child_name', 'order_by': Guest.child_first_name, 'orderable': True, 'width': '6%', 'visible': 'yes'},
         {'name': 'Geboortedatum', 'data': 'date_of_birth_dutch', 'order_by': Guest.date_of_birth, 'orderable': True, 'width': '6%', 'visible': 'yes'},
         {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True, 'width': '6%', 'visible': 'no'},
+        {'name': 'Prioriteit', 'data': 'reason_priority', 'order_by': Guest.reason_priority, 'orderable': True, 'width': '2%', 'visible': 'no'},
         {'name': 'Notitie', 'data': 'note', 'order_by': Guest.note, 'orderable': True, 'width': '20%', 'celledit': {"type": 'text-confirmkey'}, 'visible': 'no'},
         {'name': 'R', 'data': 'reg_ack_email_tx', 'order_by': Guest.reg_ack_email_tx, 'width': '1%', 'celledit': {"type": 'toggle'}, 'visible': 'yes'},
         {'name': 'R', 'data': 'reg_ack_nbr_tx', 'order_by': Guest.reg_ack_nbr_tx, 'celledit': {"type": 'int-confirmkey'}, 'width': '1%', 'visible': 'yes'},

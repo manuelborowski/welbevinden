@@ -90,6 +90,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.59: bugfix in checking timeslot
 # V0.60: add todo's
 # V0.61: add todo's
+# V0.62: bugfix when retrieving a list of guest.  Implemented code to add pre-registers.  Added a column in the registration table.
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -98,10 +99,13 @@ flask_app.config.from_pyfile('config.py')
 #TODO: (preregistration) import list
 #TODO: (preregistration) send personal registration link
 #TODO: registration: allow access from certain ip-addresses only
+#TODO: make it possible to print a detailed registration-form, to be updated by the parents when they close the registration
+#TODO: login via smartschool
+#TODO: pre-registration: send invitation link via smartschool
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.60', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.62', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

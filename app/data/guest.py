@@ -59,7 +59,7 @@ def get_guests(data={}, special={}, order_by=None, first=False, count=False):
             if k == 'field_of_study_like':
                 q = q.filter(Guest.field_of_study.like(f'{v}%'))
         if order_by:
-            q.order_by(getattr(Guest, order_by))
+            q = q.order_by(getattr(Guest, order_by))
         if first:
             guest = q.first()
             return guest

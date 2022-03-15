@@ -66,6 +66,7 @@ default_configuration_settings = {
     'timeslot-email-response-template': ('', Settings.SETTING_TYPE.E_STRING),
     'timeslot-open-registration-at': ('', Settings.SETTING_TYPE.E_STRING),
     'timeslot-config-timeslots-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'timeslot-config-timeslots-is-flat': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
     'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),

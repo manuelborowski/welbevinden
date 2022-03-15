@@ -1,4 +1,5 @@
 from app.data import timeslot_configuration as mtc, settings as msettings
+from app.application import util as mutil
 from app import log, db
 import datetime, sys, json
 
@@ -11,6 +12,7 @@ def add_timeslot_configuration(date, length, nbr_of_timeslots, items_per_timeslo
         mtc.add_timeslot_configuration(date, length, nbr_of_timeslots, items_per_timeslot)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
 
 def timeslot_configuration_changed_cb(value, opaque):
     try:
@@ -30,3 +32,28 @@ def timeslot_configuration_changed_cb(value, opaque):
 
 
 msettings.subscribe_setting_changed('timeslot-config-timeslots-template', timeslot_configuration_changed_cb, None)
+
+def flatten_timeslots():
+    if msettings.get_configuration_setting('timeslot-config-timeslots-is-flat'):
+        return
+    flat = []
+    timeslot_settings = mutil.get_json_template('timeslot-config-timeslots-template')
+    for t in timeslot_settings:
+        start_time = datetime.datetime(t['year'], t['month'], t['day'], t['hour'], t['minute'])
+        length = t['length']
+        number = t['number']
+        places = t['places']
+        for i in range(number):
+            time = start_time + datetime.timedelta(minutes=(length * i))
+            flat.append({
+                'year': time.year,
+                'month': time.month,
+                'day': time.day,
+                'hour': time.hour,
+                'minute': time.minute,
+                'length': length,
+                'number': 1,
+                'places': places
+            })
+    mutil.set_json_template('timeslot-config-timeslots-template', flat)
+    msettings.set_configuration_setting('timeslot-config-timeslots-is-flat', True)

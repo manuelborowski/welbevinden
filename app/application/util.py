@@ -1,4 +1,4 @@
-import random, string, json
+import random, string, json, re
 from app.data import utils as mutils, settings as msettings
 
 
@@ -19,3 +19,12 @@ def get_json_template(key):
     except json.JSONDecodeError as e:
         raise Exception(f'Template has invalid JSON syntax: {key} {e}')
     return settings
+
+
+def set_json_template(key, data):
+    try:
+        template_string = json.dumps(data)
+        template_string = re.sub('},', '},\n', template_string)
+        return msettings.set_configuration_setting(key, template_string)
+    except json.JSONDecodeError as e:
+        raise Exception(f'Template has invalid JSON syntax: {key}, {data}, {e}')

@@ -173,6 +173,18 @@ class Guest(db.Model):
     key = db.Column(db.String(256))
     last_login = db.Column(db.DateTime())
 
+    field_of_study_to_dutch = {
+        "1a SUL-klassieke-talen": "Klassieke Talen",
+        "1a SUL-moderneTalenEnWetenschappen": "Moderne talen en wetenschappen",
+        "1a SUL-sport-en-wetenschappen": "Sport en wetenschappen",
+        "1a SUL-stem": "STEM",
+        "1a SUI-bedrijfEnOrganisatie": "Bedrijf en organisatie",
+        "1a SUI-cultuurEnMedia": "Cultuur en Media",
+        "1a SUI-finseCademie": "Finse @cademie",
+        "1a SUI-maatschappijEnWelzijn": "Maatschappij en welzijn",
+        "1b-1B": "1b",
+    }
+
     invite_email_tx = db.Column(db.Boolean, default=True)   #invite email is sent
     invite_nbr_tx = db.Column(db.Integer(), default=0)      #nbr of invite emails sent
     reg_ack_email_tx = db.Column(db.Boolean, default=True)  #registration ack email is sent
@@ -263,6 +275,7 @@ class Guest(db.Model):
         'note': self.note,
         'national_registration_number': self.national_registration_number,
         'field_of_study': self.field_of_study,
+        'field_of_study_dutch': Guest.field_of_study_to_dutch[self.field_of_study],
         'register': self.field_of_study.split('-')[0],
         'indicator': self.indicator,
         'indicator_dutch': 'I' if self.indicator else '',

@@ -94,6 +94,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.63: bugfix: format of date returned from formio is not always the same
 # V0.64: do not crash if date-of-birth is not filled in
 # V0.65: supervisor can update timeslot of guest
+# V0.66: bugfix in edit-registration: timeslot can be empty.  Translate field_of_study into Dutch
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -109,7 +110,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.65', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.66', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

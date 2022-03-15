@@ -395,7 +395,7 @@ def registration_update(code, data):
                 data['enabled'] = False
             if data['status'] == Guest.Status.E_REGISTERED or data['status'] == Guest.Status.E_WAITINGLIST:
                 data['enabled'] = True
-        if 'radio-timeslot' in data:
+        if 'radio-timeslot' in data and data['radio-timeslot'] != '':
             timeslot = mformio.formiodate_to_datetime(data['radio-timeslot'])
             if timeslot != guest.timeslot and not _check_requested_timeslot(timeslot):
                 return {"status": False, "data": "Opgepast, het gekozen tijdslot is zojuist volzet geraakt.\nGelieve een nieuw tijdslot te kiezen."}

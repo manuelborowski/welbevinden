@@ -97,6 +97,10 @@ class RegisterCache:
                 return (True, 'regular', self.regular_ok.index(guest.id))
             if guest.id in self.indicator_ok:
                 return (True, 'indicator', self.indicator_ok.index(guest.id))
+            if guest.id in self.regular_wait:
+                return (False, 'regular', self.regular_wait.index(guest.id))
+            if guest.id in self.indicator_wait:
+                return (False, 'indicator', self.indicator_wait.index(guest.id))
             return (False, 'wait', -1)
 
         def delete_guest(self, guest):
@@ -290,17 +294,24 @@ def check_register_status(code):
 
 def registration_add(data):
     try:
+        if 'date_of_birth_dutch' in data:
+            if data['date_of_birth_dutch'] == '':
+                del data['date_of_birth_dutch']
+            else:
+                data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
+        if 'field_of_study' in data and data['field_of_study'] == '':
+            return {"status": False, "data": 'Fout, u moet een keuzepakket opgeven'}
         if 'pre_register' in data and data['pre_register']:
             if 'code' not in data:
                 data['code'] = mutil.create_random_string()
-            if 'register_timestamp' in data:
+            if 'register_timestamp' in data and data['register_timestamp'] != '':
                 register_settings = mutil.get_json_template('student-register-settings')
                 register = data['field_of_study'].split('-')[0]
                 register_type = 'max-number-indicator-registrations' if data['indicator'] else 'max-number-regular-registrations'
                 register_settings[register][register_type] += 1
                 mutil.set_json_template('student-register-settings', register_settings)
                 data['register_timestamp'] = mformio.formiodate_to_datetime(data['register_timestamp'])
-            if 'timeslot' in data:
+            if 'radio-timeslot' in data and data['radio-timeslot'] != '':
                 matc.flatten_timeslots()
                 ts = mformio.formiodate_to_datetime(data['timeslot'])
                 timeslot_compare = {'year': ts.year, 'month': ts.month, 'day': ts.day, 'hour': ts.hour, 'minute': ts.minute}
@@ -337,7 +348,6 @@ def registration_add(data):
         extra_field = {f: '' for f in extra_fields}
         data['misc_field'] = json.dumps(extra_field)
         data['code'] = mutil.create_random_string()
-        data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
         data['register_timestamp'] = datetime.datetime.now()
         guest = mguest.add_guest(data)
         registration_ok = register_cache.add_guest(guest)
@@ -541,9 +551,9 @@ def format_data(db_list):
         em['sequence_counter'] = ""
         if guest.enabled:
             status_indication, register, index = register_cache.get_guest_status_indicaton(guest)
+            em['sequence_counter'] = index + 1
             if status_indication:
                 em['overwrite_cell_color'].append(['register_timestamp_dutch', 'greenyellow'])
-                em['sequence_counter'] = index + 1
                 em['overwrite_cell_color'].append(['sequence_counter', 'aqua' if register == 'regular' else 'turquoise'])
             else:
                 em['overwrite_cell_color'].append(['register_timestamp_dutch', 'yellow'])

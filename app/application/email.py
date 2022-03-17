@@ -10,10 +10,11 @@ def send_email(to, subject, content):
     sender = flask_app.config['MAIL_USERNAME']
     msg = Message(sender=sender, recipients=[to], subject=subject, html=content)
     try:
+        a = 2  / 0
         email.send(msg)
         return True
     except Exception as e:
-        log.error(f'send_email: ERROR, could not send email: {e}')
+        log.error(f'send_email: ERROR, could not send email: {e}\n{to}\n{subject}\n{content}')
     return False
 
 
@@ -43,7 +44,7 @@ def send_register_ack(**kwargs):
             email_content = mformio.extract_sub_component(template, 'register-child-ack-unregister-content', guest)['html']
         email_subject = mformio.strip_html(email_subject)
 
-        log.info(f'"{email_subject}" to {guest.email}')
+        log.info(f'"{email_subject}" to {guest.email}, {guest.id}')
         ret = send_email(guest.email, email_subject, email_content)
         if ret:
             mguest.update_guest(guest, {"reg_ack_email_tx": True})

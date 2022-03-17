@@ -9,7 +9,9 @@ def add_guest(data):
         guest = Guest()
         for k, v in data.items():
             if hasattr(guest, k):
-                setattr(guest, k, v.strip() if isinstance(v, str) else v)
+                # getattr(Guest, k).expression.type.python_type
+                if getattr(Guest, k).expression.type.python_type == type(v):
+                    setattr(guest, k, v.strip() if isinstance(v, str) else v)
         db.session.add(guest)
         db.session.commit()
         return guest

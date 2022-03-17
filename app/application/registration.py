@@ -327,8 +327,7 @@ def registration_add(data):
                 mutil.set_json_template('timeslot-config-timeslots-template', timeslot_settings)
             data['status'] = Guest.Status.E_REGISTERED
             guest = mguest.add_guest(data)
-            log.info(
-                f"New pre-registration: {guest.email}, {guest.child_last_name} {guest.child_first_name} {guest.register_timestamp}")
+            log.info(f"New pre-registration: {guest.email}, {data}")
             return {"status": True, "data": guest.code}
 
         data_selection = {  #duplicates are detetected when email AND childs name are already in database
@@ -353,7 +352,7 @@ def registration_add(data):
         registration_ok = register_cache.add_guest(guest)
         mguest.update_guest(guest, {'status': guest.Status.E_REGISTERED if registration_ok else guest.Status.E_WAITINGLIST})
         notify_registration_changed()
-        log.info(f"New registration: {guest.email}, {guest.child_last_name} {guest.child_first_name} {guest.register_timestamp}")
+        log.info(f"New registration: {guest.email}, {data}")
         return {"status": True, "data": guest.code}
     except JSONDecodeError as e:
         return {"status": False, "data": f'error: JSON decoder: {e}'}
@@ -416,6 +415,7 @@ def registration_update(code, data):
                 register_cache.refresh_cache(guest)
             else:
                 register_cache.delete_guest(guest)
+        log.info(f"Update registration: {guest.email}, {data}")
         return {"status": True, "data": guest.code}
     except JSONDecodeError as e:
         return {"status": False, "data": f'error: JSON decoder: {e}'}

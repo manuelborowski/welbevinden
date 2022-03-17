@@ -98,6 +98,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.67: in a table, double click a row to edit
 # V0.68: edit registration: condense form to improve overview
 # V0.69: add sequence-numbers when on waiting-list.  Preempted empty integers (is a ''-string).  Added logging
+# V0.70: removed test code
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -112,7 +113,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.69', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.70', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

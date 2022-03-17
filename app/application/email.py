@@ -10,7 +10,6 @@ def send_email(to, subject, content):
     sender = flask_app.config['MAIL_USERNAME']
     msg = Message(sender=sender, recipients=[to], subject=subject, html=content)
     try:
-        a = 2  / 0
         email.send(msg)
         return True
     except Exception as e:

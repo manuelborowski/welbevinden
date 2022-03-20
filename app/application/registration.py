@@ -1,4 +1,4 @@
-from app.application import formio as mformio, util as mutil, timeslot_configuration as matc
+from app.application import formio as mformio, util as mutil, timeslot_configuration as matc, warning as mwarning
 from app.data import utils as mdutils, guest as mguest, settings as msettings, timeslot_configuration as mtc
 from app.data.guest import get_guests, get_guest_register_last_timestamp
 from app.data.models import Guest
@@ -173,6 +173,7 @@ class RegisterCache:
         guest_cached = self.guest_cache[guest.id]
         if guest_cached.register == guest.register:
             return
+        mwarning.new_warning(f'{guest.child_last_name} {guest.child_first_name}, {guest.email} is veranderd van register: {guest_cached.register} -> {guest.register}')
         self.delete_guest(guest_cached) # remove from old register
         self.refresh_cache(guest)       # add to new register
 
@@ -468,7 +469,6 @@ def registration_subscribe_changed(cb, opaque):
 
 
 def guest_any_property_changed_cb(type, value, opaque):
-    print('guest_any_property_changed_cb', type, value)
     for cb in registration_changed_cb:
         cb[0](value, cb[1])
 

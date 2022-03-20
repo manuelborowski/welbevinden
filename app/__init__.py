@@ -101,6 +101,8 @@ flask_app.config.from_pyfile('config.py')
 # V0.70: removed test code
 # V0.71: add more details to logging
 # V0.72: added over- and undercount to the registers.  Model: don't update properties when incorrect type.  Cleanup Guest callback
+# V0.73: added warnings
+
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -115,9 +117,10 @@ flask_app.config.from_pyfile('config.py')
 #TODO: detect overrun and underrun in regsiters (when a registered student moves from one register to another)
 #TODO: add warnings page
 
+
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.72', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.73', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -213,7 +216,7 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings, guest, registration, timeslot, api
+    from app.presentation.view import auth, user, settings, guest, registration, timeslot, api, warning
     flask_app.register_blueprint(api.api)
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
@@ -221,6 +224,7 @@ else:
     flask_app.register_blueprint(settings.settings)
     flask_app.register_blueprint(registration.registration)
     flask_app.register_blueprint(timeslot.timeslot)
+    flask_app.register_blueprint(warning.warning)
 
     @flask_app.errorhandler(403)
     def forbidden(error):

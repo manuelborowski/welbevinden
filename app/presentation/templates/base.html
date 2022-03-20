@@ -32,6 +32,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('timeslot.show') }}">Tijdsloten</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('warning.show') }}">Waarschuwingen</a>
+                </li>
                 {% if  current_user.is_at_least_admin %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('user.show') }}">Gebruikers</a>

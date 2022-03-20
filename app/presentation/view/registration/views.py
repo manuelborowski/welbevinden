@@ -139,7 +139,6 @@ def get_misc_fields(extra_fields, form):
 
 
 def get_filters():
-    # register_settings = mutil.get_json_template('student-register-settings')
     register_settings = mutil.get_json_template('student-register-settings')
     choices = [['default', 'Alles']]
     for reg, data in register_settings.items():

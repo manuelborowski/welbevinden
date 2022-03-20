@@ -309,3 +309,20 @@ class TimeslotConfiguration(db.Model):
             'overwrite_row_color': self.row_color(),
         }
 
+
+class Warning(db.Model):
+    __tablename__ = 'warnings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime())
+    message = db.Column(db.String(4096), default='')
+    visible = db.Column(db.Boolean, default=True)
+
+    def flat(self):
+        return {
+            'id': self.id,
+            'visible': self.visible,
+            'timestamp_dutch': datetime_to_dutch_datetime_string(self.timestamp),
+            'message': self.message
+        }
+

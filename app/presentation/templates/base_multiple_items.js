@@ -129,11 +129,12 @@ $(document).ready(function () {
             }
             if (config_columns[i].celledit.type === 'toggle') {
                 celltoggle_columns.push(i)
-            } else
-                entry = { column: i, type: config_columns[i].celledit.type, options }
-        } else continue;
-        celledit_columns.push(i);
-        celledit_inputtypes.push(entry);
+            } else {
+                entry = {column: i, type: config_columns[i].celledit.type, options}
+                celledit_columns.push(i);
+                celledit_inputtypes.push(entry);
+            }
+        }
     }
 
     var datatable_config = {

@@ -9,7 +9,6 @@ def add_guest(data):
         guest = Guest()
         for k, v in data.items():
             if hasattr(guest, k):
-                # getattr(Guest, k).expression.type.python_type
                 if getattr(Guest, k).expression.type.python_type == type(v):
                     setattr(guest, k, v.strip() if isinstance(v, str) else v)
         db.session.add(guest)
@@ -20,13 +19,15 @@ def add_guest(data):
     return None
 
 
-def get_guest_register_count(register_label, registration_date=None, indicator=None):
+def get_guest_register_count(register_label, registration_date=None, indicator=None, status=None):
     try:
         q = Guest.query.filter(Guest.field_of_study.like(f'{register_label}%'))
         if registration_date:
             q = q.filter(Guest.register_timestamp <= registration_date)
         if indicator is not None:
             q = q.filter(Guest.indicator == indicator)
+        if status is not None:
+            q = q.filter(Guest.status == status)
         q = q.filter(Guest.enabled)
         guests_count = q.count()
         return guests_count
@@ -96,7 +97,8 @@ def update_guest(guest, data={}):
     try:
         for k, v in data.items():
             if hasattr(guest, k):
-                setattr(guest, k, v.strip() if isinstance(v, str) else v)
+                if getattr(Guest, k).expression.type.python_type == type(v):
+                    setattr(guest, k, v.strip() if isinstance(v, str) else v)
         db.session.commit()
         return guest
     except Exception as e:

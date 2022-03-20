@@ -2,7 +2,7 @@ from app import log, db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import UniqueConstraint
-import datetime, json
+import datetime, json, time
 from babel.dates import get_day_names, get_month_names
 
 
@@ -145,25 +145,6 @@ class Settings(db.Model):
 class Guest(db.Model):
     __tablename__ = 'guests'
 
-    class Subscribe:
-        def __init__(self):
-            self.fields = [getattr(self, f) for f in dir(self) if f[:2] == "E_"]
-
-        E_INVITE_EMAIL_TX = 'invite_email_tx'
-        E_INVITE_NBR_TX = 'invite_nbr_tx'
-        E_REG_ACK_EMAIL_TX = 'reg_ack_email_tx'
-        E_REG_ACK_NBR_TX = 'reg_ack_nbr_tx'
-        E_TSL_ACK_EMAIL_TX = 'tsl_ack_email_tx'
-        E_TSL_ACK_NBR_TX = 'tsl_ack_nbr_tx'
-        E_CANCEL_EMAIL_TX = 'cancel_email_tx'
-        E_CANCEL_NBR_TX = 'cancel_nbr_tx'
-        E_EMAIL_TOT_NBR_TX = 'email_tot_nbr_tx'
-        E_ENABLED = 'enabled'
-        E_ALL = 'all'
-
-        cb = {}
-    SUBSCRIBE = Subscribe()
-
     class Status:
         E_REGISTERED = 'registered'     #ingeschreven
         E_WAITINGLIST = 'waiting-list'  #wachtlijst
@@ -225,15 +206,26 @@ class Guest(db.Model):
         return self.field_of_study.split('-')[0]
     register = property(get_register)
 
+    property_changed_cb = {}
     def __setattr__(self, key, value):
+        old_value = getattr(self, key) if key in Guest.__table__.columns else None
         super(Guest, self).__setattr__(key, value)
-        if key in self.SUBSCRIBE.fields:
-            if key in self.SUBSCRIBE.cb:
-                for cb in self.SUBSCRIBE.cb[key]:
+        if key not in Guest.__table__.columns or not self.id:
+            return
+        if old_value != value:
+            if key in self.property_changed_cb:
+                for cb in self.property_changed_cb[key]:
                     cb[0](key, value, cb[1])
-            if self.SUBSCRIBE.E_ALL in self.SUBSCRIBE.cb:
-                for cb in self.SUBSCRIBE.cb[self.SUBSCRIBE.E_ALL]:
-                    cb[0](self.SUBSCRIBE.E_ALL, value, cb[1])
+            if '*' in self.property_changed_cb:
+                for cb in self.property_changed_cb['*']:
+                    cb[0]('*', value, cb[1])
+
+    @staticmethod
+    def subscribe(type, cb, opaque):
+        if type not in Guest.property_changed_cb:
+            Guest.property_changed_cb[type] = []
+        Guest.property_changed_cb[type].append((cb, opaque))
+        return True
 
     def flat(self):
         flat = {
@@ -297,13 +289,6 @@ class Guest(db.Model):
         misc_field = json.loads(self.misc_field) if self.misc_field else ''
         flat.update(misc_field)
         return flat
-
-    @staticmethod
-    def subscribe(type, cb, opaque):
-        if type not in Guest.SUBSCRIBE.cb:
-            Guest.SUBSCRIBE.cb[type] = []
-        Guest.SUBSCRIBE.cb[type].append((cb, opaque))
-        return True
 
 
 class TimeslotConfiguration(db.Model):

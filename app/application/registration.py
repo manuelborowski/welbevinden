@@ -13,7 +13,8 @@ class MessageType:
 
 class RegisterCache:
     class Register:
-        def __init__(self, register, max_regular, max_indicator, overflow_setting):
+        def __init__(self, parent, register, max_regular, max_indicator, overflow_setting):
+            self.parent = parent
             self.register = register
             self.max_regular = max_regular
             self.max_indicator = max_indicator
@@ -25,7 +26,6 @@ class RegisterCache:
             self.regular_wait = []
             self.indicator_ok = []
             self.indicator_wait = []
-            self.guest_cache = {}
 
         def _check_overflow_one_direction(self, guest, is_i2r):
             check1 = self.check_indicator if is_i2r else self.check_regular
@@ -81,7 +81,7 @@ class RegisterCache:
             self.check_regular = len(self.regular_ok) < self.max_regular
             self.check_indicator = len(self.indicator_ok) < self.max_indicator
             self.check_both = len(self.regular_ok) + len(self.indicator_ok) < self.max_regular + self.max_indicator
-            self.guest_cache[guest.id] = guest
+            self.parent.guest_cache[guest.id] = guest
             if self.overflow:
                 if self.overflow_i2r:
                     return self._check_overflow_one_direction(guest, True)
@@ -104,8 +104,8 @@ class RegisterCache:
             return (False, 'wait', -1)
 
         def delete_guest(self, guest):
-            if guest.id in self.guest_cache:
-                del self.guest_cache[guest.id]
+            if guest.id in self.parent.guest_cache:
+                del self.parent.guest_cache[guest.id]
             if guest.id in self.regular_ok:
                 self.regular_ok.remove(guest.id)
                 try:
@@ -130,7 +130,20 @@ class RegisterCache:
             self.regular_wait = []
             self.indicator_ok = []
             self.indicator_wait = []
-            self.guest_cache = {}
+
+        def get_status(self):
+            status = {
+                'max_regular': self.max_regular,
+                'nbr_regular': len(self.regular_ok),
+                'max_indicator': self.max_indicator,
+                'nbr_indicator': len(self.indicator_ok),
+                'overflow': self.overflow,
+                'overflow_r2i': self.overflow_r2i,
+                'overflow_i2r': self.overflow_i2r,
+                'overflow_both': self.overflow_both,
+            }
+            return status
+
 
 
     guest_cache = {}
@@ -138,7 +151,7 @@ class RegisterCache:
     def __init__(self): #read the database and the register settings and initialize the caches
         register_settings = mutil.get_json_template('student-register-settings')
         for r, d in register_settings.items():
-            self.register_cache[r] = RegisterCache.Register(r, d['max-number-regular-registrations'],
+            self.register_cache[r] = RegisterCache.Register(self, r, d['max-number-regular-registrations'],
                                       d['max-number-indicator-registrations'],
                                       d['overflow'])
 
@@ -156,6 +169,14 @@ class RegisterCache:
     def get_guest_status_indicaton(self, guest):
         return self.register_cache[guest.register].get_guest_status_indication(guest)
 
+    def check_register_change(self, guest):
+        guest_cached = self.guest_cache[guest.id]
+        if guest_cached.register == guest.register:
+            return
+        self.delete_guest(guest_cached) # remove from old register
+        self.refresh_cache(guest)       # add to new register
+
+
     def refresh_cache(self, guest):
         reg_label = guest.register
         self.register_cache[reg_label].purge()
@@ -166,6 +187,11 @@ class RegisterCache:
     def restart_cache(self):
         self.__init__()
 
+    def get_status(self):
+        status = {}
+        for r, d in self.register_cache.items():
+            status[r] = d.get_status()
+        return status
 
     def get_registers_info(self):
         out = []
@@ -191,8 +217,6 @@ class RegisterCache:
 
             out.append(out_register)
         return out
-
-
 
 try:
     register_cache = RegisterCache()
@@ -351,7 +375,6 @@ def registration_add(data):
         guest = mguest.add_guest(data)
         registration_ok = register_cache.add_guest(guest)
         mguest.update_guest(guest, {'status': guest.Status.E_REGISTERED if registration_ok else guest.Status.E_WAITINGLIST})
-        notify_registration_changed()
         log.info(f"New registration: {guest.email}, {data}")
         return {"status": True, "data": guest.code}
     except JSONDecodeError as e:
@@ -394,11 +417,13 @@ def prepare_timeslot_registration(code=None):
 def registration_update(code, data):
     try:
         guest = mguest.get_first_guest({"code": code})
-        if 'date_of_birth_dutch' in data and data['date_of_birth_dutch'] != '':
-            data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
-        if 'status' in data:    #reset the email tx counter when the status is changed
-            data['reg_ack_nbr_tx'] = 0
+        if 'date_of_birth_dutch' in data:
+            if data['date_of_birth_dutch'] == '':
+                del data['date_of_birth_dutch']
+            else:
+                data['date_of_birth'] = mformio.formiodate_to_date(data['date_of_birth_dutch'])
         if 'status' in data:
+            data['reg_ack_nbr_tx'] = 0
             if data['status'] == Guest.Status.E_UNREGISTERED:
                 data['unregister_timestamp'] = datetime.datetime.now()
                 data['enabled'] = False
@@ -410,6 +435,8 @@ def registration_update(code, data):
                 return {"status": False, "data": "Opgepast, het gekozen tijdslot is zojuist volzet geraakt.\nGelieve een nieuw tijdslot te kiezen."}
             data['timeslot'] = timeslot
         mguest.update_guest(guest, data)
+        if 'field_of_study' in data:
+            register_cache.check_register_change(guest)
         if 'enabled' in data:
             if data['enabled']:
                 register_cache.refresh_cache(guest)
@@ -432,12 +459,7 @@ def registration_delete(codes):
     mguest.delete_guest(codes)
 
 
-def notify_registration_changed(value=None):
-    for cb in registration_changed_cb:
-        cb[0](value, cb[1])
-
 registration_changed_cb = []
-
 def registration_subscribe_changed(cb, opaque):
     try:
         registration_changed_cb.append((cb, opaque))
@@ -445,34 +467,48 @@ def registration_subscribe_changed(cb, opaque):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def guest_property_change_cb(type, value, opaque):
-    notify_registration_changed(value)
+def guest_any_property_changed_cb(type, value, opaque):
+    print('guest_any_property_changed_cb', type, value)
+    for cb in registration_changed_cb:
+        cb[0](value, cb[1])
 
-Guest.subscribe(Guest.SUBSCRIBE.E_ALL, guest_property_change_cb, None)
+Guest.subscribe('*', guest_any_property_changed_cb, None)
 
 
 def display_register_counters():
-    register_settings = mutil.get_json_template('student-register-settings')
+    status = register_cache.get_status()
     display = []
-    for reg, data in register_settings.items():
-        nbr_regular_guests = mguest.get_guest_register_count(reg, indicator=False)
-        nbr_indicator_guests = mguest.get_guest_register_count(reg, indicator=True)
-        max_nbr_regular = data['max-number-regular-registrations']
-        max_nbr_indicator = data['max-number-indicator-registrations']
-        overflow_setting = data['overflow']
-        overflow = ' '
-        if overflow_setting == 'regular-to-indicator':
-            overflow = ' (R -> I)'
-        elif overflow_setting == 'indicator-to-regular':
-            overflow = ' (R <- I)'
-        elif overflow_setting == 'both':
-            overflow = ' (R <-> I)'
-
-        regular_style = "style='background: orange;'" if nbr_regular_guests > max_nbr_regular else ""
-        indicator_style = "style='background: orange;'" if nbr_indicator_guests > max_nbr_indicator else ""
-        display.append(f"{reg}{overflow}, <span style='background: aqua;'> regulier:</span> <span {regular_style}>{nbr_regular_guests}/{max_nbr_regular}</span>, "
-                       f"<span style='background: turquoise;'>indicator:</span> <span {indicator_style}>{nbr_indicator_guests}/{max_nbr_indicator}</span>")
-        # display.append(f"{reg}{overflow}, regulier: {nbr_regular_guests}/{max_nbr_regular}, indicator: {nbr_indicator_guests}/{max_nbr_indicator}")
+    for reg_label, register in status.items():
+        nbr_regular = mguest.get_guest_register_count(reg_label, indicator=False)
+        nbr_indicator = mguest.get_guest_register_count(reg_label, indicator=True)
+        nbr_ok = mguest.get_guest_register_count(reg_label, status='registered')
+        both_ok = nbr_regular + nbr_indicator <= register['max_regular'] + register['max_indicator']
+        if register['overflow']:
+            if register['overflow_both']:
+                regular_ok = both_ok
+                indicator_ok = both_ok
+                overflow_symbol = ' (R <-> I)'
+            elif register['overflow_i2r']:
+                regular_ok = both_ok and nbr_regular <= register['max_regular']
+                indicator_ok  = both_ok
+                overflow_symbol = ' (R <- I)'
+            else:
+                regular_ok = both_ok
+                indicator_ok = both_ok and nbr_indicator <= register['max_indicator']
+                overflow_symbol = ' (R -> I)'
+        else:
+            regular_ok = nbr_regular <= register['max_regular']
+            indicator_ok = nbr_indicator <= register['max_indicator']
+            overflow_symbol = ' '
+        overcount = nbr_ok - register['max_regular'] -register['max_indicator']
+        overcount_style = "style='background: lightcoral;'" if overcount > 0 else "style='background: lightgreen;'"
+        regular_style = "" if regular_ok else "style='background: Moccasin;'"
+        indicator_style = "" if indicator_ok else "style='background: Moccasin;'"
+        display.append(f"{reg_label}{overflow_symbol}, <span style='background: aqua;'> regulier:</span> "
+                       f"<span {overcount_style}>({overcount:+})</span> "
+                       f"<span {regular_style}>{nbr_regular}/{register['max_regular']}</span>, "
+                       f"<span style='background: turquoise;'>indicator:</span> "
+                       f"<span {indicator_style}>{nbr_indicator}/{register['max_indicator']}</span>")
     return display
 
 

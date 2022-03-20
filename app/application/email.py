@@ -95,17 +95,17 @@ def send_register_cancel(**kwargs):
             return False
         email_send_max_retries = msettings.get_configuration_setting('email-send-max-retries')
         if guest.email_tot_nbr_tx >= email_send_max_retries:
-            guest.set(Guest.SUBSCRIBE.E_ENABLED, False)
+            guest.enabled = False
             return False
-        guest.set(Guest.SUBSCRIBE.E_EMAIL_TOT_NBR_TX, guest.email_tot_nbr_tx + 1)
+        guest.email_tot_nbr_tx += 1
 
         email_subject = msettings.get_configuration_setting('cancel-mail-subject-template')
         email_content = msettings.get_configuration_setting('cancel-mail-content-template')
         log.info(f'"{email_subject}" to {guest.email}')
         ret = send_email(guest.email, email_subject, email_content)
         if ret:
-            guest.set(Guest.SUBSCRIBE.E_CANCEL_EMAIL_TX, True)
-            guest.set(Guest.SUBSCRIBE.E_CANCEL_NBR_TX, guest.cancel_nbr_tx + 1)
+            guest.set('cancel_email_tx', True)
+            guest.set('cancel_nbr_tx', guest.cancel_nbr_tx + 1)
             return ret
         return False
     except Exception as e:

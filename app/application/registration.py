@@ -430,6 +430,7 @@ def registration_update(code, data):
                 data['enabled'] = False
             if data['status'] == Guest.Status.E_REGISTERED or data['status'] == Guest.Status.E_WAITINGLIST:
                 data['enabled'] = True
+            log.info(f'{guest.child_last_name} {guest.child_first_name}, {guest.email} has changed status: {guest.status} -> {data["status"]}')
         if 'radio-timeslot' in data and data['radio-timeslot'] != '':
             timeslot = mformio.formiodate_to_datetime(data['radio-timeslot'])
             if timeslot != guest.timeslot and not _check_requested_timeslot(timeslot):

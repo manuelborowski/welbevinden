@@ -1,5 +1,6 @@
-import random, string, json, re
+import random, string, json, re, sys
 from app.data import utils as mutils, settings as msettings
+from app import log
 
 
 def datetime_to_dutch_datetime_string(date):
@@ -13,7 +14,8 @@ def create_random_string(len=32):
 def get_json_template(key):
     template_string = msettings.get_configuration_setting(key)
     if template_string == '':
-        raise Exception(f'Empty template: {key}')
+        template_string = '{}'
+        log.error(f'{sys._getframe().f_code.co_name}: Empty template: {key}')
     try:
         settings = json.loads(template_string)
     except json.JSONDecodeError as e:

@@ -53,19 +53,20 @@ def get_test_server():
 
 default_configuration_settings = {
     'generic-enable-send-ack-email': (False, Settings.SETTING_TYPE.E_BOOL),
+    'import-misc-fields': ('{}', Settings.SETTING_TYPE.E_STRING),
 
     'student-register-arm-send-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
-    'student-register-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'student-web-response-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'student-email-response-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'student-register-settings': ('', Settings.SETTING_TYPE.E_STRING),
+    'student-register-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'student-web-response-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'student-email-response-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'student-register-settings': ('{}', Settings.SETTING_TYPE.E_STRING),
 
     'timeslot-register-arm-send-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
-    'timeslot-register-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'timeslot-web-response-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'timeslot-email-response-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'timeslot-open-registration-at': ('', Settings.SETTING_TYPE.E_STRING),
-    'timeslot-config-timeslots-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'timeslot-register-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'timeslot-web-response-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'timeslot-email-response-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'timeslot-open-registration-at': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'timeslot-config-timeslots-template': ('{}', Settings.SETTING_TYPE.E_STRING),
     'timeslot-config-timeslots-is-flat': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),

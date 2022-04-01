@@ -8,7 +8,7 @@
           integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
     <link rel='stylesheet' href='https://cdn.form.io/formiojs/formio.full.min.css'>
     <link href="{{ url_for('static', filename = 'css/main.css') }}" rel="stylesheet">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='img/opendag.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/sui-subscribe.png') }}">
     {{ JSGlue.include() }}
     <style>
         html {
@@ -19,12 +19,12 @@
         body {
             height: 100%;
             margin: 0;
-            background-color: #ffc107b8;
+            background-color: rgba(7, 255, 226, 0.14);
         }
     </style>
 </head>
 <body>
-<img src="{{ url_for('static', filename='img/LogoCampus.png') }}" width="200" height="200" align="right"></a>
+<img src="{{ url_for('static', filename='img/sui-subscribe.png') }}" width="200" height="200" align="right"></a>
 {% block body %}
 {% endblock %}
 {% block footer %}

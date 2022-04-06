@@ -74,13 +74,16 @@ $(document).ready(function () {
 
     //Store locally in the client-browser
     function store_filter_settings() {
-        filters.forEach(f => {
-            filter_settings[f.name] = document.querySelector(`#${f.name} option:checked`).value
-        });
-        localStorage.setItem(`Filter-${view}`, JSON.stringify(filter_settings));
+        if (filters.length > 0) {
+            filters.forEach(f => {
+                filter_settings[f.name] = document.querySelector(`#${f.name} option:checked`).value
+            });
+            localStorage.setItem(`Filter-${view}`, JSON.stringify(filter_settings));
+        }
     }
 
     function load_filter_settings() {
+        if (filters.length === 0) return true;
         filter_settings = JSON.parse(localStorage.getItem(`Filter-${view}`));
         if (!filter_settings) {
             filter_settings = {};

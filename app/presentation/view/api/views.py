@@ -1,6 +1,7 @@
 from flask import request
 from . import api
 from app.application import registration as mregistration
+from app.data import settings as msettings
 import json
 
 
@@ -41,6 +42,9 @@ def timeslot_add():
 
 @api.route('/api/registers/info', methods=['POST', 'GET'])
 def registers_get_info():
-    ret = mregistration.register_cache.get_registers_info()
-    return(json.dumps(ret))
+    if msettings.use_register():
+        ret = mregistration.register_cache.get_registers_info()
+        return(json.dumps(ret))
+    else:
+        return(json.dumps({'status': False, 'data': 'register not used'}))
 

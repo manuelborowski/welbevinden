@@ -87,6 +87,14 @@ settings_formio = \
                 "key": "generic-translations",
                 "type": "textarea",
                 "input": true
+              },
+              {
+                "label": "View config template",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "generic-view-config-template",
+                "type": "textarea",
+                "input": true
               }
             ]
           }

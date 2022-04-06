@@ -106,6 +106,10 @@ flask_app.config.from_pyfile('config.py')
 # V0.75: settings: bugfix misc-settings and default settings for json-strings
 # V0.76: added translation-settings to translate a key to dutch
 # V0.77: push to github: sui-aanmelden.  Update logo's
+# V0.78: esthetic updates.  Made a split between: no register + multiple fields of study and multiple registers + single field of study.
+# Part of the datatables config-structure is now in settings so it can be changed easily.
+# Translations is a setting (JSON).  Cached part of the settings to speed up access.
+
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -123,7 +127,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.77', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.78', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

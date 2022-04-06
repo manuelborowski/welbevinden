@@ -140,21 +140,23 @@ def get_misc_fields(extra_fields, form):
 
 
 def get_filters():
-    register_settings = app.data.settings.get_json_template('student-register-settings')
-    choices = [['default', 'Alles']]
-    for reg, data in register_settings.items():
-        choices.append([f"{reg}-N", f"{reg}"])
-        choices.append([f"{reg}-R", f"{reg}-REGULIER"])
-        choices.append([f"{reg}-I", f"{reg}-INDICATOR"])
-    return [
-        {
-            'type': 'select',
-            'name': 'register',
-            'label': 'Register',
-            'choices': choices,
-            'default': 'default',
-        },
-    ]
+    if app.data.settings.use_register():
+        register_settings = app.data.settings.get_json_template('student-register-settings')
+        choices = [['default', 'Alles']]
+        for reg, data in register_settings.items():
+            choices.append([f"{reg}-N", f"{reg}"])
+            choices.append([f"{reg}-R", f"{reg}-REGULIER"])
+            choices.append([f"{reg}-I", f"{reg}-INDICATOR"])
+        return [
+            {
+                'type': 'select',
+                'name': 'register',
+                'label': 'Register',
+                'choices': choices,
+                'default': 'default',
+            },
+        ]
+    return []
 
 
 def get_show_gauges():
@@ -168,31 +170,6 @@ table_configuration = {
     'delete_message': 'Opgelet!!<br>'
                       'Bent u zeker om deze reservering(en) te verwijderen?<br>'
                       'Eens verwijderd kunnen ze niet meer worden terug gehaald.<br>',
-    'template': [
-        {'name': 'row_action', 'data': 'code', 'width': '1%', 'visible': 'never'},
-        {'name': 'Tijdstempel', 'data': 'register_timestamp_dutch', 'order_by': Guest.register_timestamp, 'orderable': True, 'width': '7%', 'visible': 'yes'},
-        {'name': 'Status', 'data': 'status', 'order_by': Guest.status, 'orderable': True, 'width': '3%', 'visible': 'yes',
-         "celledit": {"type": "select", "options": [["registered", "OK"], ["waiting-list", "WACHT"], ["unregistered", "UIT"]]}},
-        {'name': 'R', 'data': 'register', 'order_by': Guest.field_of_study, 'orderable': True, 'width': '2%', 'visible': 'yes'},
-        {'name': 'I', 'data': 'indicator_dutch', 'order_by': Guest.indicator, 'orderable': True, 'width': '1%', 'className': 'dt-center', 'visible': 'yes'},
-        {'name': 'Nr', 'data': 'sequence_counter', 'order_by': Guest.register_timestamp, 'orderable': True, 'width': '1%', 'visible': 'yes'},
-        {'name': 'Tijdslot', 'data': 'timeslot_dutch_short', 'order_by': Guest.timeslot, 'orderable': True, 'width': '8%', 'visible': 'yes'},
-        {'name': 'Email', 'data': 'email', 'order_by': Guest.email, 'orderable': True, 'width': '12%', 'visible': 'yes'},
-        {'name': 'Naam', 'data': 'full_name', 'order_by': Guest.child_last_name, 'orderable': True, 'width': '6%', 'visible': 'no'},
-        {'name': 'Kind', 'data': 'child_name', 'order_by': Guest.child_first_name, 'orderable': True, 'width': '6%', 'visible': 'yes'},
-        {'name': 'Geboortedatum', 'data': 'date_of_birth_dutch', 'order_by': Guest.date_of_birth, 'orderable': True, 'width': '6%', 'visible': 'yes'},
-        {'name': 'Telefoon', 'data': 'phone', 'order_by': Guest.phone, 'orderable': True, 'width': '6%', 'visible': 'no'},
-        {'name': 'Prioriteit', 'data': 'reason_priority', 'order_by': Guest.reason_priority, 'orderable': True, 'width': '2%', 'visible': 'no'},
-        {'name': 'Notitie', 'data': 'note', 'order_by': Guest.note, 'orderable': True, 'width': '20%', 'celledit': {"type": 'text-confirmkey'}, 'visible': 'no'},
-        {'name': 'R', 'data': 'reg_ack_email_tx', 'order_by': Guest.reg_ack_email_tx, 'width': '1%', 'celledit': {"type": 'toggle'}, 'visible': 'yes'},
-        {'name': 'R', 'data': 'reg_ack_nbr_tx', 'order_by': Guest.reg_ack_nbr_tx, 'celledit': {"type": 'int-confirmkey'}, 'width': '1%', 'visible': 'yes'},
-        {'name': 'T', 'data': 'tsl_ack_email_tx', 'order_by': Guest.reg_ack_email_tx, 'width': '1%', 'celledit': {"type": 'toggle'}, 'visible': 'yes'},
-        {'name': 'T', 'data': 'tsl_ack_nbr_tx', 'order_by': Guest.tsl_ack_email_tx, 'celledit': {"type": 'int-confirmkey'}, 'width': '1%', 'visible': 'yes'},
-        {'name': 'C', 'data': 'cancel_email_tx', 'order_by': Guest.cancel_email_tx, 'width': '1%', 'celledit': {"type": 'toggle'}, 'visible': 'no'},
-        {'name': 'C', 'data': 'cancel_nbr_tx', 'order_by': Guest.cancel_nbr_tx, 'celledit': {"type": 'int-confirmkey'}, 'width': '1%', 'visible': 'no'},
-        {'name': 'A', 'data': 'enabled', 'order_by': Guest.enabled, 'width': '1%', 'celledit': {"type": 'toggle'}, 'visible': 'yes'},
-        {'name': 'T', 'data': 'email_tot_nbr_tx', 'order_by': Guest.email_tot_nbr_tx, 'orderable': True, 'celledit': {"type": 'int-confirmkey'}, 'width': '1%', 'visible': 'no'},
-    ],
     'get_filters': get_filters,
     'get_show_info': get_show_gauges,
     'item': {

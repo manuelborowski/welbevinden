@@ -20,7 +20,7 @@ class Settings(db.Model):
     name = db.Column(db.String(256))
     value = db.Column(db.Text)
     type = db.Column(db.String(256))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'))
+    user_id = db.Column(db.Integer)
 
     UniqueConstraint('name', 'user_id')
 
@@ -78,6 +78,7 @@ def get_test_server():
 default_configuration_settings = {
     'generic-enable-send-ack-email': (False, Settings.SETTING_TYPE.E_BOOL),
     'generic-translations': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'generic-view-config-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 
     'student-register-arm-send-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
     'student-register-template': ('{}', Settings.SETTING_TYPE.E_STRING),
@@ -116,7 +117,8 @@ def set_configuration_setting(setting, value):
         value = default_configuration_settings[setting][0]
     ret = set_setting(setting, value, 1)
     if setting in setting_changed_cb:
-        setting_changed_cb[setting][0](value, setting_changed_cb[setting][1])
+        for cb in setting_changed_cb[setting]:
+            cb[0](value, cb[1])
     return ret
 
 
@@ -131,16 +133,13 @@ def get_configuration_setting(setting):
 
 
 setting_changed_cb = {}
-
-
 def subscribe_setting_changed(setting, cb, opaque):
-    setting_changed_cb[setting] = (cb, opaque)
+    if setting in setting_changed_cb:
+        setting_changed_cb[setting].append((cb, opaque))
+    else:
+        setting_changed_cb[setting] = [(cb, opaque)]
     return True
 
-
-def get_translations(key):
-    translations = get_json_template('generic-translations')
-    return translations[key] if key in translations else {}
 
 # save settings which are not in the database yet
 # get_configuration_settings()
@@ -164,3 +163,42 @@ def set_json_template(key, data):
         return set_configuration_setting(key, template_string)
     except json.JSONDecodeError as e:
         raise Exception(f'Template has invalid JSON syntax: {key}, {data}, {e}')
+
+settings_cache = {}
+def cache_settings():
+    try:
+        global settings_cache
+        settings_cache = {
+            'use_register': len(get_json_template('student-register-settings')) > 0,
+            'translations': get_json_template('generic-translations'),
+            'view_config_template': get_json_template('generic-view-config-template'),
+        }
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+cache_settings()
+
+subscribe_setting_changed('generic-view-config-template', lambda x, y: cache_settings(), None)
+subscribe_setting_changed('student-register-settings', lambda x, y: cache_settings(), None)
+subscribe_setting_changed('generic-translations', lambda x, y: cache_settings(), None)
+
+def use_register():
+    return settings_cache['use_register']
+
+def get_translations(key):
+    try:
+        return settings_cache['translations'][key]
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {}
+
+
+def get_view_config_template(key):
+    try:
+        return settings_cache['view_config_template'][key]
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {}
+
+
+

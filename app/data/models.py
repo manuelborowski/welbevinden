@@ -66,7 +66,6 @@ class User(UserMixin, db.Model):
     level = db.Column(db.Integer)
     user_type = db.Column(db.String(256))
     last_login = db.Column(db.DateTime())
-    settings = db.relationship('Settings', cascade='all, delete', backref='user', lazy='dynamic')
 
     @property
     def is_local(self):
@@ -235,8 +234,6 @@ class Guest(db.Model):
         'postal_code': self.postal_code,
         'note': self.note,
         'national_registration_number': self.national_registration_number,
-        'field_of_study': self.field_of_study,
-        'field_of_study_dutch': field_of_study_to_dutch[self.field_of_study],
         'register': self.field_of_study.split('-')[0],
         'indicator': self.indicator,
         'indicator_dutch': 'I' if self.indicator else '',
@@ -255,6 +252,17 @@ class Guest(db.Model):
         'child_name': f"{self.child_last_name} {self.child_first_name}",
         'overwrite_cell_color': []
         }
+        if msettings.use_register():
+            flat.update({
+                'field_of_study': self.field_of_study,
+                'field_of_study_dutch': msettings.get_translations('field_of_study')[self.field_of_study],
+            })
+        else:
+            field_of_study_dutch = ''
+            fields = json.loads(self.field_of_study)
+            for field in fields:
+                field_of_study_dutch += msettings.get_translations('field_of_study')[field] + '<br>'
+            flat.update({'field_of_study_dutch': field_of_study_dutch})
         misc_field = json.loads(self.misc_field) if self.misc_field else ''
         flat.update(misc_field)
         return flat

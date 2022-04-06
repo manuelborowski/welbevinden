@@ -1,5 +1,5 @@
 from flask import request
-from sqlalchemy import or_
+from sqlalchemy import or_, desc
 import time, json
 from app import log, data
 
@@ -91,9 +91,9 @@ def prepare_data_for_ajax(table_configuration, paginate=True):
                 # order the table via the SQL query based on a specified table-column
                 if isinstance(order_by, list):
                     for i in order_by:
-                        sql_query = sql_query.order_by(i.desc()) if order_direction == 'desc' else sql_query.order_by(i)
+                        sql_query = sql_query.order_by(desc(i)) if order_direction == 'desc' else sql_query.order_by(i)
                 else:
-                    sql_query = sql_query.order_by(order_by.desc()) if order_direction == 'desc' else sql_query.order_by(order_by)
+                    sql_query = sql_query.order_by(desc(order_by)) if order_direction == 'desc' else sql_query.order_by(order_by)
                 # if it is a composed query, execute the composed query
                 # else if it is a flat query, paginate in SQL and do SQL query
                 if composed_query:

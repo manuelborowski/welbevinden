@@ -21,10 +21,16 @@
             margin: 0;
             background-color: rgba(7, 255, 226, 0.14);
         }
+        .panel-field-of-study .row > div {
+            border-color: #0088cc;
+            border-style: solid;
+            border-width: 1px;
+            padding-right: 0;
+        }
     </style>
 </head>
 <body>
-<img src="{{ url_for('static', filename='img/sui-subscribe.png') }}" width="200" height="200" align="right"></a>
+<img src="{{ url_for('static', filename='img/sui-subscribe.png') }}" width="200" align="right"></a>
 {% block body %}
 {% endblock %}
 {% block footer %}

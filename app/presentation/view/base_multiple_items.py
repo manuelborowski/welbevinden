@@ -1,3 +1,4 @@
+from app.data import settings as msettings
 from app.presentation.layout.utils import flash_plus
 from app.application.multiple_items import prepare_data_for_ajax
 from app.application import tables
@@ -6,6 +7,7 @@ from flask import render_template, request, get_flashed_messages, jsonify
 
 def ajax(table_configuration):
     try:
+        table_configuration['template'] = msettings.get_view_config_template(table_configuration['view'])
         data_list, total_count, filtered_count = prepare_data_for_ajax(table_configuration)
         datatable = format_datatable(table_configuration, data_list, total_count, filtered_count)
     except Exception as e:
@@ -26,6 +28,7 @@ def show(table_configuration):
     show_info = []
     config = None
     try:
+        table_configuration['template'] = msettings.get_view_config_template(table_configuration['view'])
         if 'get_filters' in table_configuration:
             filters = table_configuration['get_filters']()
         config = tables.prepare_config_table_for_view(table_configuration)

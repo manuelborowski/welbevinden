@@ -11,22 +11,7 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/sui-subscribe.png') }}">
     {{ JSGlue.include() }}
     <style>
-        html {
-            height: 100%;
-            margin: 0;
-        }
-
-        body {
-            height: 100%;
-            margin: 0;
-            background-color: rgba(7, 255, 226, 0.14);
-        }
-        .panel-field-of-study .row > div {
-            border-color: #0088cc;
-            border-style: solid;
-            border-width: 1px;
-            padding-right: 0;
-        }
+        {{ base_style }}
     </style>
 </head>
 <body>

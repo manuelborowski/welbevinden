@@ -89,10 +89,19 @@ settings_formio = \
                 "input": true
               },
               {
-                "label": "View config template",
+                "label": "Datatable configure columns",
                 "autoExpand": false,
                 "tableView": true,
                 "key": "generic-view-config-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "Registration pages extra CSS",
+                "autoExpand": false,
+                "tableView": true,
+                "persistent": false,
+                "key": "generic-registration-extra-css",
                 "type": "textarea",
                 "input": true
               }

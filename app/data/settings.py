@@ -79,6 +79,7 @@ default_configuration_settings = {
     'generic-enable-send-ack-email': (False, Settings.SETTING_TYPE.E_BOOL),
     'generic-translations': ('{}', Settings.SETTING_TYPE.E_STRING),
     'generic-view-config-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'generic-registration-extra-css': ('{}', Settings.SETTING_TYPE.E_STRING),
 
     'student-register-arm-send-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
     'student-register-template': ('{}', Settings.SETTING_TYPE.E_STRING),

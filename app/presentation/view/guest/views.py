@@ -1,4 +1,6 @@
 from flask import render_template, request
+
+import app.data.settings
 from . import guest
 from app import log
 from app.application import email as memail, registration as mregistration
@@ -48,7 +50,8 @@ def register():
         current_url = request.url
         current_url = re.sub(f'{request.url_rule.rule}.*', '', current_url)
         memail.set_base_url(current_url)
-        return render_template('guest/render_formio.html', data={"form": "register", "get_form_endpoint": "guest.get_form"})
+        base_style = app.data.settings.get_configuration_setting('generic-registration-extra-css')
+        return render_template('guest/render_formio.html', data={"form": "register", "get_form_endpoint": "guest.get_form"}, base_style=base_style)
     except Exception as e:
         message = f'could not display registration form {request.args}: {e}'
         log.error(message)
@@ -58,9 +61,10 @@ def register():
 @guest.route('/guest/get_confirmation_document', methods=['POST', 'GET'])
 def get_confirmation_document():
     try:
+        base_style = app.data.settings.get_configuration_setting('generic-registration-extra-css')
         return render_template('guest/render_formio.html', data={"form": "confirmation-document",
                                                                  "extra": request.values["code"],
-                                                                 "get_form_endpoint": "guest.get_form"})
+                                                                 "get_form_endpoint": "guest.get_form"}, base_style=base_style)
     except Exception as e:
         message = f'could not get confirmation document form {request.args}: {e}'
         log.error(message)
@@ -71,10 +75,11 @@ def get_confirmation_document():
 def register_timeslot():
     try:
         code = request.values['code'] if 'code' in request.values else ""
+        base_style = app.data.settings.get_configuration_setting('generic-registration-extra-css')
         return render_template('guest/render_formio.html',
                                data={"form": "timeslot",
                                      "get_form_endpoint": "guest.get_form",
-                                     "extra": code})
+                                     "extra": code}, base_style=base_style)
     except Exception as e:
         message = f'could not display timeslot registration form {request.args}: {e}'
         log.error(message)

@@ -110,6 +110,7 @@ flask_app.config.from_pyfile('config.py')
 # Part of the datatables config-structure is now in settings so it can be changed easily.
 # Translations is a setting (JSON).  Cached part of the settings to speed up access.
 # V0.79: guest registration pages: extra css stored in settings
+# V0.80: update in user-view
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -127,7 +128,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.79', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.80', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

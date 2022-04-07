@@ -164,16 +164,6 @@ configuration = {
     'title': 'Gebruikers',
     'buttons': ['delete', 'add', 'edit', 'view'],
     'delete_message': u'Wilt u deze gebruiker(s) verwijderen?',
-    'template': [
-        {'name': 'row_action', 'data': 'row_action', 'width': '2%', 'visible': 'never'},
-        {'name': 'Gebruikersnaam', 'data': 'username', 'order_by': User.username, 'orderable': True, 'visible': 'yes'},
-        {'name': 'Voornaam', 'data': 'first_name', 'order_by': User.first_name, 'orderable': True, 'visible': 'yes'},
-        {'name': 'Naam', 'data': 'last_name', 'order_by': User.last_name, 'orderable': True, 'visible': 'yes'},
-        {'name': 'Email', 'data': 'email', 'order_by': User.email, 'orderable': True, 'visible': 'yes'},
-        {'name': 'Type', 'data': 'user_type', 'order_by': User.user_type, 'orderable': True, 'visible': 'yes'},
-        {'name': 'Login', 'data': 'last_login', 'order_by': User.last_login, 'orderable': True, 'visible': 'yes'},
-        {'name': 'Niveau', 'data': 'level', 'order_by': User.level, 'orderable': True, 'visible': 'yes'},
-    ],
     'filter': [],
     'item': {
         'edit': {'title': 'Wijzig een gebruiker', 'buttons': ['save', 'cancel']},

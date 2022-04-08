@@ -112,6 +112,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.79: guest registration pages: extra css stored in settings
 # V0.80: update in user-view
 # V0.81: add logo to git
+# V0.82: lowered werkzeug loglevel to get rid of traces.  Bugfixed socketio
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -129,7 +130,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.81', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.82', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -154,6 +155,9 @@ class MyLogFilter(logging.Filter):
 
 
 # set up logging
+log_werkzeug = logging.getLogger('werkzeug')
+log_werkzeug.setLevel(logging.ERROR)
+
 LOG_FILENAME = os.path.join(sys.path[0], app_config[config_name].STATIC_PATH, f'log/{flask_app.config["LOG_FILE"]}.txt')
 try:
     log_level = getattr(logging, app_config[config_name].LOG_LEVEL)

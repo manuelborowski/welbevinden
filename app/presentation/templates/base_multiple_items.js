@@ -315,13 +315,7 @@ $(document).ready(function () {
 
     function cell_edit_changed_cb(cell, row, old_value) {
         const column = cell.index().column;
-        switch (config_columns[column].celledit) {
-            case 'int':
-                value = parseInt(cell.data());
-                break;
-            default:
-                value = cell.data();
-        }
+        value = config_columns[column].celledit.type.includes('int') ? parseInt(cell.data()) :  cell.data();
         data = { id: row.data().DT_RowId, column, value}
         update_cell_changed(data);
     }

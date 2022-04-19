@@ -334,9 +334,16 @@ def registration_add(data):
 
         translations = app.data.settings.get_translations('field_of_study')
         field_of_study = []
+        #multiple select buttons on the form, each selected button is in 'data"
         for k, v in translations.items():
             if k in data and data[k]:
                 field_of_study.append(k)
+        #multiselect components on the form, each selected item is in a list, named after the component
+        if 'multiselect-field-of-study' in data and data['multiselect-field-of-study']:
+            for _, selections in data['multiselect-field-of-study'].items():
+                for selection in selections:
+                    field_of_study.append(selection)
+
         data['field_of_study'] = json.dumps(field_of_study)
 
         if 'pre_register' in data and data['pre_register']:
@@ -387,6 +394,8 @@ def registration_add(data):
         data['code'] = mutil.create_random_string()
         data['register_timestamp'] = datetime.datetime.now()
         guest = mguest.add_guest(data)
+        if not guest:
+            return {"status": False, "data": f'fout, kan registratie niet vervolledigen'}
         registration_ok = register_cache.add_guest(guest) if msettings.use_register() else True
         mguest.update_guest(guest, {'status': guest.Status.E_REGISTERED if registration_ok else guest.Status.E_WAITINGLIST})
         log.info(f"New registration: {guest.email}, {data}")

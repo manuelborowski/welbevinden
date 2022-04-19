@@ -15,6 +15,7 @@ def add_guest(data):
         db.session.commit()
         return guest
     except Exception as e:
+        db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
@@ -102,6 +103,7 @@ def update_guest(guest, data={}):
         db.session.commit()
         return guest
     except Exception as e:
+        db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
@@ -113,6 +115,7 @@ def delete_guest(codes=None):
             db.session.delete(guest)
         db.session.commit()
     except Exception as e:
+        db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 

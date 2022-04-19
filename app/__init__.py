@@ -115,6 +115,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.82: lowered werkzeug loglevel to get rid of traces.  Bugfixed socketio
 # V0.83: bugfixed cell_edit in datatables.  Added comment to start uwsgi from commandline
 # V0.84: update in uwsgi logging
+# V0.85: updated logo.  Handle commit-exception.  Registration: introduced multiselect to select fields-of-study
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -132,7 +133,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.84', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.85', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

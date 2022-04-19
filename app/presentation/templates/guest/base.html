@@ -12,10 +12,19 @@
     {{ JSGlue.include() }}
     <style>
         {{ base_style }}
+
+        #logo {
+            width: 200px;
+        }
+        @media (max-width: 500px) {
+            #logo {
+                width: 75px;
+            }
+        }
     </style>
 </head>
 <body>
-<img src="{{ url_for('static', filename='img/sui-subscribe.png') }}" width="200" align="right"></a>
+<img id="logo" src="{{ url_for('static', filename='img/LogoSUI-medium.png') }}" align="right"></a>
 {% block body %}
 {% endblock %}
 {% block footer %}

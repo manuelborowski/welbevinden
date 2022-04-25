@@ -1,8 +1,15 @@
 from flask import request
 from . import api
-from app.application import registration as mregistration
+from app.application import registration as mregistration, student as mstudent
 from app.data import settings as msettings
 import json
+
+
+@api.route('/api/student/add', methods=['POST'])
+def student_add():
+    data = json.loads(request.data)
+    ret = mstudent.add_student(data)
+    return(json.dumps(ret))
 
 
 @api.route('/api/register/add', methods=['POST', 'GET'])

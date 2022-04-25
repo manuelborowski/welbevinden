@@ -103,14 +103,26 @@ $(document).ready(function () {
     );
 
     //column-name to column-index
-    column_name_to_index = {}
+    column_name_to_index = {};
 
-    //ellipsis
+    config_columns_cache = {}; //'data' is key, add sequence-number
     $.each(config_columns, function (i, v) {
-        if ("render" in v) {
-            var cuttoff = v.render.cuttoff;
-            var wordbreak = v.render.wordbreak;
-            v.render = $.fn.dataTable.render.ellipsis(cuttoff, wordbreak, true);
+        v.idx = i
+        config_columns_cache[v.data] = v;
+    });
+
+    $.each(config_columns, function (i, v) {
+        //ellipsis
+        if ("ellipsis" in v) {
+            var cutoff = v.ellipsis.cutoff;
+            var wordbreak = v.ellipsis.wordbreak;
+            v.render = $.fn.dataTable.render.ellipsis(cutoff, wordbreak, true);
+        } else if ("bool" in v) {
+            v.render = function (data, type, full, meta) {
+                return  data === true ?`<input type="checkbox" checked disabled/>` : '';
+                // let is_checked = data === true ? "checked" : "";
+                // return `<input type="checkbox" ${is_checked}/>`;
+            };
         }
         column_name_to_index[v.data] = i;
     });
@@ -257,14 +269,18 @@ $(document).ready(function () {
     if (!column_visible_settings || column_visible_settings.length !== config_columns.length) {
         column_visible_settings = []
         config_columns.forEach((column, i) => {
-            column_visible_settings.push({name: column.name, visible: column.visible});
+            column_visible_settings.push({data: column.data, visible: column.visible});
         });
         localStorage.setItem(`ColumnsVisible-${view}`, JSON.stringify(column_visible_settings));
     }
     column_visible_settings.forEach((column, i) => {
         if (column.visible !== 'never') {
+            const config_column = config_columns_cache[column.data];
             let a = document.createElement('p');
-            a.appendChild(document.createTextNode(`${column.name}`));
+            a.appendChild(document.createTextNode(`${config_column.name}`));
+            if ('tt' in config_column) {
+                a.setAttribute("title", config_column.tt);
+            }
             a.setAttribute("data-column", i);
             a.setAttribute("class", column.visible === 'yes' ? "column-visible-a": "column-invisible-a")
             table.column(i).visible(column.visible === 'yes');

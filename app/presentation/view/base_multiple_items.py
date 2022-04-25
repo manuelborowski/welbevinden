@@ -16,7 +16,7 @@ def ajax(table_configuration):
     return datatable
 
 
-def update(table_configuration, fields):
+def update(table_configuration, fields=[]):
     for field in fields:
         extra_field = {'name': field, 'data': field, 'width': '15%'}
         if extra_field in table_configuration['template']: continue

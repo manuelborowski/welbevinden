@@ -116,6 +116,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.83: bugfixed cell_edit in datatables.  Added comment to start uwsgi from commandline
 # V0.84: update in uwsgi logging
 # V0.85: updated logo.  Handle commit-exception.  Registration: introduced multiselect to select fields-of-study
+# 86: add students (model, datatables).  Added tooltips in datatables
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -133,7 +134,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.85', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.86', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -159,7 +160,8 @@ class MyLogFilter(logging.Filter):
 
 # set up logging
 log_werkzeug = logging.getLogger('werkzeug')
-log_werkzeug.setLevel(logging.ERROR)
+log_werkzeug.setLevel(flask_app.config['WERKZEUG_LOG_LEVEL'])
+# log_werkzeug.setLevel(logging.ERROR)
 
 LOG_FILENAME = os.path.join(sys.path[0], app_config[config_name].STATIC_PATH, f'log/{flask_app.config["LOG_FILE"]}.txt')
 try:
@@ -232,13 +234,14 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings, guest, registration, timeslot, api, warning
+    from app.presentation.view import auth, user, settings, guest, registration, timeslot, api, warning, student
     flask_app.register_blueprint(api.api)
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(guest.guest)
     flask_app.register_blueprint(settings.settings)
     flask_app.register_blueprint(registration.registration)
+    flask_app.register_blueprint(student.student)
     flask_app.register_blueprint(timeslot.timeslot)
     flask_app.register_blueprint(warning.warning)
 

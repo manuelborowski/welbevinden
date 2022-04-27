@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.min.css"/>
     <link rel='stylesheet' href='https://cdn.form.io/formiojs/formio.full.min.css'>
     <link href="{{ url_for('static', filename = 'css/main.css') }}" rel="stylesheet">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='img/sui-subscribe.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/zorg.png') }}">
     {% block styles %} {% endblock %}
     {{ JSGlue.include() }}
 </head>
@@ -29,15 +29,6 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('student.show') }}">Studenten</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('registration.show') }}">Registraties</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('timeslot.show') }}">Tijdsloten</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('warning.show') }}">Waarschuwingen</a>
-                </li>
                 {% if  current_user.is_at_least_admin %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('user.show') }}">Gebruikers</a>
@@ -45,9 +36,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('settings.show') }}">Instellingen</a>
                     </li>
-                <li class="nav-item">
-                    <a class="nav-link" target="_blank" href="/static/opendag help.htm">Help</a>
-                </li>
                 {% endif %}
             {% endif %}
             </ul>

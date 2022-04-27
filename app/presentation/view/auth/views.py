@@ -27,7 +27,7 @@ def login():
                 utils.flash_plus(u'Fout in database', e)
                 return redirect(url_for('auth.login'))
             # Ok, continue
-            return redirect(url_for('registration.show'))
+            return redirect(url_for('student.show'))
         else:
             utils.flash_plus(u'Ongeldige gebruikersnaam of paswoord')
             log.error(u'Invalid username/password')

@@ -213,7 +213,7 @@ table.dataTable tbody td {
     border: none;
 }
 
-@media (min-width: 1200px) {.container {
+@media (min-width: 1200px) {.container-form {
         max-width: 100%;
     }
 }

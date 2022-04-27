@@ -119,6 +119,7 @@ flask_app.config.from_pyfile('config.py')
 # 86: add students (model, datatables).  Added tooltips in datatables
 # V0.87: typos.  Make code more generic.  Issue with formio datetime (don't use).  Student registration; backup regularly in local storage
 # V0.88; update navbar, icon and backgroundpicture
+# V0.89: add student: insert current datetime.  Delete students
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -137,7 +138,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.88', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.89', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

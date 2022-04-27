@@ -2,7 +2,7 @@ from app import log
 from app.data import student as mstudent
 import app.data.settings
 from app.application import formio as mformio
-import sys
+import sys, datetime
 
 def add_student(data):
     try:
@@ -47,11 +47,17 @@ def save_student(data):
         return {"status": False, "data": f'generic error {e}'}
 
 
+def delete_students(ids):
+    mstudent.delete_students(ids)
+
+
 ############## formio forms #############
 def prepare_add_registration_form():
     try:
         template = app.data.settings.get_json_template('student-register-template')
-        return {'template': template}
+        now = datetime.datetime.now()
+        return {'template': template,
+                'defaults': {'i_intake_date': mformio.datetime_to_datetimestring(now)}}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         raise e

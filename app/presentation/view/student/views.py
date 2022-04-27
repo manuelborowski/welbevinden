@@ -74,10 +74,10 @@ def get_form():
 
 def item_delete():
     try:
-        chbx_code_list = request.form.getlist('chbx')
-        # mregistration.registration_delete(chbx_code_list)
+        chbx_id_list = request.form.getlist('chbx')
+        mstudent.delete_students(chbx_id_list)
     except Exception as e:
-        log.error(f'could not delete guest {request.args}: {e}')
+        log.error(f'could not delete student {request.args}: {e}')
     return redirect(url_for('student.show'))
 
 

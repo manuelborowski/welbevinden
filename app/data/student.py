@@ -102,6 +102,18 @@ def update_student(student, data={}):
     return None
 
 
+def delete_students(ids=None):
+    try:
+        for id in ids:
+            student = get_first_student({"id": id})
+            db.session.delete(student)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
+
 def get_students(data={}, special={}, order_by=None, first=False, count=False):
     try:
         q = Student.query

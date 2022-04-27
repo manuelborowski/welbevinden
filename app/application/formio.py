@@ -186,6 +186,11 @@ def formiodate_to_date(formio_date):
     return date.date()
 
 
+def datetime_to_datetimestring(date):
+    string = datetime.datetime.strftime(date, '%d/%m/%Y %H:%M')
+    return string
+
+
 def datetime_to_formio_datetime(date):
     string = f"{datetime.datetime.strftime(date, '%Y-%m-%dT%H:%M')}:00+01:00"
     return string

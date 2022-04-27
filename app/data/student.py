@@ -1,11 +1,13 @@
 import sys
 from app import log, db
-from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy_serializer import SerializerMixin
 
 
 class Student(db.Model, SerializerMixin):
     __tablename__ = 'students'
+
+    date_format = '%d/%m/%Y'
+    datetime_format = '%d/%m/%Y %H:%M'
 
     id = db.Column(db.Integer, primary_key=True)
     #student
@@ -45,8 +47,8 @@ class Student(db.Model, SerializerMixin):
     dcd = db.Column(db.Text, default='')
     f_hoogbegaafd = db.Column(db.Boolean, default=False)
     hoogbegaafd = db.Column(db.Text, default='')
-    f_discalculie = db.Column(db.Boolean, default=False)
-    discalculie = db.Column(db.Text, default='')
+    f_dyscalculie = db.Column(db.Boolean, default=False)
+    dyscalculie = db.Column(db.Text, default='')
     f_dyslexie = db.Column(db.Boolean, default=False)
     dyslexie = db.Column(db.Text, default='')
     f_dysorthografie = db.Column(db.Boolean, default=False)
@@ -86,6 +88,50 @@ def add_student(data = {}):
     return None
 
 
+def update_student(student, data={}):
+    try:
+        for k, v in data.items():
+            if hasattr(student, k):
+                if getattr(Student, k).expression.type.python_type == type(v):
+                    setattr(student, k, v.strip() if isinstance(v, str) else v)
+        db.session.commit()
+        return student
+    except Exception as e:
+        db.session.rollback()
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
+
+def get_students(data={}, special={}, order_by=None, first=False, count=False):
+    try:
+        q = Student.query
+        for k, v in data.items():
+            if hasattr(Student, k):
+                q = q.filter(getattr(Student, k) == v)
+        if order_by:
+            q = q.order_by(getattr(Student, order_by))
+        if first:
+            guest = q.first()
+            return guest
+        if count:
+            return q.count()
+        guests = q.all()
+        return guests
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
+
+def get_first_student(data={}):
+    try:
+        guest = get_students(data, first=True)
+        return guest
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
+
+
 ############ student overview list #########
 def pre_filter():
     return db.session.query(Student)
@@ -99,5 +145,5 @@ def search_data(search_string):
     search_constraints = []
     search_constraints.append(Student.s_first_name.like(search_string))
     search_constraints.append(Student.s_last_name.like(search_string))
-
+    return search_constraints
 

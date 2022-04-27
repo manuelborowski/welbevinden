@@ -62,10 +62,12 @@ def prepare_for_edit(form, flat={}):
 
     iterate_components_cb(form, cb)
     iframe = search_component(form, 'container-iframe-document')
-    fill_in_tags(iframe, flat)
-    iframe['hidden'] = False
+    if iframe:
+        fill_in_tags(iframe, flat)
+        iframe['hidden'] = False
     timeslots = search_component(form, 'radio-timeslots')
-    timeslots['hidden'] = False
+    if timeslots:
+        timeslots['hidden'] = False
     return form
 
 
@@ -144,18 +146,36 @@ def iterate_components(form):
         else:
             yield component
 
+def datetimestring_to_datetime(date_in):
+    try:
+        date_out = datetime.datetime.strptime(date_in, '%d/%m/%Y %H:%M')
+        return date_out
+    except:
+        return None
 
 
-
-def formiodate_to_datetime(formio_date):
-    date_time = datetime.datetime.strptime(formio_date.split('+')[0], '%Y-%m-%dT%H:%M:%S')
-    # date_time = datetime.datetime.strptime(':'.join(formio_date.split(':')[:2]), '%d/%m/%YT%H:%M')
-    return date_time
-
+def datestring_to_date(date_in):
+    try:
+        date_out = datetime.datetime.strptime(date_in, '%d/%m/%Y')
+        return date_out.date()
+    except:
+        return None
 
 
 # formio returns:
 # 2022-3-4T13:34:23+02:00 OR SOMETIMES
+# 2022-3-4T13:34:23.000Z OR SOMETIMES
+# 2022-3-4 OR SOMETIMES
+# 4/3/2022.  WHO KNOWS WHY???
+def formiodate_to_datetime(formio_date):
+    split_code = '.' if '.' in formio_date else '+'
+    date_time = datetime.datetime.strptime(formio_date.split(split_code)[0], '%Y-%m-%dT%H:%M:%S')
+    return date_time
+
+
+# formio returns:
+# 2022-3-4T13:34:23+02:00 OR SOMETIMES
+# 2022-3-4T13:34:23.000Z OR SOMETIMES
 # 2022-3-4 OR SOMETIMES
 # 4/3/2022.  WHO KNOWS WHY???
 def formiodate_to_date(formio_date):
@@ -163,7 +183,7 @@ def formiodate_to_date(formio_date):
         date = datetime.datetime.strptime(formio_date.split('T')[0], "%Y-%m-%d")
     except:
         date = datetime.datetime.strptime(formio_date, "%d/%m/%Y")
-    return date
+    return date.date()
 
 
 def datetime_to_formio_datetime(date):

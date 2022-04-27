@@ -4,11 +4,25 @@ from app.application import registration as mregistration, student as mstudent
 from app.data import settings as msettings
 import json
 
-
+# student does not exist yet
 @api.route('/api/student/add', methods=['POST'])
 def student_add():
     data = json.loads(request.data)
     ret = mstudent.add_student(data)
+    return(json.dumps(ret))
+
+#student does exist
+@api.route('/api/student/update', methods=['POST'])
+def student_update():
+    data = json.loads(request.data)
+    ret = mstudent.update_student(data)
+    return(json.dumps(ret))
+
+#if student does not exist, add else update
+@api.route('/api/student/save', methods=['POST'])
+def student_save():
+    data = json.loads(request.data)
+    ret = mstudent.save_student(data)
     return(json.dumps(ret))
 
 

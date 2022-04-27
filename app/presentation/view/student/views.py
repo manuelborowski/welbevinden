@@ -6,7 +6,7 @@ from flask import redirect, url_for, request, render_template
 from flask_login import login_required
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus, button_pressed
-from app.data import student as mstudent
+from app.application import student as mstudent
 from app.application import socketio as msocketio, student as mregistration, settings as msettings, util as mutil
 from app.data.models import Guest
 import sys, datetime
@@ -51,18 +51,18 @@ def table_action():
 def get_form():
     try:
         if request.values['form'] == 'edit':
-            data = mregistration.prepare_edit_registration_form(request.values['extra'])
+            data = mstudent.prepare_edit_registration_form(request.values['extra'])
             data.update({
-                'post_data_endpoint': 'api.register_update',
+                'post_data_endpoint': 'api.student_update',
                 'submit_endpoint': 'student.show',
-                'cancel_endpoint': 'student.show'
+                'cancel_endpoint': 'student.show',
             })
         elif request.values['form'] == 'add':
-            data = mregistration.prepare_add_registration_form()
+            data = mstudent.prepare_add_registration_form()
             data.update({
-                'post_data_endpoint': 'api.register_add',
+                'post_data_endpoint': 'api.student_add',
                 'submit_endpoint': 'student.show',
-                'cancel_endpoint': 'student.show'
+                'cancel_endpoint': 'student.show',
             })
         else:
             return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
@@ -83,14 +83,14 @@ def item_delete():
 
 def item_edit():
     try:
-        chbx_code_list = request.form.getlist('chbx')
-        if chbx_code_list:
-            code = chbx_code_list[0]  # only the first one can be edited
-        if code == '':
+        chbx_id_list = request.form.getlist('chbx')
+        if chbx_id_list:
+            id = chbx_id_list[0]  # only the first one can be edited
+        if id == '':
             return redirect(url_for('student.show'))
         return render_template('render_formio.html', data={"form": "edit",
                                                            "get_form_endpoint": "student.get_form",
-                                                            "extra": code})
+                                                            "extra": id})
     except Exception as e:
         log.error(f'Could not edit guest {e}')
         flash_plus('Kan gebruiker niet aanpassen', e)
@@ -102,8 +102,8 @@ def item_add():
         return render_template('render_formio.html', data={"form": "add",
                                                            "get_form_endpoint": "student.get_form"})
     except Exception as e:
-        log.error(f'Could not add guest {e}')
-        flash_plus(f'Kan gebruiker niet toevoegen: {e}')
+        log.error(f'Could not add student {e}')
+        flash_plus(f'Kan student niet toevoegen: {e}')
     return redirect(url_for('student.show'))
 
 

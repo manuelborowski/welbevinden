@@ -3,6 +3,7 @@ let form_name = 'form' in data ? data.form : null;
 let extra = 'extra' in data ? data.extra : {};
 let get_form_endpoint = 'get_form_endpoint' in data ? data.get_form_endpoint : "";
 let cancel_endpoint = 'cancel_endpoint' in data ? data.cancel_endpoint : "";
+let formio_local_storage = {}
 
 $(document).ready(function () {
     load_new_form(form_name, extra);
@@ -29,10 +30,24 @@ const load_new_form = async (form_name, extra = {}) => {
                 }
             });
         }
-        formio.on('change', form_changed);
+        // check if form data is present in the local browser
+        formio_local_storage = JSON.parse(localStorage.getItem(`Formio-${form_name}`)) || {};
+        if (formio_local_storage) {
+            Object.entries(formio_local_storage).forEach(([k, v]) => {
+                try {
+                    formio.getComponent(k).setValue(v);
+                } catch (error) {
+                    console.log("skipped ", k, v);
+                }
+            });
+        }
+        //store the data in the local browser on regular intervals
+        setInterval(() =>{
+            const data = formio.submission.data;
+            localStorage.setItem(`Formio-${form_name}`, JSON.stringify(data));
+        }, 5000);
         formio.on('submit', async submitted => {
             let extra = null;
-            //On submit, post the data
             if ('post_data_endpoint' in form_data.data) {
                 const ret = await fetch(Flask.url_for(form_data.data.post_data_endpoint), {
                     method: 'POST',
@@ -54,31 +69,26 @@ const load_new_form = async (form_name, extra = {}) => {
             if ('submit_endpoint' in form_data.data) {
                 document.location.href = Flask.url_for(form_data.data['submit_endpoint'])
             }
+            //delete local storage
+            localStorage.removeItem(`Formio-${form_name}`)
         });
         // On cancel (button) go to new page
         formio.on('cancel', () => {
             if ('cancel_endpoint' in form_data.data) {
-                document.location.href = Flask.url_for(form_data.data['cancel_endpoint'])
+                if (confirm('Opgelet, de inhoud van dit formulier gaat verloren.  Bent u zeker?')) {
+                    formio.resetValue();
+                    localStorage.removeItem(`Formio-${form_name}`)
+                    document.location.href = Flask.url_for(form_data.data['cancel_endpoint'])
+                }
+            }
+        });
+        formio.on('clear', () => {
+            if (confirm('Opgelet, alle velden in dit formulier worden gewist.  Bent u zeker?')) {
+                formio.resetValue();
             }
         });
     } else {
         alert(`Fout bij het ophalen van een form:\n ${form_data.data}`)
         document.location.reload();
     }
-}
-
-function form_changed(changed) {
-    formio.off('change', form_changed);
-    var key = changed.changed.component.key;
-    if (key.includes('select-boxes-')) {
-        var val = changed.changed.value;
-        var select_components = formio.getComponent('select-period-boxes').components;
-        select_components.forEach(function (item, index) {
-            item.setValue(0);
-        });
-        formio.getComponent(key).setValue(val);
-    }
-    setTimeout(function () {
-        formio.on('change', form_changed)
-    }, 1000);
 }

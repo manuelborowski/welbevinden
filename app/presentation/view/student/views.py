@@ -14,7 +14,6 @@ import sys, datetime
 
 @student.route('/student/student', methods=['POST', 'GET'])
 @login_required
-@supervisor_required
 def show():
     # start = datetime.datetime.now()
     base_multiple_items.update(table_configuration)
@@ -25,7 +24,6 @@ def show():
 
 @student.route('/student/table_ajax', methods=['GET', 'POST'])
 @login_required
-@supervisor_required
 def table_ajax():
     # start = datetime.datetime.now()
     base_multiple_items.update(table_configuration)
@@ -35,9 +33,13 @@ def table_ajax():
 
 
 @student.route('/student/table_action', methods=['GET', 'POST'])
+@student.route('/student/table_action/<string:button>/<int:id>', methods=['GET', 'POST'])
 @login_required
-@supervisor_required
-def table_action():
+# @supervisor_required
+def table_action(button, id):
+    return item_edit(id)
+    if button_pressed('view'):
+        return item_view()
     if button_pressed('edit'):
         return item_edit()
     if button_pressed('add'):
@@ -48,9 +50,17 @@ def table_action():
 
 
 @student.route('/student/get_form', methods=['POST', 'GET'])
+@login_required
 def get_form():
     try:
-        if request.values['form'] == 'edit':
+        if request.values['form'] == 'view':
+            data = mstudent.prepare_edit_registration_form(request.values['extra'], read_only=True)
+            data.update({
+                'post_data_endpoint': 'api.student_update',
+                'submit_endpoint': 'student.show',
+                'cancel_endpoint': 'student.show',
+            })
+        elif request.values['form'] == 'edit':
             data = mstudent.prepare_edit_registration_form(request.values['extra'])
             data.update({
                 'post_data_endpoint': 'api.student_update',
@@ -72,6 +82,7 @@ def get_form():
         return {"status": False, "data": f"get_form: {e}"}
 
 
+@supervisor_required
 def item_delete():
     try:
         chbx_id_list = request.form.getlist('chbx')
@@ -81,13 +92,15 @@ def item_delete():
     return redirect(url_for('student.show'))
 
 
-def item_edit():
+@supervisor_required
+def item_edit(id=None):
     try:
-        chbx_id_list = request.form.getlist('chbx')
-        if chbx_id_list:
-            id = chbx_id_list[0]  # only the first one can be edited
-        if id == '':
-            return redirect(url_for('student.show'))
+        if id == None:
+            chbx_id_list = request.form.getlist('chbx')
+            if chbx_id_list:
+                id = chbx_id_list[0]  # only the first one can be edited
+            if id == '':
+                return redirect(url_for('student.show'))
         return render_template('render_formio.html', data={"form": "edit",
                                                            "get_form_endpoint": "student.get_form",
                                                             "extra": id})

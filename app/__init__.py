@@ -122,6 +122,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.89: add student: insert current datetime.  Delete students
 # V0.90: update requirements.txt
 # V0.91: layout update
+# V0.92: log in via smartschool.  Updated local storage (cache)
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -140,7 +141,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.91', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.92', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

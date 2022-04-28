@@ -4,6 +4,7 @@ let extra = 'extra' in data ? data.extra : {};
 let get_form_endpoint = 'get_form_endpoint' in data ? data.get_form_endpoint : "";
 let cancel_endpoint = 'cancel_endpoint' in data ? data.cancel_endpoint : "";
 let formio_local_storage = {}
+let backup_timer_id;
 
 $(document).ready(function () {
     load_new_form(form_name, extra);
@@ -31,7 +32,7 @@ const load_new_form = async (form_name, extra = {}) => {
             });
         }
         // check if form data is present in the local browser
-        formio_local_storage = JSON.parse(localStorage.getItem(`Formio-${form_name}`)) || {};
+        formio_local_storage = JSON.parse(localStorage.getItem('formio-cache')) || {};
         if (formio_local_storage) {
             Object.entries(formio_local_storage).forEach(([k, v]) => {
                 try {
@@ -42,9 +43,9 @@ const load_new_form = async (form_name, extra = {}) => {
             });
         }
         //store the data in the local browser on regular intervals
-        setInterval(() =>{
+        backup_timer_id = setInterval(() =>{
             const data = formio.submission.data;
-            localStorage.setItem(`Formio-${form_name}`, JSON.stringify(data));
+            localStorage.setItem('formio-cache', JSON.stringify(data));
         }, 5000);
         formio.on('submit', async submitted => {
             let extra = null;
@@ -70,14 +71,17 @@ const load_new_form = async (form_name, extra = {}) => {
                 document.location.href = Flask.url_for(form_data.data['submit_endpoint'])
             }
             //delete local storage
-            localStorage.removeItem(`Formio-${form_name}`)
+            clearInterval(backup_timer_id);
+            formio.resetValue();
+            localStorage.removeItem('formio-cache')
         });
         // On cancel (button) go to new page
         formio.on('cancel', () => {
             if ('cancel_endpoint' in form_data.data) {
                 if (confirm('Opgelet, de inhoud van dit formulier gaat verloren.  Bent u zeker?')) {
+                    clearInterval(backup_timer_id);
                     formio.resetValue();
-                    localStorage.removeItem(`Formio-${form_name}`)
+                    localStorage.removeItem('formio-cache')
                     document.location.href = Flask.url_for(form_data.data['cancel_endpoint'])
                 }
             }

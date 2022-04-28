@@ -41,3 +41,46 @@ def logout():
     logout_user()
     return redirect(url_for('auth.login'))
 
+
+SMARTSCHOOL_ALLOWED_BASE_ROLES = [
+    'Andere',
+    'Leerkracht',
+    'Directie'
+]
+
+
+@auth.route('/ss', methods=['POST', 'GET'])
+def login_ss():
+    if 'version' in request.args:
+        profile = json.loads(request.args['profile'])
+
+        if not 'username' in profile:  # not good
+            log.error(u'Smartschool geeft een foutcode terug: {}'.format(profile['error']))
+            return redirect(url_for('auth.login'))
+
+        if profile['basisrol'] in SMARTSCHOOL_ALLOWED_BASE_ROLES:
+            # Students are NOT allowed to log in
+            user = User.query.filter_by(username=func.binary(profile['username']),
+                                        user_type=User.USER_TYPE.OAUTH).first()
+            if user:
+                user.first_name = profile['name']
+                user.last_name = profile['surname']
+                user.email = profile['email']
+            else:
+                user = User(username=profile['username'], first_name=profile['name'], last_name=profile['surname'],
+                            email=profile['email'], user_type=User.USER_TYPE.OAUTH, level=User.LEVEL.USER)
+                db.session.add(user)
+                db.session.flush()  # user.id is filled in
+            user.last_login = datetime.datetime.now()
+            login_user(user)
+            log.info(u'OAUTH user {} logged in'.format(user.username))
+            try:
+                db.session.commit()
+            except Exception as e:
+                log.error(u'Could not save user : {}'.format(e))
+                return redirect(url_for('auth.login'))
+            # Ok, continue
+            return redirect(url_for('student.show'))
+    else:
+        redirect_uri = f'{flask_app.config["SMARTSCHOOL_OUATH_REDIRECT_URI"]}/ss'
+        return redirect(f'{flask_app.config["SMARTSCHOOL_OAUTH_SERVER"]}?app_uri={redirect_uri}')

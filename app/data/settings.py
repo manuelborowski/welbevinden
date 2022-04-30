@@ -81,6 +81,8 @@ default_configuration_settings = {
     'generic-view-config-template': ('{}', Settings.SETTING_TYPE.E_STRING),
     'generic-registration-extra-css': ('{}', Settings.SETTING_TYPE.E_STRING),
 
+    'user-item-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+
     'student-register-arm-send-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
     'student-register-template': ('{}', Settings.SETTING_TYPE.E_STRING),
     'student-web-response-template': ('{}', Settings.SETTING_TYPE.E_STRING),

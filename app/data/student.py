@@ -136,8 +136,8 @@ def get_students(data={}, special={}, order_by=None, first=False, count=False):
 
 def get_first_student(data={}):
     try:
-        guest = get_students(data, first=True)
-        return guest
+        user = get_students(data, first=True)
+        return user
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None

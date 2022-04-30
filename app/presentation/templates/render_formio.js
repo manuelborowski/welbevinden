@@ -6,12 +6,7 @@ let cancel_endpoint = 'cancel_endpoint' in data ? data.cancel_endpoint : "";
 let formio_local_storage = {}
 let backup_timer_id;
 
-$(document).ready(function () {
-    load_new_form(form_name, extra);
-});
-
-
-const load_new_form = async (form_name, extra = {}) => {
+$(document).ready( async function () {
     const form_options = {
         sanitizeConfig: {addTags: ['iframe'], addAttr: ['allow'], ALLOWED_TAGS: ['iframe'], ALLOWED_ATTR: ['allow']},
         // noAlerts: true,
@@ -30,6 +25,10 @@ const load_new_form = async (form_name, extra = {}) => {
                     console.log("skipped ", k, v);
                 }
             });
+        }
+        // Clear cache when the page is loaded for the first time.  Do NOT clear when page is reloaded...
+        if(performance.getEntriesByType('navigation')[0].type == 'navigate') {
+            localStorage.removeItem('formio-cache')
         }
         // check if form data is present in the local browser
         formio_local_storage = JSON.parse(localStorage.getItem('formio-cache')) || {};
@@ -95,4 +94,4 @@ const load_new_form = async (form_name, extra = {}) => {
         alert(`Fout bij het ophalen van een form:\n ${form_data.data}`)
         document.location.reload();
     }
-}
+});

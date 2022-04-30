@@ -110,6 +110,45 @@ settings_formio = \
         ]
       },
       {
+        "label": "Users",
+        "tableView": false,
+        "key": "container1",
+        "type": "container",
+        "input": true,
+        "components": [
+          {
+            "title": "Users",
+            "theme": "primary",
+            "collapsible": true,
+            "key": "algemeen",
+            "type": "panel",
+            "label": "Algemeen",
+            "collapsed": true,
+            "input": false,
+            "tableView": false,
+            "components": [
+              {
+                "label": "Submit",
+                "showValidations": false,
+                "theme": "warning",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true
+              },
+              {
+                "label": "Users template (formio)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "user-item-template",
+                "type": "textarea",
+                "input": true
+              }
+            ]
+          }
+        ]
+      },
+      {
         "label": "Student registration",
         "tableView": false,
         "key": "visitors",

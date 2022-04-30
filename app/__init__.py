@@ -123,6 +123,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.90: update requirements.txt
 # V0.91: layout update
 # V0.92: log in via smartschool.  Updated local storage (cache)
+# V0.93: line up view/user with rest of code
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -141,7 +142,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.92', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.93', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -193,7 +194,7 @@ socketio = SocketIO(flask_app, async_mode=flask_app.config['SOCKETIO_ASYNC_MODE'
 
 
 def create_admin():
-    from app.data.models import User
+    from app.data.user import User
     find_admin = User.query.filter(User.username == 'admin').first()
     if not find_admin:
         admin = User(username='admin', password='admin', level=User.LEVEL.ADMIN, user_type=User.USER_TYPE.LOCAL)

@@ -1,30 +1,36 @@
 from flask import request
 from . import api
-from app.application import registration as mregistration, student as mstudent
+from app.application import registration as mregistration, student as mstudent, user as muser
 from app.data import settings as msettings
 import json
 
-# student does not exist yet
+
 @api.route('/api/student/add', methods=['POST'])
 def student_add():
     data = json.loads(request.data)
     ret = mstudent.add_student(data)
     return(json.dumps(ret))
 
-#student does exist
+
 @api.route('/api/student/update', methods=['POST'])
 def student_update():
     data = json.loads(request.data)
     ret = mstudent.update_student(data)
     return(json.dumps(ret))
 
-#if student does not exist, add else update
-@api.route('/api/student/save', methods=['POST'])
-def student_save():
+
+@api.route('/api/user/add', methods=['POST'])
+def user_add():
     data = json.loads(request.data)
-    ret = mstudent.save_student(data)
+    ret = muser.add_user(data)
     return(json.dumps(ret))
 
+
+@api.route('/api/user/update', methods=['POST'])
+def user_update():
+    data = json.loads(request.data)
+    ret = muser.update_user(data)
+    return(json.dumps(ret))
 
 @api.route('/api/register/add', methods=['POST', 'GET'])
 def register_add():

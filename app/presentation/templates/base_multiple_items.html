@@ -55,14 +55,17 @@
 
             {% if table_config.buttons %}
                 <input type="hidden" id="button-pressed" name="button-pressed">
+                {% if 'view' in table_config.buttons %}
+                    <button class="btn btn-default" type="button" onclick="button_pushed('view')">Wijzig</button>
+                {% endif %}
                 {% if 'edit' in table_config.buttons %}
-                <button class="btn btn-default" type="button" onclick="edit_item()">Wijzig</button>
+                    <button class="btn btn-default" type="button" onclick="button_pushed('edit')">Wijzig</button>
                 {% endif %}
                 {% if 'add' in table_config.buttons %}
-                <button class="btn btn-default" type="button" onclick="add_item()">Nieuw</button>
+                    <button class="btn btn-default" type="button" onclick="button_pushed('add')">Nieuw</button>
                 {% endif %}
                 {% if 'delete' in table_config.buttons %}
-                <button class="btn btn-danger" type="button" onclick="delete_item()">Verwijder</button>
+                    <button class="btn btn-danger" type="button" onclick="button_pushed('delete')">Verwijder</button>
                 {% endif %}
             {% endif %}
             {% if table_config.legend %}

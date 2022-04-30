@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-
 from flask import redirect, render_template, url_for, request
 from flask_login import login_required, login_user, logout_user
 from sqlalchemy import func
 
-from app import log, db, flask_app
+from app import log, flask_app
 from . import auth
 from .forms import LoginForm
-from app.data.models import User
+from app.data import user as muser
 from app.presentation.layout import utils
 import datetime, json
 
@@ -15,16 +13,13 @@ import datetime, json
 def login():
     form = LoginForm(request.form)
     if form.validate() and request.method == 'POST':
-        user = User.query.filter_by(username=func.binary(form.username.data)).first()
+        user = muser.get_first_user ({'username': func.binary(form.username.data)})
         if user is not None and user.verify_password(form.password.data):
             login_user(user)
             log.info(u'user {} logged in'.format(user.username))
-            user.last_login = datetime.datetime.now()
-            try:
-                db.session.commit()
-            except Exception as e:
-                log.error(u'Could not save timestamp: {}'.format(e))
-                utils.flash_plus(u'Fout in database', e)
+            user = muser.update_user(user, {"last_login": datetime.datetime.now()})
+            if not user:
+                log.error('Could not save timestamp')
                 return redirect(url_for('auth.login'))
             # Ok, continue
             return redirect(url_for('student.show'))
@@ -55,29 +50,28 @@ def login_ss():
         profile = json.loads(request.args['profile'])
 
         if not 'username' in profile:  # not good
-            log.error(u'Smartschool geeft een foutcode terug: {}'.format(profile['error']))
+            log.error(f'Smartschool geeft een foutcode terug: {profile["error"]}')
             return redirect(url_for('auth.login'))
 
         if profile['basisrol'] in SMARTSCHOOL_ALLOWED_BASE_ROLES:
             # Students are NOT allowed to log in
-            user = User.query.filter_by(username=func.binary(profile['username']),
-                                        user_type=User.USER_TYPE.OAUTH).first()
+            user = muser.get_first_user({'username': func.binary(profile['username']), 'user_type': muser.User.USER_TYPE.OAUTH})
+            profile['last_login'] = datetime.datetime.now()
             if user:
-                user.first_name = profile['name']
-                user.last_name = profile['surname']
+                profile['first_name'] = profile['name']
+                profile['last_name'] = profile['surname']
                 user.email = profile['email']
+                user = muser.update_user(user, profile)
             else:
-                user = User(username=profile['username'], first_name=profile['name'], last_name=profile['surname'],
-                            email=profile['email'], user_type=User.USER_TYPE.OAUTH, level=User.LEVEL.USER)
-                db.session.add(user)
-                db.session.flush()  # user.id is filled in
-            user.last_login = datetime.datetime.now()
+                profile['first_name'] = profile['name']
+                profile['last_name'] = profile['surname']
+                profile['user_type'] = muser.User.USER_TYPE.OAUTH
+                profile['level'] = muser.User.LEVEL.SUPERVISOR
+                user = muser.add_user(profile)
             login_user(user)
             log.info(u'OAUTH user {} logged in'.format(user.username))
-            try:
-                db.session.commit()
-            except Exception as e:
-                log.error(u'Could not save user : {}'.format(e))
+            if not user:
+                log.error('Could not save user')
                 return redirect(url_for('auth.login'))
             # Ok, continue
             return redirect(url_for('student.show'))

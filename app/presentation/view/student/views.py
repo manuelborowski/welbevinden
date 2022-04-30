@@ -9,7 +9,7 @@ from app.presentation.layout.utils import flash_plus, button_pressed
 from app.application import student as mstudent
 from app.application import socketio as msocketio, student as mregistration, settings as msettings, util as mutil
 from app.data.models import Guest
-import sys, datetime
+import sys, datetime, json
 
 
 @student.route('/student/student', methods=['POST', 'GET'])
@@ -33,19 +33,19 @@ def table_ajax():
 
 
 @student.route('/student/table_action', methods=['GET', 'POST'])
-@student.route('/student/table_action/<string:button>/<int:id>', methods=['GET', 'POST'])
+@student.route('/student/table_action/<string:action>', methods=['GET', 'POST'])
+@student.route('/student/table_action/<string:action>/<string:ids>', methods=['GET', 'POST'])
 @login_required
 # @supervisor_required
-def table_action(button, id):
-    return item_edit(id)
-    if button_pressed('view'):
-        return item_view()
-    if button_pressed('edit'):
-        return item_edit()
-    if button_pressed('add'):
+def table_action(action, ids=None):
+    if ids:
+        ids = json.loads(ids)
+    if action == 'edit':
+        return item_edit(ids)
+    if action == 'add':
         return item_add()
-    if button_pressed('delete'):
-        return item_delete()
+    if action == 'delete':
+        return item_delete(ids)
     return redirect(url_for('student.show'))
 
 
@@ -83,26 +83,30 @@ def get_form():
 
 
 @supervisor_required
-def item_delete():
+def item_delete(ids=None):
     try:
-        chbx_id_list = request.form.getlist('chbx')
-        mstudent.delete_students(chbx_id_list)
+        if ids == None:
+            ids = request.form.getlist('chbx')
+        mstudent.delete_students(ids)
     except Exception as e:
         log.error(f'could not delete student {request.args}: {e}')
     return redirect(url_for('student.show'))
 
 
 @supervisor_required
-def item_edit(id=None):
+def item_edit(ids=None):
     try:
-        if id == None:
+        if ids == None:
             chbx_id_list = request.form.getlist('chbx')
             if chbx_id_list:
-                id = chbx_id_list[0]  # only the first one can be edited
-            if id == '':
+                ids = chbx_id_list[0]  # only the first one can be edited
+            if ids == '':
                 return redirect(url_for('student.show'))
+        else:
+            id = ids[0]
         return render_template('render_formio.html', data={"form": "edit",
-                                                           "get_form_endpoint": "student.get_form",
+                                                           "get_form_en"
+                                                           "dpoint": "student.get_form",
                                                             "extra": id})
     except Exception as e:
         log.error(f'Could not edit guest {e}')
@@ -110,6 +114,7 @@ def item_edit(id=None):
     return redirect(url_for('student.show'))
 
 
+@supervisor_required
 def item_add():
     try:
         return render_template('render_formio.html', data={"form": "add",

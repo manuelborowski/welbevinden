@@ -6,11 +6,7 @@ const view = table_config.view;
 //If not exactly one checkbox is selected, display warning and return false, else return true
 function is_exactly_one_checkbox_selected() {
     var nbr_checked = 0;
-    $(".chbx_all").each(function (i) {
-        if (this.checked) {
-            nbr_checked++;
-        }
-    });
+    $(".chbx_all").each(function (i) {if (this.checked) {nbr_checked++;}});
     if (nbr_checked == 1) {
         return true;
     } else {
@@ -22,11 +18,7 @@ function is_exactly_one_checkbox_selected() {
 //If one or more checkboxes are checked, return true.  Else display warning and return false
 function is_at_least_one_checkbox_selected() {
     var nbr_checked = 0;
-    $(".chbx_all").each(function (i) {
-        if (this.checked) {
-            nbr_checked++;
-        }
-    });
+    $(".chbx_all").each(function (i) {if (this.checked) {nbr_checked++;}});
     if (nbr_checked == 0) {
         bootbox.alert("U hebt niets geselecteerd, probeer nogmaals");
         return false;
@@ -35,31 +27,34 @@ function is_at_least_one_checkbox_selected() {
     }
 }
 
-
-//Before removing multiple entries, a confirm-box is shown.
-function delete_item() {
-    if (is_at_least_one_checkbox_selected()) {
-        message = table_config.delete_message;
-        bootbox.confirm(message, function (result) {
-            if (result) {
-                $("#button-pressed").val("delete");
-                $("#action_form").submit();
+function button_pushed(action) {
+    switch (action) {
+        case 'delete':
+            if (is_at_least_one_checkbox_selected()) {
+                message = table_config.delete_message;
+                bootbox.confirm(message, function (result) {
+                    if (result) {
+                        let ids = []
+                        const chbxs = document.querySelectorAll('.chbx_all:checked')
+                        chbxs.forEach(chbx => {ids.push(chbx.value);});
+                        location.href = Flask.url_for(table_config.table_action, {action: 'delete', ids: JSON.stringify(ids)})
+                    }
+                });
             }
-        });
-    }
-}
-
-function add_item() {
-    // $("#action_form").attr('target', '_blank')
-    $("#button-pressed").val("add");
-    $("#action_form").submit();
-}
-
-function edit_item() {
-    if (is_exactly_one_checkbox_selected()) {
-        // $("#action_form").attr('target', '_blank')
-        $("#button-pressed").val("edit");
-        $("#action_form").submit();
+            break
+        case 'edit':
+            if (is_exactly_one_checkbox_selected()) {
+                const id = document.querySelector('.chbx_all:checked').value
+                location.href = Flask.url_for(table_config.table_action, {action: 'edit', ids: JSON.stringify([id])})
+            }
+            break
+        case 'add':
+            location.href = Flask.url_for(table_config.table_action, {action: 'add'})
+            break
+        case 'view':
+            if (is_exactly_one_checkbox_selected()) {
+            }
+            break
     }
 }
 
@@ -259,9 +254,8 @@ $(document).ready(function () {
     //double click a row to edit
     table.on('dblclick', 'tr', function () {
         document.querySelector(`input[value="${this.id}"]`).checked = true;
-        $("#button-pressed").val("edit");
-        $("#action_form").submit();
-    } );
+        button_pushed('edit');
+    });
 
     //Toggle column visibility
     let column_visible_div = document.querySelector('.column-visible-div');

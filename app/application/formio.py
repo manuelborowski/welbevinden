@@ -148,7 +148,7 @@ def iterate_components(form):
 
 def datetimestring_to_datetime(date_in):
     try:
-        date_out = datetime.datetime.strptime(date_in, '%d/%m/%Y %H:%M')
+        date_out = datetime.datetime.strptime(date_in, '%d/%m/%Y %H:%M:%S')
         return date_out
     except:
         return None

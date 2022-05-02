@@ -2,6 +2,7 @@
 var False = false;
 var True = true;
 const view = table_config.view;
+let table;
 
 //If not exactly one checkbox is selected, display warning and return false, else return true
 function is_exactly_one_checkbox_selected() {
@@ -31,7 +32,7 @@ function button_pushed(action) {
     switch (action) {
         case 'delete':
             if (is_at_least_one_checkbox_selected()) {
-                message = table_config.delete_message;
+                let message = table_config.delete_message;
                 bootbox.confirm(message, function (result) {
                     if (result) {
                         let ids = []
@@ -53,6 +54,17 @@ function button_pushed(action) {
             break
         case 'view':
             if (is_exactly_one_checkbox_selected()) {
+            }
+            break
+        case 'print':
+            if (is_at_least_one_checkbox_selected()) {
+                let ids = []
+                const chbxs = document.querySelectorAll('.chbx_all:checked')
+                chbxs.forEach(chbx => {
+                    const id = chbx.value;
+                    const data = table.row(`#${id}`).data();
+                    generate_pdf(data);
+                });
             }
             break
     }
@@ -249,7 +261,7 @@ $(document).ready(function () {
         $("#datatable").attr("width", table_config.width);
     }
 
-    var table = $('#datatable').DataTable(datatable_config);
+    table = $('#datatable').DataTable(datatable_config);
 
     //double click a row to edit
     table.on('dblclick', 'tr', function () {

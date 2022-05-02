@@ -67,6 +67,7 @@
                 {% if 'delete' in table_config.buttons %}
                     <button class="btn btn-danger" type="button" onclick="button_pushed('delete')">Verwijder</button>
                 {% endif %}
+                <button class="btn btn-danger" type="button" onclick="button_pushed('print')">Afdrukken</button>
             {% endif %}
             {% if table_config.legend %}
                 <br>
@@ -115,5 +116,6 @@
             var current_user_is_at_least_admin = {{ current_user.is_at_least_admin | tojson }}
         </script>
         <script type="text/javascript"> {% include "base_multiple_items.js" %}</script>
+        <script type="text/javascript"> {% include "generate_pdf.js" %}</script>
     {% endif %}
 {% endblock %}

@@ -6,7 +6,7 @@ from datetime import timedelta
 from datetime import datetime
 
 WAIT_TIME = 0.2   #seconds
-URL = 'http://localhost:5000'
+URL = 'http://localhost:5037'
 # URL = 'https://opendag-inschrijvingen.ict.campussintursula.be'
 nbr_words = 400
 
@@ -15,7 +15,7 @@ def random_date(start, end):
     delta = end - start
     int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
     random_second = randrange(int_delta)
-    return (start + timedelta(seconds=random_second)).strftime('%Y-%m-%d')
+    return (start + timedelta(seconds=random_second)).strftime('%d/%m/%Y')
 
 
 def random_datetime(start, end):
@@ -23,7 +23,7 @@ def random_datetime(start, end):
     hour = randrange(0, 24)
     minute = randrange(0, 60)
     second = randrange(0, 60)
-    datetime = f'{date}T{hour}:{minute}:{second}'
+    datetime = f'{date} {hour}:{minute}:{second}'
     return datetime
 
 
@@ -174,4 +174,4 @@ def populate_students2(nbr_students):
             print(status['data'])
         time.sleep(WAIT_TIME)
 
-populate_students(300)
+populate_students(2)

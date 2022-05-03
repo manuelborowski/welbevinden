@@ -64,10 +64,12 @@
                 {% if 'add' in table_config.buttons %}
                     <button class="btn btn-default" type="button" onclick="button_pushed('add')">Nieuw</button>
                 {% endif %}
+                {% if 'print' in table_config.buttons %}
+                    <button class="btn btn-default" type="button" onclick="button_pushed('print')">Afdrukken</button>
+                {% endif %}
                 {% if 'delete' in table_config.buttons %}
                     <button class="btn btn-danger" type="button" onclick="button_pushed('delete')">Verwijder</button>
                 {% endif %}
-                <button class="btn btn-danger" type="button" onclick="button_pushed('print')">Afdrukken</button>
             {% endif %}
             {% if table_config.legend %}
                 <br>

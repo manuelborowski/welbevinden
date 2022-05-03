@@ -164,7 +164,7 @@ def get_show_gauges():
 table_configuration = {
     'view': 'student',
     'title': 'Studenten',
-    'buttons': ['edit', 'add', 'delete'],
+    'buttons': ['edit', 'add', 'delete', 'print'],
     'delete_message': 'Opgelet!!<br>'
                       'Bent u zeker om deze student(en) te verwijderen?<br>'
                       'Eens verwijderd kunnen ze niet meer worden terug gehaald.<br>',

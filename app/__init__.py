@@ -125,6 +125,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.92: log in via smartschool.  Updated local storage (cache)
 # V0.93: line up view/user with rest of code
 # V0.94: first trial to generate pdf
+# V0.95: add button to download pdf with student data
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -143,7 +144,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.94', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.95', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

@@ -8,7 +8,7 @@ from datetime import datetime
 WAIT_TIME = 0.2   #seconds
 URL = 'http://localhost:5037'
 # URL = 'https://opendag-inschrijvingen.ict.campussintursula.be'
-nbr_words = 400
+nbr_words = 50
 
 
 def random_date(start, end):
@@ -174,4 +174,4 @@ def populate_students2(nbr_students):
             print(status['data'])
         time.sleep(WAIT_TIME)
 
-populate_students(2)
+populate_students(300)

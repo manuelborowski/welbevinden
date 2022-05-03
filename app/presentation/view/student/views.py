@@ -154,7 +154,38 @@ def get_misc_fields(extra_fields, form):
 
 
 def get_filters():
-    return []
+    filters = []
+    template = app.data.settings.get_view_config_template('student')
+    template_cache = {t['data']: t for t in template}
+
+    selects = [
+        'f_gemotiveerd_verslag',
+        'f_verslag_ontbindende_voorwaarden',
+        'f_geen_verslag_specifieke_behoefte',
+        'f_nood_aan_voorspelbaarheid',
+        'f_ass',
+        'f_add',
+        'f_adhd',
+        'f_dcd',
+        'f_hoogbegaafd',
+        'f_dyscalculie',
+        'f_dyslexie',
+        'f_dysorthografie',
+        'f_stos_dysfasie',
+        'f_andere',
+    ]
+    for select in selects:
+        filters.append(
+        {
+            'type': 'select',
+            'name': template_cache[select]['data'],
+            'label': template_cache[select]['name'],
+            'choices': [['none', 'X'], [True, 'J'], [False, 'N']],
+            'default': 'default',
+            'tt': template_cache[select]['tt']
+        })
+
+    return filters
 
 
 def get_show_gauges():

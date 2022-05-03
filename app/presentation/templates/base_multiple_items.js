@@ -3,6 +3,7 @@ var False = false;
 var True = true;
 const view = table_config.view;
 let table;
+let filter_settings = [];
 
 //If not exactly one checkbox is selected, display warning and return false, else return true
 function is_exactly_one_checkbox_selected() {
@@ -70,8 +71,12 @@ function button_pushed(action) {
     }
 }
 
+function clear_filter_setting() {
+    localStorage.clear(`Filter-${view}`);
+    location.reload();
+}
+
 $(document).ready(function () {
-    let filter_settings = {}
 
     //if a filter is changed, then the filter is applied by simulating a click on the filter button
     $(".table-filter").change(function () {
@@ -81,9 +86,24 @@ $(document).ready(function () {
 
     //Store locally in the client-browser
     function store_filter_settings() {
+        filter_settings = [];
         if (filters.length > 0) {
             filters.forEach(f => {
-                filter_settings[f.name] = document.querySelector(`#${f.name} option:checked`).value
+                if (f.type === 'select') {
+                    filter_settings.push({
+                        name: f.name,
+                        type: f.type,
+                        value: document.querySelector(`#${f.name} option:checked`).value
+                    });
+                } else if (f.type === 'checkbox') {
+                    let boxes = [];
+                    f.boxes.forEach(([k, l]) => { boxes.push({id: k, checked: document.querySelector(`#${k}`).checked}) });
+                   filter_settings.push({
+                       name: f.name,
+                       type: f.type,
+                       value: boxes
+                   })
+                }
             });
             localStorage.setItem(`Filter-${view}`, JSON.stringify(filter_settings));
         }
@@ -93,12 +113,14 @@ $(document).ready(function () {
         if (filters.length === 0) return true;
         filter_settings = JSON.parse(localStorage.getItem(`Filter-${view}`));
         if (!filter_settings) {
-            filter_settings = {};
+            filter_settings = [];
             return false
         }
-        for (const [n, v] of Object.entries(filter_settings)) {
-            document.querySelector(`#${n}`).value = v;
-        }
+        filter_settings.forEach(f => {
+            if (f.type === 'select') {
+                document.querySelector(`#${f.name}`).value = f.value;
+            }
+        })
         return true;
     }
 

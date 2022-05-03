@@ -30,8 +30,8 @@
                 <div class="flex-container">
                     {% for f in filters %}
                         {% if f.type == "select" %}
-                            <div class="form-group "><label class="control-label" for="{{f.name}}">{{f.label}}</label>
-                                <select class="form-control table-filter" id="{{f.name}}" name="{{f.name}}">
+                            <div class="form-group "><label class="control-label" for="{{f.name}}" title="{{f.tt}}">{{f.label}}</label>
+                                <select class="form-control table-filter" id="{{f.name}}" name="{{f.name}} {{f.multiple}}">
                                     {% for o in f.choices %}
                                     <option value="{{o[0]}}" {% if o[0] == f.default %}selected{% endif %}>{{o[1]}}</option>
                                     {% endfor %}
@@ -43,8 +43,17 @@
                                 <br><input id="{{f.name}}" name="{{f.name}}" class="table-filter">
                             </div>
                         {%  endif %}
+                        {% if f.type == "checkbox" %}
+                            {% for b in f.boxes %}
+                                <input type="checkbox" class="form-control table-filter" id="{{b[0]}}" name="{{b[0]}}" value="{{b[0]}}">
+                                <label for="{{b[0]}}">{{b[1]}}</label>
+                            {% endfor %}
+                        {%  endif %}
                     {% endfor %}
+                <button class="btn btn-danger" type="button" onclick="clear_filter_setting()">Reset</button>
                 </div>
+
+
                 <hr class="nice-green-line">
             {% endif %}
             <div class="column-visible-div flex-container">Kolom zichtbaar:&nbsp;  </div>

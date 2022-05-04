@@ -22,8 +22,7 @@ def random_datetime(start, end):
     date = random_date(start, end)
     hour = randrange(0, 24)
     minute = randrange(0, 60)
-    second = randrange(0, 60)
-    datetime = f'{date} {hour}:{minute}:{second}'
+    datetime = f'{date} {hour}:{minute}'
     return datetime
 
 
@@ -92,7 +91,7 @@ def populate_students(nbr_students):
 
         }
         session = requests.Session()
-        res = session.post(url=f'{URL}/api/student/add?api_key=test33', data=json.dumps(data))
+        res = session.post(url=f'{URL}/api/student/add?api_key=test', data=json.dumps(data))
         status = json.loads(res.content)
         if status['status']:
             print (f'{i}: {status["data"]}')

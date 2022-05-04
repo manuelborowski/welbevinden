@@ -146,9 +146,10 @@ def iterate_components(form):
         else:
             yield component
 
-def datetimestring_to_datetime(date_in):
+def datetimestring_to_datetime(date_in, seconds=False):
     try:
-        date_out = datetime.datetime.strptime(date_in, '%d/%m/%Y %H:%M:%S')
+        format_string = '%d/%m/%Y %H:%M:%S' if seconds else '%d/%m/%Y %H:%M'
+        date_out = datetime.datetime.strptime(date_in, format_string)
         return date_out
     except:
         return None

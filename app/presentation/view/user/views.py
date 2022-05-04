@@ -117,7 +117,7 @@ def item_edit(ids=None):
 table_configuration = {
     'view': 'user',
     'title': 'Gebruikers',
-    'buttons': ['delete', 'add', 'edit', 'view'],
+    'buttons': ['delete', 'add', 'edit'],
     'delete_message': u'Wilt u deze gebruiker(s) verwijderen?',
     'filter': [],
     'item': {

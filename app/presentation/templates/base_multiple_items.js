@@ -266,7 +266,7 @@ $(document).ready(function () {
         datatable_config["filter"] = false;
         datatable_config["paging"] = false;
     } else {
-        datatable_config["dom"] = "fiptlp";
+        datatable_config["dom"] = "ifptlp";
     }
 
     if (current_user_is_at_least_admin) {

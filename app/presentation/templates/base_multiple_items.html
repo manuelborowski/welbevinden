@@ -59,27 +59,7 @@
             <div class="column-visible-div flex-container">Kolom zichtbaar:&nbsp;  </div>
             <br>
             <hr class="nice-green-line">
-            <div class="show-info d-flex flex-row"></div>
-            <hr class="nice-green-line">
 
-            {% if table_config.buttons %}
-                <input type="hidden" id="button-pressed" name="button-pressed">
-                {% if 'view' in table_config.buttons %}
-                    <button class="btn btn-default" type="button" onclick="button_pushed('view')">Wijzig</button>
-                {% endif %}
-                {% if 'edit' in table_config.buttons %}
-                    <button class="btn btn-default" type="button" onclick="button_pushed('edit')">Wijzig</button>
-                {% endif %}
-                {% if 'add' in table_config.buttons %}
-                    <button class="btn btn-default" type="button" onclick="button_pushed('add')">Nieuw</button>
-                {% endif %}
-                {% if 'pdf' in table_config.buttons %}
-                    <button class="btn btn-default" type="button" onclick="button_pushed('pdf')">Pdf</button>
-                {% endif %}
-                {% if 'delete' in table_config.buttons %}
-                    <button class="btn btn-danger" type="button" onclick="button_pushed('delete')">Verwijder</button>
-                {% endif %}
-            {% endif %}
             {% if table_config.legend %}
                 <br>
                 <br>

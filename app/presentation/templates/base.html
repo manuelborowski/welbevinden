@@ -19,6 +19,14 @@
             top: 0;
             z-index: 9;
         }
+        @media (min-width: 1200px) {
+            .container, .container-lg, .container-md, .container-sm, .container-xl {
+                max-width: 100%;
+            }
+        }
+        .nav-buttons button {
+            margin-left: 1rem;
+        }
     </style>
 </head>
 
@@ -44,6 +52,25 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('settings.show') }}">Instellingen</a>
                     </li>
+                {% endif %}
+                {% if table_config and table_config.buttons %}
+                        <div class="nav-buttons">
+                        {% if 'view' in table_config.buttons %}
+                            <button class="btn btn-warning" type="button" onclick="button_pushed('view')">Wijzig</button>
+                        {% endif %}
+                        {% if 'edit' in table_config.buttons %}
+                            <button class="btn btn-warning" type="button" onclick="button_pushed('edit')">Wijzig</button>
+                        {% endif %}
+                        {% if 'add' in table_config.buttons %}
+                            <button class="btn btn-default" type="button" onclick="button_pushed('add')">Nieuw</button>
+                        {% endif %}
+                        {% if 'pdf' in table_config.buttons %}
+                            <button class="btn btn-default" type="button" onclick="button_pushed('pdf')">Pdf</button>
+                        {% endif %}
+                        {% if 'delete' in table_config.buttons %}
+                            <button class="btn btn-danger" type="button" onclick="button_pushed('delete')">Verwijder</button>
+                        {% endif %}
+                    </div>
                 {% endif %}
             {% endif %}
             </ul>

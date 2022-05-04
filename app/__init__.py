@@ -129,6 +129,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.96: added filters to filter on flags
 # V0.97: esthetic update.  To use the API, a key is required.
 # V0.98: bugfix in intake date: omit seconds
+# V0.99: make navbar fixed
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -147,7 +148,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.98', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.99', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

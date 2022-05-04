@@ -173,4 +173,4 @@ def populate_students2(nbr_students):
             print(status['data'])
         time.sleep(WAIT_TIME)
 
-populate_students(1)
+populate_students(10)

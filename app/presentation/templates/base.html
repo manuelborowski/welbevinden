@@ -12,6 +12,14 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/zorg.png') }}">
     {% block styles %} {% endblock %}
     {{ JSGlue.include() }}
+    <style>
+        .navbar {
+           position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 9;
+        }
+    </style>
 </head>
 
 <body>

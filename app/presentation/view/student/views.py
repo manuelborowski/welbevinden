@@ -1,9 +1,9 @@
 import app.application.student
 import app.data.settings
 from . import student
-from app import log, supervisor_required
+from app import log, supervisor_required, flask_app
 from flask import redirect, url_for, request, render_template
-from flask_login import login_required
+from flask_login import login_required, current_user
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus, button_pressed
 from app.application import student as mstudent
@@ -53,29 +53,27 @@ def table_action(action, ids=None):
 @login_required
 def get_form():
     try:
+        common = {
+            'post_data_endpoint': 'api.student_update',
+            'submit_endpoint': 'student.show',
+            'cancel_endpoint': 'student.show',
+            'api_key': flask_app.config['API_KEY']
+        }
         if request.values['form'] == 'view':
             data = mstudent.prepare_edit_registration_form(request.values['extra'], read_only=True)
-            data.update({
-                'post_data_endpoint': 'api.student_update',
-                'submit_endpoint': 'student.show',
-                'cancel_endpoint': 'student.show',
-            })
-        elif request.values['form'] == 'edit':
-            data = mstudent.prepare_edit_registration_form(request.values['extra'])
-            data.update({
-                'post_data_endpoint': 'api.student_update',
-                'submit_endpoint': 'student.show',
-                'cancel_endpoint': 'student.show',
-            })
-        elif request.values['form'] == 'add':
-            data = mstudent.prepare_add_registration_form()
-            data.update({
-                'post_data_endpoint': 'api.student_add',
-                'submit_endpoint': 'student.show',
-                'cancel_endpoint': 'student.show',
-            })
+            data.update(common)
+        elif current_user.is_at_least_supervisor:
+            if request.values['form'] == 'edit':
+                data = mstudent.prepare_edit_registration_form(request.values['extra'])
+                data.update(common)
+            elif request.values['form'] == 'add':
+                data = mstudent.prepare_add_registration_form()
+                data.update(common)
+                data['post_data_endpoint'] ='api.student_add'
+            else:
+                return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
         else:
-            return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
+            return {"status": False, "data": f"U hebt geen toegang tot deze url"}
         return {"status": True, "data": data}
     except Exception as e:
         log.error(f"Error in get_form: {e}")
@@ -195,7 +193,7 @@ def get_show_gauges():
 table_configuration = {
     'view': 'student',
     'title': 'Studenten',
-    'buttons': ['edit', 'add', 'delete', 'print'],
+    'buttons': ['edit', 'add', 'delete', 'pdf'],
     'delete_message': 'Opgelet!!<br>'
                       'Bent u zeker om deze student(en) te verwijderen?<br>'
                       'Eens verwijderd kunnen ze niet meer worden terug gehaald.<br>',

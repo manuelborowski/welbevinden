@@ -127,6 +127,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.94: first trial to generate pdf
 # V0.95: add button to download pdf with student data
 # V0.96: added filters to filter on flags
+# V0.97: esthetic update.  To use the API, a key is required.
 
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
@@ -145,7 +146,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.96', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.97', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

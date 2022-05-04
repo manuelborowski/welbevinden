@@ -57,7 +57,7 @@ function button_pushed(action) {
             if (is_exactly_one_checkbox_selected()) {
             }
             break
-        case 'print':
+        case 'pdf':
             if (is_at_least_one_checkbox_selected()) {
                 let ids = []
                 const chbxs = document.querySelectorAll('.chbx_all:checked')

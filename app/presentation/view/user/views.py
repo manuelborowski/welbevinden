@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, request
 from flask_login import login_required
-from app import log, admin_required, data
+from app import log, admin_required, data, flask_app
 from . import user
 from app.application import user as muser
 from app.presentation.layout.utils import flash_plus
@@ -46,23 +46,22 @@ def table_action(action, ids=None):
 
 
 @user.route('/user/get_form', methods=['POST', 'GET'])
-@login_required
+@admin_required
 def get_form():
     try:
+        common = {
+            'post_data_endpoint': 'api.user_update',
+            'submit_endpoint': 'user.show',
+            'cancel_endpoint': 'user.show',
+            'api_key': flask_app.config['API_KEY']
+        }
         if request.values['form'] == 'edit':
             data = muser.prepare_edit_registration_form(request.values['extra'])
-            data.update({
-                'post_data_endpoint': 'api.user_update',
-                'submit_endpoint': 'user.show',
-                'cancel_endpoint': 'user.show',
-            })
+            data.update(common)
         elif request.values['form'] == 'add':
             data = muser.prepare_add_registration_form()
-            data.update({
-                'post_data_endpoint': 'api.user_add',
-                'submit_endpoint': 'user.show',
-                'cancel_endpoint': 'user.show',
-            })
+            data.update(common)
+            data['post_data_endpoint'] = 'api.user_add'
         else:
             return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
         return {"status": True, "data": data}

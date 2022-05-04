@@ -49,7 +49,8 @@ $(document).ready( async function () {
         formio.on('submit', async submitted => {
             let extra = null;
             if ('post_data_endpoint' in form_data.data) {
-                const ret = await fetch(Flask.url_for(form_data.data.post_data_endpoint), {
+                const api_key = form_data.data.api_key || '';
+                const ret = await fetch(Flask.url_for(form_data.data.post_data_endpoint, {api_key}), {
                     method: 'POST',
                     body: JSON.stringify(submitted.data),
                 });

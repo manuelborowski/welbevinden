@@ -92,7 +92,7 @@ def populate_students(nbr_students):
 
         }
         session = requests.Session()
-        res = session.post(url=f'{URL}/api/student/add', data=json.dumps(data))
+        res = session.post(url=f'{URL}/api/student/add?api_key=test33', data=json.dumps(data))
         status = json.loads(res.content)
         if status['status']:
             print (f'{i}: {status["data"]}')
@@ -174,4 +174,4 @@ def populate_students2(nbr_students):
             print(status['data'])
         time.sleep(WAIT_TIME)
 
-populate_students(300)
+populate_students(1)

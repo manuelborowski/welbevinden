@@ -4,8 +4,8 @@ from sqlalchemy import text
 from sqlalchemy_serializer import SerializerMixin
 
 
-class Student(db.Model, SerializerMixin):
-    __tablename__ = 'students'
+class StudentCare(db.Model, SerializerMixin):
+    __tablename__ = 'student_cares'
 
     date_format = '%d/%m/%Y'
     datetime_format = '%d/%m/%Y %H:%M'
@@ -75,10 +75,10 @@ class Student(db.Model, SerializerMixin):
 
 def add_student(data = {}):
     try:
-        student = Student()
+        student = StudentCare()
         for k, v in data.items():
             if hasattr(student, k):
-                if getattr(Student, k).expression.type.python_type == type(v):
+                if getattr(StudentCare, k).expression.type.python_type == type(v):
                     setattr(student, k, v.strip() if isinstance(v, str) else v)
         db.session.add(student)
         db.session.commit()
@@ -93,7 +93,7 @@ def update_student(student, data={}):
     try:
         for k, v in data.items():
             if hasattr(student, k):
-                if getattr(Student, k).expression.type.python_type == type(v):
+                if getattr(StudentCare, k).expression.type.python_type == type(v):
                     setattr(student, k, v.strip() if isinstance(v, str) else v)
         db.session.commit()
         return student
@@ -117,12 +117,12 @@ def delete_students(ids=None):
 
 def get_students(data={}, special={}, order_by=None, first=False, count=False):
     try:
-        q = Student.query
+        q = StudentCare.query
         for k, v in data.items():
-            if hasattr(Student, k):
-                q = q.filter(getattr(Student, k) == v)
+            if hasattr(StudentCare, k):
+                q = q.filter(getattr(StudentCare, k) == v)
         if order_by:
-            q = q.order_by(getattr(Student, order_by))
+            q = q.order_by(getattr(StudentCare, order_by))
         if first:
             guest = q.first()
             return guest
@@ -147,7 +147,7 @@ def get_first_student(data={}):
 
 ############ student overview list #########
 def pre_filter():
-    return db.session.query(Student)
+    return db.session.query(StudentCare)
 
 
 def filter_data(query, filter):
@@ -156,13 +156,13 @@ def filter_data(query, filter):
             query = query.filter(text(cb['id']), cb['checked'])
     for f in filter:
         if f['type'] == 'select' and f['value'] != 'none':
-            query = query.filter(getattr(Student, f['name']) == (f['value'] == 'True'))
+            query = query.filter(getattr(StudentCare, f['name']) == (f['value'] == 'True'))
     return query
 
 
 def search_data(search_string):
     search_constraints = []
-    search_constraints.append(Student.s_first_name.like(search_string))
-    search_constraints.append(Student.s_last_name.like(search_string))
+    search_constraints.append(StudentCare.s_first_name.like(search_string))
+    search_constraints.append(StudentCare.s_last_name.like(search_string))
     return search_constraints
 

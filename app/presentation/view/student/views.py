@@ -1,4 +1,3 @@
-import app.application.student
 import app.data.settings
 from . import student
 from app import log, supervisor_required, flask_app
@@ -6,8 +5,8 @@ from flask import redirect, url_for, request, render_template
 from flask_login import login_required, current_user
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus, button_pressed
-from app.application import student as mstudent
-from app.application import socketio as msocketio, student as mregistration, settings as msettings, util as mutil
+from app.application import student_care as mstudent_care
+from app.application import socketio as msocketio, student_care as mregistration, settings as msettings, util as mutil
 from app.data.models import Guest
 import sys, datetime, json
 
@@ -60,14 +59,14 @@ def get_form():
             'api_key': flask_app.config['API_KEY']
         }
         if request.values['form'] == 'view':
-            data = mstudent.prepare_edit_registration_form(request.values['extra'], read_only=True)
+            data = mstudent_care.prepare_edit_registration_form(request.values['extra'], read_only=True)
             data.update(common)
         elif current_user.is_at_least_supervisor:
             if request.values['form'] == 'edit':
-                data = mstudent.prepare_edit_registration_form(request.values['extra'])
+                data = mstudent_care.prepare_edit_registration_form(request.values['extra'])
                 data.update(common)
             elif request.values['form'] == 'add':
-                data = mstudent.prepare_add_registration_form()
+                data = mstudent_care.prepare_add_registration_form()
                 data.update(common)
                 data['post_data_endpoint'] ='api.student_add'
             else:
@@ -85,7 +84,7 @@ def item_delete(ids=None):
     try:
         if ids == None:
             ids = request.form.getlist('chbx')
-        mstudent.delete_students(ids)
+        mstudent_care.delete_students(ids)
     except Exception as e:
         log.error(f'could not delete student {request.args}: {e}')
     return redirect(url_for('student.show'))
@@ -205,10 +204,10 @@ table_configuration = {
         'add': {'title': 'Voeg een student toe', 'buttons': ['save', 'cancel']},
     },
     'href': [],
-    'pre_filter': app.data.student.pre_filter,
-    'format_data': app.application.student.format_data,
-    'filter_data': app.data.student.filter_data,
-    'search_data': app.data.student.search_data,
+    'pre_filter': app.data.student_care.pre_filter,
+    'format_data': mstudent_care.format_data,
+    'filter_data': app.data.student_care.filter_data,
+    'search_data': app.data.student_care.search_data,
     'default_order': (1, 'asc'),
     'socketio_endpoint': 'celledit-student',
     # 'cell_color': {'supress_cell_content': True, 'color_keys': {'X': 'red', 'O': 'green'}}, #TEST

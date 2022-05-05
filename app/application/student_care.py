@@ -1,5 +1,5 @@
 from app import log
-from app.data import student as mstudent
+from app.data import student_care as mstudent_care
 import app.data.settings
 from app.application import formio as mformio
 import sys, datetime
@@ -8,7 +8,7 @@ def add_student(data):
     try:
         data['s_date_of_birth'] = mformio.datestring_to_date(data['s_date_of_birth'])
         data['i_intake_date'] = mformio.datetimestring_to_datetime(data['i_intake_date'])
-        student = mstudent.add_student(data)
+        student = mstudent_care.add_student(data)
         log.info(f"Add student: {student.s_last_name} {student.s_first_name}, {data}")
         return {"status": True, "data": {'id': student.id}}
     except Exception as e:
@@ -19,12 +19,12 @@ def add_student(data):
 
 def update_student(data):
     try:
-        student = mstudent.get_first_student({'id': data['id']})
+        student = mstudent_care.get_first_student({'id': data['id']})
         if student:
             del data['id']
             data['s_date_of_birth'] = mformio.datestring_to_date(data['s_date_of_birth'])
             data['i_intake_date'] = mformio.datetimestring_to_datetime(data['i_intake_date'])
-            student = mstudent.update_student(student, data)
+            student = mstudent_care.update_student(student, data)
             if student:
                 log.info(f"Update student: {student.s_last_name} {student.s_first_name}, {data}")
                 return {"status": True, "data": {'id': student.id}}
@@ -48,7 +48,7 @@ def save_student(data):
 
 
 def delete_students(ids):
-    mstudent.delete_students(ids)
+    mstudent_care.delete_students(ids)
 
 
 ############## formio forms #############
@@ -65,7 +65,7 @@ def prepare_add_registration_form():
 
 def prepare_edit_registration_form(id):
     try:
-        student = mstudent.get_first_student({"id": id})
+        student = mstudent_care.get_first_student({"id": id})
         template = app.data.settings.get_json_template('student-register-template')
         template = mformio.prepare_for_edit(template, student.to_dict())
         return {'template': template,

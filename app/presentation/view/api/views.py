@@ -1,6 +1,6 @@
 from flask import request
 from . import api
-from app.application import registration as mregistration, student as mstudent, user as muser
+from app.application import registration as mregistration, student_care as mstudent, user as muser
 from app.data import settings as msettings
 from app import flask_app
 import json

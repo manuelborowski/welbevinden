@@ -131,7 +131,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.98: bugfix in intake date: omit seconds
 # V0.99: make navbar fixed
 # V0.100: esthetic updates
-
+# V0.101: put formio buttons in navbar.  Updated login-form
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -149,7 +149,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.100', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.101', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

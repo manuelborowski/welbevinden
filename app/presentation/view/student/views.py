@@ -103,9 +103,9 @@ def item_edit(ids=None):
         else:
             id = ids[0]
         return render_template('render_formio.html', data={"form": "edit",
-                                                           "get_form_en"
-                                                           "dpoint": "student.get_form",
-                                                            "extra": id})
+                                                           "get_form_endpoint": "student.get_form",
+                                                           "extra": id,
+                                                           "buttons": ["save", "cancel", "clear"]})
     except Exception as e:
         log.error(f'Could not edit guest {e}')
         flash_plus('Kan gebruiker niet aanpassen', e)
@@ -116,7 +116,8 @@ def item_edit(ids=None):
 def item_add():
     try:
         return render_template('render_formio.html', data={"form": "add",
-                                                           "get_form_endpoint": "student.get_form"})
+                                                           "get_form_endpoint": "student.get_form",
+                                                           "buttons": ["save", "cancel", "clear"]})
     except Exception as e:
         log.error(f'Could not add student {e}')
         flash_plus(f'Kan student niet toevoegen: {e}')

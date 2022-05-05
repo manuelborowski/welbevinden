@@ -72,6 +72,19 @@
                         {% endif %}
                     </div>
                 {% endif %}
+                {% if data and data.buttons %}
+                        <div class="nav-buttons">
+                        {% if 'save' in data.buttons %}
+                            <button class="btn btn-default" type="button" onclick="button_pushed('save')">Opslaan</button>
+                        {% endif %}
+                        {% if 'cancel' in data.buttons %}
+                            <button class="btn btn-warning" type="button" onclick="button_pushed('cancel')">Annuleren</button>
+                        {% endif %}
+                        {% if 'clear' in data.buttons %}
+                            <button class="btn btn-warning" type="button" onclick="button_pushed('clear')">Velden wissen</button>
+                        {% endif %}
+                    </div>
+                {% endif %}
             {% endif %}
             </ul>
         </div>

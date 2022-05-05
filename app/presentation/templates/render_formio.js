@@ -5,6 +5,30 @@ let get_form_endpoint = 'get_form_endpoint' in data ? data.get_form_endpoint : "
 let cancel_endpoint = 'cancel_endpoint' in data ? data.cancel_endpoint : "";
 let formio_local_storage = {}
 let backup_timer_id;
+let form_data;
+
+function button_pushed(action) {
+    switch (action) {
+        case 'save':
+            formio.submit()
+            break
+        case 'cancel':
+            if ('cancel_endpoint' in form_data.data) {
+                if (confirm('Opgelet, de inhoud van dit formulier gaat verloren.  Bent u zeker?')) {
+                    clearInterval(backup_timer_id);
+                    formio.resetValue();
+                    localStorage.removeItem('formio-cache')
+                    document.location.href = Flask.url_for(form_data.data['cancel_endpoint'])
+                }
+            }
+            break
+        case 'clear':
+            if (confirm('Opgelet, alle velden in dit formulier worden gewist.  Bent u zeker?')) {
+                formio.resetValue();
+            }
+            break
+    }
+}
 
 $(document).ready( async function () {
     const form_options = {
@@ -13,7 +37,7 @@ $(document).ready( async function () {
     }
     //Get form from server
     const ret = await fetch(Flask.url_for(get_form_endpoint, {form: form_name, extra}))
-    const form_data = await ret.json();
+    form_data = await ret.json();
     if (form_data.status) {
         //Render and display form
         formio = await Formio.createForm(document.getElementById('formio-form'), form_data.data.template, form_options)
@@ -77,19 +101,10 @@ $(document).ready( async function () {
         });
         // On cancel (button) go to new page
         formio.on('cancel', () => {
-            if ('cancel_endpoint' in form_data.data) {
-                if (confirm('Opgelet, de inhoud van dit formulier gaat verloren.  Bent u zeker?')) {
-                    clearInterval(backup_timer_id);
-                    formio.resetValue();
-                    localStorage.removeItem('formio-cache')
-                    document.location.href = Flask.url_for(form_data.data['cancel_endpoint'])
-                }
-            }
+            button_pushed('cancel')
         });
         formio.on('clear', () => {
-            if (confirm('Opgelet, alle velden in dit formulier worden gewist.  Bent u zeker?')) {
-                formio.resetValue();
-            }
+            button_pushed('clear');
         });
     } else {
         alert(`Fout bij het ophalen van een form:\n ${form_data.data}`)

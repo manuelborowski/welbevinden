@@ -1,6 +1,5 @@
 from flask import Blueprint
 
-guest = Blueprint('guest', __name__)
+care = Blueprint('care', __name__)
 
 from . import views
-

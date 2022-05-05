@@ -76,36 +76,13 @@ def get_test_server():
 
 
 default_configuration_settings = {
-    'generic-enable-send-ack-email': (False, Settings.SETTING_TYPE.E_BOOL),
-    'generic-translations': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'generic-view-config-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'generic-registration-extra-css': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'user-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'user-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 
-    'user-item-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-
-    'student-register-arm-send-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
-    'student-register-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'student-web-response-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'student-email-response-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'student-register-settings': ('{}', Settings.SETTING_TYPE.E_STRING),
-
-    'timeslot-register-arm-send-ack-mail': (False, Settings.SETTING_TYPE.E_BOOL),
-    'timeslot-register-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'timeslot-web-response-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'timeslot-email-response-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'timeslot-open-registration-at': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'timeslot-config-timeslots-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'timeslot-config-timeslots-is-flat': (False, Settings.SETTING_TYPE.E_BOOL),
-
-    'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
-    'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),
-    'email-send-max-retries': (2, Settings.SETTING_TYPE.E_INT),
-    'email-base-url': ('localhost:5000', Settings.SETTING_TYPE.E_STRING),
-    'email-enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
-
-    'import-misc-fields': ('{}', Settings.SETTING_TYPE.E_STRING),
-
+    'care-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'care-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 }
+
 
 
 def get_configuration_settings():
@@ -167,41 +144,10 @@ def set_json_template(key, data):
     except json.JSONDecodeError as e:
         raise Exception(f'Template has invalid JSON syntax: {key}, {data}, {e}')
 
-settings_cache = {}
-def cache_settings():
-    try:
-        global settings_cache
-        settings_cache = {
-            'use_register': len(get_json_template('student-register-settings')) > 0,
-            'translations': get_json_template('generic-translations'),
-            'view_config_template': get_json_template('generic-view-config-template'),
-        }
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+# subscribe_setting_changed('generic-view-config-template', lambda x, y: cache_settings(), None)
+# subscribe_setting_changed('student-register-settings', lambda x, y: cache_settings(), None)
+# subscribe_setting_changed('generic-translations', lambda x, y: cache_settings(), None)
 
-cache_settings()
-
-subscribe_setting_changed('generic-view-config-template', lambda x, y: cache_settings(), None)
-subscribe_setting_changed('student-register-settings', lambda x, y: cache_settings(), None)
-subscribe_setting_changed('generic-translations', lambda x, y: cache_settings(), None)
-
-def use_register():
-    return settings_cache['use_register']
-
-def get_translations(key):
-    try:
-        return settings_cache['translations'][key]
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return {}
-
-
-def get_view_config_template(key):
-    try:
-        return settings_cache['view_config_template'][key]
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return {}
-
-
+def get_datatables_config(key):
+    return get_json_template(f'{key}-datatables-template')
 

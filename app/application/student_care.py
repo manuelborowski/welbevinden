@@ -9,7 +9,7 @@ def add_student(data):
         data['s_date_of_birth'] = mformio.datestring_to_date(data['s_date_of_birth'])
         data['i_intake_date'] = mformio.datetimestring_to_datetime(data['i_intake_date'])
         student = mstudent_care.add_student(data)
-        log.info(f"Add student: {student.s_last_name} {student.s_first_name}, {data}")
+        log.info(f"Add care: {student.s_last_name} {student.s_first_name}, {data}")
         return {"status": True, "data": {'id': student.id}}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -26,7 +26,7 @@ def update_student(data):
             data['i_intake_date'] = mformio.datetimestring_to_datetime(data['i_intake_date'])
             student = mstudent_care.update_student(student, data)
             if student:
-                log.info(f"Update student: {student.s_last_name} {student.s_first_name}, {data}")
+                log.info(f"Update care: {student.s_last_name} {student.s_first_name}, {data}")
                 return {"status": True, "data": {'id': student.id}}
         return {"status": False, "data": "Er is iets fout gegaan"}
     except Exception as e:
@@ -77,15 +77,15 @@ def prepare_edit_registration_form(id):
 
 
 
-############ student overview list #########
+############ care overview list #########
 def format_data(db_list):
     out = []
     for student in db_list:
         em = student.to_dict()
-        # student['row_action'] = student.id
-        # student['DT_RowId']= student.id
+        # care['row_action'] = care.id
+        # care['DT_RowId']= care.id
         #
-        # em = student.flat()
+        # em = care.flat()
         #
         em.update({
             'row_action': student.id,

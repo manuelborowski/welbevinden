@@ -22,7 +22,7 @@ def login():
                 log.error('Could not save timestamp')
                 return redirect(url_for('auth.login'))
             # Ok, continue
-            return redirect(url_for('student.show'))
+            return redirect(url_for('care.show'))
         else:
             utils.flash_plus(u'Ongeldige gebruikersnaam of paswoord')
             log.error(u'Invalid username/password')
@@ -74,7 +74,7 @@ def login_ss():
                 log.error('Could not save user')
                 return redirect(url_for('auth.login'))
             # Ok, continue
-            return redirect(url_for('student.show'))
+            return redirect(url_for('care.show'))
     else:
         redirect_uri = f'{flask_app.config["SMARTSCHOOL_OUATH_REDIRECT_URI"]}/ss'
         return redirect(f'{flask_app.config["SMARTSCHOOL_OAUTH_SERVER"]}?app_uri={redirect_uri}')

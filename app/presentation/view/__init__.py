@@ -1,19 +1,9 @@
-from app.application import registration as mregistration, settings as msettings
+from app.application import settings as msettings
 from app.application.formio import search_component
 
 false = False
 true = True
 null = None
-
-
-def prepare_registration_form(code):
-    ret = mregistration.prepare_timeslot_registration(code)
-    if ret.result == ret.Result.E_OK:
-        available_timeslots = ret.data['available_timeslots']
-        template = ret.data['template']
-        update_available_timeslots(available_timeslots, template, 'radio-timeslot')
-        update_template(template, new='new' == ret.data['mode'])
-    return ret
 
 
 def prepare_settings_form(form):

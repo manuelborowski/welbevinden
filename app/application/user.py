@@ -41,7 +41,7 @@ def delete_users(ids):
 ############## formio forms #############
 def prepare_add_registration_form():
     try:
-        template = app.data.settings.get_json_template('user-item-template')
+        template = app.data.settings.get_json_template('user-formio-template')
         return {'template': template,
                 'defaults': {'new_password': True}}
     except Exception as e:
@@ -52,7 +52,7 @@ def prepare_add_registration_form():
 def prepare_edit_registration_form(id):
     try:
         user = app.data.user.get_first_user({"id": id})
-        template = app.data.settings.get_json_template('user-item-template')
+        template = app.data.settings.get_json_template('user-formio-template')
         template = mformio.prepare_for_edit(template, user.to_dict())
         return {'template': template,
                 'defaults': user.to_dict()}

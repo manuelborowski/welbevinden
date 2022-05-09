@@ -50,7 +50,8 @@ class StudenIntake(db.Model, SerializerMixin):
     school_extra_info = db.Column(db.String(256), default='')
 
     #aandachtspunten voor de school
-    extra_begeleiding = db.Column(db.String(256), default='')
+    f_contact = db.Column(db.Boolean, default=False)
+    extra_begeleiding = db.Column(db.Text, default='')
     f_extra_begeleiding = db.Column(db.Boolean, default=False)
     extra_begeleiding_welke = db.Column(db.Text, default='')
     extra_begeleiding_door_wie = db.Column(db.Text, default='')
@@ -58,14 +59,20 @@ class StudenIntake(db.Model, SerializerMixin):
     f_ondersteuningsnetwerk = db.Column(db.Boolean, default=False)
     zorg_id = db.Column(db.Integer, default=None)
 
-    f_gemotiveerd_verslag = db.Column(db.Boolean, default=False)
-    f_verslag_ontbindende_voorwaarden = db.Column(db.Boolean, default=False)
-    f_geen_verslag_specifieke_behoefte = db.Column(db.Boolean, default=False)
+    specifieke_onderwijsbehoeften = db.Column(db.String(256), default='')
+
 
     andere_schoolproblemen = db.Column(db.Text, default='')
 
     samen_met_leerling1 = db.Column(db.String(256), default='')
     samen_met_leerling2 = db.Column(db.String(256), default='')
+
+    betaling_email = db.Column(db.String(256), default='')
+    betaling_wijze = db.Column(db.String(256), default='')
+    domiciliering_iban = db.Column(db.String(256), default='')
+    domiciliering_bic = db.Column(db.String(256), default='')
+    domiciliering_rekeninghouder = db.Column(db.String(256), default='')
+
 
     def __setattr__(self, key, value):
         if key == 'school_lijst':

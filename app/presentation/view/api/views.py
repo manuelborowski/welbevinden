@@ -1,6 +1,6 @@
 from flask import request
 from . import api
-from app.application import  student_care as mstudent, user as muser
+from app.application import  student_care as mstudent_care, student_intake as mstudent_intake, user as muser
 from app.data import settings as msettings
 from app import flask_app
 import json
@@ -27,7 +27,7 @@ def key_required(func):
 @key_required
 def care_add():
     data = json.loads(request.data)
-    ret = mstudent.add_student(data)
+    ret = mstudent_care.add_student(data)
     return(json.dumps(ret))
 
 
@@ -35,7 +35,23 @@ def care_add():
 @key_required
 def care_update():
     data = json.loads(request.data)
-    ret = mstudent.update_student(data)
+    ret = mstudent_care.update_student(data)
+    return(json.dumps(ret))
+
+
+@api.route('/api/intake/add', methods=['POST'])
+@key_required
+def intake_add():
+    data = json.loads(request.data)
+    ret = mstudent_intake.add_student(data)
+    return(json.dumps(ret))
+
+
+@api.route('/api/intake/update', methods=['POST'])
+@key_required
+def intake_update():
+    data = json.loads(request.data)
+    ret = mstudent_intake.update_student(data)
     return(json.dumps(ret))
 
 

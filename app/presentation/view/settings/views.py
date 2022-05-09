@@ -143,13 +143,14 @@ settings_formio = \
             "tableView": false,
             "components": [
               {
-                "label": "Submit",
+                "label": "Opslaan",
                 "showValidations": false,
                 "theme": "warning",
                 "tableView": false,
                 "key": "submit",
                 "type": "button",
-                "input": true
+                "input": true,
+                "saveOnEnter": false
               },
               {
                 "label": "Detail template (formio)",
@@ -164,6 +165,54 @@ settings_formio = \
                 "autoExpand": false,
                 "tableView": true,
                 "key": "care-datatables-template",
+                "type": "textarea",
+                "input": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Student Intake",
+        "tableView": false,
+        "key": "visitors1",
+        "type": "container",
+        "input": true,
+        "components": [
+          {
+            "title": "Studenten INSCHRIJVEN",
+            "theme": "primary",
+            "collapsible": true,
+            "key": "RegistratieTemplate1",
+            "type": "panel",
+            "label": "BEZOEKERS : Registratie template en e-mail",
+            "collapsed": true,
+            "input": false,
+            "tableView": false,
+            "components": [
+              {
+                "label": "Opslaan",
+                "showValidations": false,
+                "theme": "warning",
+                "tableView": false,
+                "key": "submit",
+                "type": "button",
+                "input": true,
+                "saveOnEnter": false
+              },
+              {
+                "label": "Detail template (formio)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "intake-formio-template",
+                "type": "textarea",
+                "input": true
+              },
+              {
+                "label": "Lijst template (JSON)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "intake-datatables-template",
                 "type": "textarea",
                 "input": true
               }

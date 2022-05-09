@@ -81,6 +81,9 @@ default_configuration_settings = {
 
     'care-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'care-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+
+    'intake-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'intake-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 }
 
 

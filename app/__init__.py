@@ -134,6 +134,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.101: put formio buttons in navbar.  Updated login-form
 # V0.102: rename student to student_care
 # V0.103: major clean up
+# V0.104: added student_intake
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -151,7 +152,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.103', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.104', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -251,12 +252,13 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings,  api, warning, care
+    from app.presentation.view import auth, user, settings,  api, warning, care, intake
     flask_app.register_blueprint(api.api)
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(settings.settings)
     flask_app.register_blueprint(care.care)
+    flask_app.register_blueprint(intake.intake)
     flask_app.register_blueprint(warning.warning)
 
     @flask_app.errorhandler(403)

@@ -14,12 +14,13 @@ def load_user(user_id):
     return user_load_user(user_id)
 
 
-__all__ = ['models', 'settings', 'user', 'utils', 'warning', 'student_care']
+__all__ = ['models', 'settings', 'user', 'utils', 'warning', 'student_care', 'student_intake']
 
 
 import app.data.models
 import app.data.settings
 import app.data.student_care
+import app.data.student_intake
 import app.data.warning
 import app.data.utils
 import app.data.user

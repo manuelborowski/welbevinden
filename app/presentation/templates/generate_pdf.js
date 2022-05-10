@@ -6,107 +6,16 @@ const margin_left = 20;
 const table_width = 170
 const line_height = 7;
 
-const generate_pdf = (data) => {
+const generate_pdf = (template, data) => {
     const doc = new jsPDF();
     doc.y = line_height;
     doc.page_number = 1;
-    empty_line(doc, 3);
-    section_header(doc, "Zorgfiche - Intake");
-    empty_line(doc, 2);
 
-    section_header(doc, "Administratieve gegevens", true);
-    empty_line(doc, 2);
-
-    topic_header(doc,"Leerling:");
-
-    topic(doc, [{header: "Naam: ", text: data.s_last_name}, {header: "Voornaam: ", text: data.s_first_name}]);
-    topic(doc, [{header: "Geboortedatum : ", text: data.s_date_of_birth ? data.s_date_of_birth : ''},
-        {header: "Geslacht: ", text: data.s_sex}, {header: "Code: ", text: data.s_code}]);
-
-    topic_header(doc, "Intaker:");
-    topic(doc, [{header: "Naam: ", text: data.i_last_name}, {header: "Voornaam: ", text: data.i_first_name}]);
-    topic(doc, [{header: "Intakedatum : ", text: data.i_intake_date ? data.i_intake_date : ''},
-        {header: "Code: ", text: data.i_code}]);
-
-    topic_header(doc, "Contactgegevens:");
-    topic(doc,{header: 'Vorige school: ', text: data.vorige_school}, 2, true);
-    topic(doc,{header: 'Vorig CLB: ', text: data.vorig_clb}, 2, true);
-
-    empty_line(doc);
-    topic_header(doc, "Inschrijving:");
-    topic_bool(doc, "Met gemotiveerd verslag", data.f_gemotiveerd_verslag);
-    topic_bool(doc, "Met verslag onder ontbindende voorwaarden", data.f_verslag_ontbindende_voorwaarden);
-    topic_bool(doc, "Zonder verslag én met specifieke onderwijsbehoefte", data.f_verslag_ontbindende_voorwaarden);
-
-    empty_line(doc);
-    topic_header(doc, "Nood aan voorspelbaarheid:");
-    topic_bool(doc, "Uitnodigen startmoment augustus", data.f_nood_aan_voorspelbaarheid);
-
-    footer(doc, `${data.s_last_name}-${data.s_first_name}.pdf`);
-
-    empty_line(doc);
-    section_header(doc, "Beeld over de leerling", true);
-    empty_line(doc);
-    topic_header(doc, "Thuissituatie:")
-    topic(doc, {header: '', text: data.thuissituatie}, 5, true)
-
-    empty_line(doc);
-    topic_header(doc, "Schoolverloop:")
-    topic(doc, {header: 'Schoolloopbaan/studietraject: ', text: data.schoolloopbaan}, 4, true)
-    topic(doc, {header: 'Advies lagere school: ', text: data.advies_school}, 2, true)
-    topic(doc, {header: 'Definitieve studiekeuze leerling: ', text: data.definitieve_studiekeuze}, 2, true)
-
-    empty_line(doc);
-    topic_header(doc, "(Psycho-)medische info en verstandelijke mogelijkheden:")
-    topic_bool(doc, "ASS", data.f_ass, data.ass);
-    topic_bool(doc, "ADD", data.f_add, data.add);
-    topic_bool(doc, "ADHD", data.f_adhd, data.adhd);
-    topic_bool(doc, "DCD", data.f_dcd, data.dcd);
-    topic_bool(doc, "Hoogbegaafd", data.f_hoogbegaafd, data.hoogbegaafd);
-    topic_bool(doc, "Dyscalculie", data.f_dyscalculie, data.dyscalculie);
-    topic_bool(doc, "Dyslexie", data.f_dyslexie, data.dyslexie);
-    topic_bool(doc, "Dysorthografie", data.f_dysorthografie, data.dysorthografie);
-    topic_bool(doc, "Stos/dysfasie", data.f_stos_dysfasie, data.stos_dysfasie);
-    topic_bool(doc, "Andere", data.f_andere, data.andere);
-    topic(doc, {header: 'motoriek (fijne, grove, evenwicht, combinatie, nauwkeurigheid): ', text: data.motoriek}, 4, true);
-    topic(doc, {header: 'gezondheid (astma, epilepsie, diabetes, allergie, ziekte, medicatie): ', text: data.gezondheid}, 4, true);
-
-    footer(doc, `${data.s_last_name}-${data.s_first_name}.pdf`);
-
-    empty_line(doc);
-    topic_header(doc, "Sociaal-emotioneel functioneren:");
-    topic(doc, {header: 'Groepsfunctioneren (assertiviteit, probleemoplossend, conflicthanterend, leerling-leerling, leerling-leerkracht):             ', text: data.groepsfunctioneren}, 10, true);
-    topic(doc, {header: 'Individueel functioneren (faalangst, signalen stemming, vermogen tot zelfreflectie, herkennen van gevoelens, behoefte aan voorspelbaarheid, prikkelgevoeligheid, motivatie, zelfredzaamheid): ', text: data.individueel_functioneren}, 10, true);
-    topic(doc, {header: 'Communicatie (begrijpen van opdrachten, vragen durven stellen, letterlijk nemen van comunnicatie):                 ', text: data.communicatie}, 10, true);
-
-    footer(doc, `${data.s_last_name}-${data.s_first_name}.pdf`);
-
-    empty_line(doc);
-    topic_header(doc, "Leerontwikkeling:");
-    topic(doc, {header: 'Algemeen (aandacht, orde, organisatie, werktempo): ', text: data.algemeen}, 10, true);
-    topic(doc, {header: 'Taalvaardigheid: ', text: data.taalvaardigheid}, 10, true);
-    topic(doc, {header: 'Rekenvaardigheid: ', text: data.rekenvaardigheid}, 10, true);
-
-    footer(doc, `${data.s_last_name}-${data.s_first_name}.pdf`);
-
-    empty_line(doc);
-    section_header(doc, "Ondersteuning / tips in aanpak", true);
-    empty_line(doc);
-    topic_header(doc, "Ondersteunende maatregelen:");
-    topic(doc, {header: '', text: data.ondersteunende_maatregelen}, 20, true);
-    empty_line(doc);
-    topic_header(doc, 'Schoolexterne zorg (logopedist, kinesist, huiswerkbegeleider,');
-    topic_header(doc, 'psychiater, auti-coach, thuisbegeleiding, jeugdconsulent):');
-    topic(doc, {header: '', text: data.ondersteunende_maatregelen}, 10, true);
-
-    footer(doc, `${data.s_last_name}-${data.s_first_name}.pdf`, false);
-
-    // console.log('style', doc.getFont());
-    // console.log('fontsize', doc.getFontSize());
-    // console.log('stylelist', doc.getFontList());
+    template.forEach(item => {
+        new Function('doc', 'data', item)(doc, data);
+    });
 
     doc.save(`${data.s_last_name}-${data.s_first_name}.pdf`);
-
 }
 
 const empty_line = (doc, nbr = 1) => {

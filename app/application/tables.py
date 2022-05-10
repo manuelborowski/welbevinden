@@ -31,20 +31,9 @@ def prepare_config_table_for_view(table):
                 del i['order_by']
             if not 'orderable' in i:
                 i['orderable'] = False
-        if 'format_data' in out:
-            del out['format_data']
-        if 'pre_filter' in out:
-            del out['pre_filter']
-        if 'filter_data' in out:
-            del out['filter_data']
-        if 'post_processing' in out:
-            del out['post_processing']
-        if 'search_data' in out:
-            del out['search_data']
-        if 'get_filters' in out:
-            del out['get_filters']
-        if 'get_show_info' in out:
-            del out['get_show_info']
+        for k,v in out.items():
+            if callable(v):
+                out[k] = ''
         out['table_action'] = f'{out["view"]}.table_action'
         out['table_ajax'] = f'{out["view"]}.table_ajax'
     except Exception as e:

@@ -167,6 +167,14 @@ settings_formio = \
                 "key": "care-datatables-template",
                 "type": "textarea",
                 "input": true
+              },
+              {
+                "label": "Pdf template (JS)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "care-pdf-template",
+                "type": "textarea",
+                "input": true
               }
             ]
           }

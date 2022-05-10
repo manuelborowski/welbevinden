@@ -64,7 +64,7 @@ function button_pushed(action) {
                 chbxs.forEach(chbx => {
                     const id = chbx.value;
                     const data = table.row(`#${id}`).data();
-                    generate_pdf(data);
+                    generate_pdf(pdf_template, data);
                 });
             }
             break

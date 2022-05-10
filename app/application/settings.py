@@ -36,3 +36,12 @@ def subscribe_handle_update_setting(topic, cb, opaque):
         'opaque': opaque
     }
 
+
+def get_pdf_template(key):
+    clean_list = []
+    _, template = msettings.get_setting(key)
+    template_list = template.split('\n')
+    for l in template_list:
+        if not '#' in l and not l == '':
+            clean_list.append(l)
+    return clean_list

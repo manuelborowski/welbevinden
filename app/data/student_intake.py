@@ -61,7 +61,6 @@ class StudenIntake(db.Model, SerializerMixin):
 
     specifieke_onderwijsbehoeften = db.Column(db.String(256), default='')
 
-
     andere_schoolproblemen = db.Column(db.Text, default='')
 
     samen_met_leerling1 = db.Column(db.String(256), default='')

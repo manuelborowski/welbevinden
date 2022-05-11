@@ -223,6 +223,14 @@ settings_formio = \
                 "key": "intake-datatables-template",
                 "type": "textarea",
                 "input": true
+              },
+              {
+                "label": "Pdf template (JS)",
+                "autoExpand": false,
+                "tableView": true,
+                "key": "intake-pdf-template",
+                "type": "textarea",
+                "input": true
               }
             ]
           }

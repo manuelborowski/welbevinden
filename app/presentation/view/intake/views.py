@@ -4,7 +4,7 @@ from flask import redirect, url_for, request, render_template
 from flask_login import login_required, current_user
 from app.presentation.view import base_multiple_items
 from app.presentation.layout.utils import flash_plus
-from app.application import socketio as msocketio
+from app.application import socketio as msocketio, settings as msettings
 import sys, json
 import app.data
 import app.application
@@ -159,6 +159,10 @@ def get_show_gauges():
     return ''
 
 
+def get_pdf_template():
+    return msettings.get_pdf_template('intake-pdf-template')
+
+
 table_configuration = {
     'view': 'intake',
     'title': 'Inschrijven',
@@ -168,6 +172,7 @@ table_configuration = {
                       'Eens verwijderd kunnen ze niet meer worden terug gehaald.<br>',
     'get_filters': get_filters,
     'get_show_info': get_show_gauges,
+    'get_pdf_template': get_pdf_template,
     'item': {
         'edit': {'title': 'Wijzig een intake', 'buttons': ['save', 'cancel']},
         'add': {'title': 'Voeg een intake toe', 'buttons': ['save', 'cancel']},

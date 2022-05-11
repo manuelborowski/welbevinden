@@ -85,8 +85,8 @@ default_configuration_settings = {
 
     'intake-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'intake-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'intake-pdf-template': ('', Settings.SETTING_TYPE.E_STRING),
 }
-
 
 
 def get_configuration_settings():

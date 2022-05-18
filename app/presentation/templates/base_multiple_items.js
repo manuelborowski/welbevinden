@@ -4,6 +4,8 @@ var True = true;
 const view = table_config.view;
 let table;
 let filter_settings = [];
+window.jsPDF = window.jspdf.jsPDF;
+window.html2canvas = html2canvas;
 
 //If not exactly one checkbox is selected, display warning and return false, else return true
 function is_exactly_one_checkbox_selected() {
@@ -63,13 +65,46 @@ function button_pushed(action) {
                 const chbxs = document.querySelectorAll('.chbx_all:checked')
                 chbxs.forEach(chbx => {
                     const id = chbx.value;
-                    const data = table.row(`#${id}`).data();
-                    generate_pdf(pdf_template, data);
+
+                    get_form('care.get_form', id);
+
+
+                    // const data = table.row(`#${id}`).data();
+                    // generate_pdf(pdf_template, data);
                 });
             }
             break
     }
 }
+
+
+const get_form = async (endpoint, id) => {
+        const form_options = {
+        sanitizeConfig: {addTags: ['iframe'], addAttr: ['allow'], ALLOWED_TAGS: ['iframe'], ALLOWED_ATTR: ['allow']},
+        // noAlerts: true,
+    }
+    //Get form from server
+    const ret = await fetch(Flask.url_for(endpoint, {form: "pdf", extra: id}))
+    form_data = await ret.json();
+    if (form_data.status) {
+        //Render and display form
+        formio = await Formio.createForm(document.getElementById('formio-form'), form_data.data.template, form_options)
+        if ('defaults' in form_data.data) {
+            Object.entries(form_data.data.defaults).forEach(([k, v]) => {
+                try {
+                    formio.getComponent(k).setValue(v);
+                } catch (error) {
+                    console.log("skipped ", k, v);
+                }
+            });
+        }
+        const doc = new jsPDF();
+        doc.html(document.getElementById('formio-form'), {
+            callback: function (doc) {doc.save();}
+        })
+    }
+}
+
 
 function clear_filter_setting() {
     localStorage.clear(`Filter-${view}`);

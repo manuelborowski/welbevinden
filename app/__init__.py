@@ -137,7 +137,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.104: added student_intake
 # V0.105: update intake properties
 # V0.106: pdf: introduced a template
-
+# V0.107: finished intake form.  Added support (not working) for html2canvas.  Changed settings-value column to MEDIUMTEXT to support 64kB+
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...

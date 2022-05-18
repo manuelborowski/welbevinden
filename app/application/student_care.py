@@ -51,11 +51,11 @@ def prepare_add_form():
         raise e
 
 
-def prepare_edit_form(id):
+def prepare_edit_form(id, read_only=False, pdf=False):
     try:
         student = mstudent_care.get_first_student({"id": id})
         template = app.data.settings.get_json_template('care-formio-template')
-        template = mformio.prepare_for_edit(template, student.to_dict())
+        template = mformio.prepare_for_edit(template, student.to_dict(), pdf)
         return {'template': template,
                 'defaults': student.to_dict()}
     except Exception as e:

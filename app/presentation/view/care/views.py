@@ -57,8 +57,8 @@ def get_form():
             'cancel_endpoint': 'care.show',
             'api_key': flask_app.config['API_KEY']
         }
-        if request.values['form'] == 'view':
-            data = app.application.student_care.prepare_edit_form(request.values['extra'], read_only=True)
+        if request.values['form'] == 'pdf':
+            data = app.application.student_care.prepare_edit_form(request.values['extra'], read_only=True, pdf=True)
             data.update(common)
         elif current_user.is_at_least_supervisor:
             if request.values['form'] == 'edit':

@@ -46,7 +46,7 @@ def extract_sub_component(form, key, item ={}, additional_fields = {}):
 # -make all components 'not required'
 # display the print-document-button
 # update the url in the print-document-iframe
-def prepare_for_edit(form, flat={}):
+def prepare_for_edit(form, flat={}, unfold=False):
     def cb(component):
         if component['key'] == 'header':
             component['hidden'] = True
@@ -59,6 +59,8 @@ def prepare_for_edit(form, flat={}):
             component['validate']['required'] = False
         if 'tags' in component and 'show-when-edit' in component['tags']:
             component['hidden'] = False
+        if component['type'] == "panel" and unfold:
+            component["collapsed"] = False
 
     iterate_components_cb(form, cb)
     iframe = search_component(form, 'container-iframe-document')

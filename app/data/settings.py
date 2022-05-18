@@ -4,6 +4,7 @@ import sys
 from flask_login import current_user
 from app import log, db
 from sqlalchemy import UniqueConstraint
+from sqlalchemy.dialects.mysql import MEDIUMTEXT
 import json
 
 
@@ -18,7 +19,7 @@ class Settings(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256))
-    value = db.Column(db.Text)
+    value = db.Column(MEDIUMTEXT)
     type = db.Column(db.String(256))
     user_id = db.Column(db.Integer)
 
@@ -59,11 +60,13 @@ def add_setting(name, value, type, id=-1):
 def set_setting(name, value, id=-1):
     try:
         setting = Settings.query.filter_by(name=name, user_id=id if id > -1 else current_user.id).first()
-        if setting.type == Settings.SETTING_TYPE.E_BOOL:
-            value = 'True' if value else 'False'
-        setting.value = value
-        db.session.commit()
-    except:
+        if setting:
+            if setting.type == Settings.SETTING_TYPE.E_BOOL:
+                value = 'True' if value else 'False'
+            setting.value = value
+            db.session.commit()
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: could not set setting {name}: {e}')
         return False
     return True
 

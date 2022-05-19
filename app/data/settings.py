@@ -79,6 +79,8 @@ def get_test_server():
 
 
 default_configuration_settings = {
+    'generic-default-student-code': ('t1', Settings.SETTING_TYPE.E_STRING),
+
     'user-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'user-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 
@@ -158,3 +160,12 @@ def set_json_template(key, data):
 def get_datatables_config(key):
     return get_json_template(f'{key}-datatables-template')
 
+
+def get_and_increment_default_student_code():
+    try:
+        _, code = get_setting('generic-default-student-code')
+        new_code = f"t{(int(code[1::]) + 1)}"
+        set_setting('generic-default-student-code', new_code)
+        return code
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')

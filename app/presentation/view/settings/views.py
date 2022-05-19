@@ -71,6 +71,13 @@ settings_formio = \
                 "type": "button",
                 "input": true,
                 "saveOnEnter": false
+              },
+              {
+                "label": "Standaard leerlingcode (tx)",
+                "tableView": true,
+                "key": "generic-default-student-code",
+                "type": "textfield",
+                "input": true
               }
             ]
           }

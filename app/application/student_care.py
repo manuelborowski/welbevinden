@@ -1,5 +1,5 @@
 from app import log
-from app.data import student_care as mstudent_care
+from app.data import student_care as mstudent_care, settings as msettings
 import app.data.settings
 from app.application import formio as mformio
 import sys, datetime
@@ -45,7 +45,11 @@ def prepare_add_form():
         template = app.data.settings.get_json_template('care-formio-template')
         now = datetime.datetime.now()
         return {'template': template,
-                'defaults': {'i_intake_date': mformio.datetime_to_datetimestring(now)}}
+                'defaults': {
+                        'i_intake_date': mformio.datetime_to_datetimestring(now),
+                        's_code' : msettings.get_and_increment_default_student_code()
+                    }
+                }
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         raise e

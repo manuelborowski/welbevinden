@@ -163,9 +163,9 @@ def get_datatables_config(key):
 
 def get_and_increment_default_student_code():
     try:
-        _, code = get_setting('generic-default-student-code')
+        _, code = get_setting('generic-default-student-code', 1)
         new_code = f"t{(int(code[1::]) + 1)}"
-        set_setting('generic-default-student-code', new_code)
+        set_setting('generic-default-student-code', new_code, 1)
         return code
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

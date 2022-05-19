@@ -139,6 +139,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.106: pdf: introduced a template
 # V0.107: finished intake form.  Added support (not working) for html2canvas.  Changed settings-value column to MEDIUMTEXT to support 64kB+
 # V0.108: generate new student code when a student is added in care or intake
+# V0.109: small bugfix
 
 #TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
 #TODO: add statistic counters, e.g. number per field-of-study, ...
@@ -156,7 +157,7 @@ flask_app.config.from_pyfile('config.py')
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.108', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.109', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

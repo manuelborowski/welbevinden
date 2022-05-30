@@ -1,4 +1,4 @@
-from . import care
+from . import student
 from app import log, supervisor_required, flask_app
 from flask import redirect, url_for, request, render_template
 from flask_login import login_required, current_user
@@ -10,7 +10,7 @@ import app.data
 import app.application
 
 
-@care.route('/care/care', methods=['POST', 'GET'])
+@student.route('/care/care', methods=['POST', 'GET'])
 @login_required
 def show():
     # start = datetime.datetime.now()
@@ -20,7 +20,7 @@ def show():
     return ret
 
 
-@care.route('/care/table_ajax', methods=['GET', 'POST'])
+@student.route('/care/table_ajax', methods=['GET', 'POST'])
 @login_required
 def table_ajax():
     # start = datetime.datetime.now()
@@ -30,9 +30,9 @@ def table_ajax():
     return ret
 
 
-@care.route('/care/table_action', methods=['GET', 'POST'])
-@care.route('/care/table_action/<string:action>', methods=['GET', 'POST'])
-@care.route('/care/table_action/<string:action>/<string:ids>', methods=['GET', 'POST'])
+@student.route('/care/table_action', methods=['GET', 'POST'])
+@student.route('/care/table_action/<string:action>', methods=['GET', 'POST'])
+@student.route('/care/table_action/<string:action>/<string:ids>', methods=['GET', 'POST'])
 @login_required
 # @supervisor_required
 def table_action(action, ids=None):
@@ -47,7 +47,7 @@ def table_action(action, ids=None):
     return redirect(url_for('care.show'))
 
 
-@care.route('/care/get_form', methods=['POST', 'GET'])
+@student.route('/care/get_form', methods=['POST', 'GET'])
 @login_required
 def get_form():
     try:
@@ -208,10 +208,10 @@ table_configuration = {
         'add': {'title': 'Voeg een care toe', 'buttons': ['save', 'cancel']},
     },
     'href': [],
-    'pre_filter': app.data.student_care.pre_filter,
-    'format_data': app.application.student_care.format_data,
-    'filter_data': app.data.student_care.filter_data,
-    'search_data': app.data.student_care.search_data,
+    'pre_filter': app.data.student.pre_filter,
+    'format_data': app.application.student.format_data,
+    'filter_data': app.data.student.filter_data,
+    'search_data': app.data.student.search_data,
     'default_order': (1, 'asc'),
     'socketio_endpoint': 'celledit-care',
     # 'cell_color': {'supress_cell_content': True, 'color_keys': {'X': 'red', 'O': 'green'}}, #TEST

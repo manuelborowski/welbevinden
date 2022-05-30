@@ -20,144 +20,13 @@ config_name = config_name if config_name else 'production'
 flask_app.config.from_object(app_config[config_name])
 flask_app.config.from_pyfile('config.py')
 
-# V0.1: copy from redeem-voucher V0.21
-# V0.2: made generic adaptations
-# V0.3: update systemfiles
-# V0.4: make more generic
-# V0.5: send all invite emails button did not work
-# V0.6: reworked the reservations-list
-# V0.7: small bugfix
-# V0.8: added miscellaneous fields
-# V0.9: small bugfix, default JSON value should be {}
-# V0.10: enable search in misc_field
-# V0.11: bugfix to make new reservations possible
-# V0.12: small bugfix
-# V0.13: remove yellow row color when invite or ack mail is sent
-# V0.14: small bugfix with counters.  Added invitation reminder mail prefix
-# V0.15: escape url specific characters in data
-# V0.16: bugfix: when adding a new but empty registration, show error
-# V0.17: update in logging: add correct app name
-# V0.18: update in title of registration form
-# V0.19: update in favicon of registration form
-# V0.20: registration-ok html form can be set via admin settings
-# V0.21: added message no-timeslot
-# V0.22: bugifx timeslot-list
-# V0.23: log when registration is cancelled
-# V0.24: refactored callbacks in some Guest settings
-# V0.25: implemented cancel-registration-mail
-# V0.26: send cancel-registration-mail when guest pushes cancel registration button
-# V0.27: copy from 0.26 and start to support opendag registrations
-# V0.28: replaced reservation with registration
-# V0.29: update copyright notice
-# V0.30: backup, unified the html-pages
-# V0.31: added email response, extended Guest-model, improved WEB response
-# V0.32: student registration seems to work.  Reworked rendering of formio (more generic)
-# V0.33: added buttons to show/hide columns
-# V0.34: reworked celledit to support integers.  Re-use register-form to edit a registration.  Editing a registration is ok.
-# V0.35: reworked registration table: improved feedback, addded filtering, added gauges
-# V0.36: added datatables cell background coloring.  Implemented differentiation between registered and waiting-list students
-# V0.37: registrations: make columns-visibility persistent.
-# Bugfix algorithms to determine if a registration is ok or on the waiting list.
-# Bug in socketio?  Sometimes a True at the sender is received as 'on'
-# V0.38: implemented status (registered, waiting-list,...)
-# Updated celledit and celltoggle
-# V0.39: included correct columns when searching in database
-# V0.40: implemented sending of confirmation emails
-# updated list of registrations (more colors)
-# update requirements.txt
-# V0.41: bugfix registration list
-# Implemented bool to send confirmation mail automatically
-# V0.42: added email-confirmation-field.
-# Bugfixed automatically-send-email-when-registering
-# First code to register-timeslot
-# V0.43: added support to reserve a timeslot and minor updates
-# V0.44: filter and column-visibility: split out per page
-# debugged timeslot and user pages
-# V0.45: added setting (time/date) to allow prohibit timeslot registration.  Small cleanups
-# V0.46: small bugfixes.  Improved handling of json-template-strings.  Clean up settings: delete unused and renamed.
-# V0.47: clean up: removed unused functions and imports
-# V0.48: added help page.  Minor updates
-# V0.49: help files were not in git
-# V0.50: update in help
-# V0.51: update in help
-# V0.52: update in help.  Added program to flatten timeslots
-# V0.53: small updates.  Added registration-cache to speed up registrated/waiting-list issues
-# V0.54: cosmetic update
-# V0.55: if the register-settings are changed, rebuild the cache
-# V0.56: when editing a registration, a print button is visible to print the confirmation document
-# V0.57: bugix when adding a registration
-# V0.58: optimization and added functionality to register in multiple registers
-# V0.59: bugfix in checking timeslot
-# V0.60: add todo's
-# V0.61: add todo's
-# V0.62: bugfix when retrieving a list of guest.  Implemented code to add pre-registers.  Added a column in the registration table.
-# V0.63: bugfix: format of date returned from formio is not always the same
-# V0.64: do not crash if date-of-birth is not filled in
-# V0.65: supervisor can update timeslot of guest
-# V0.66: bugfix in edit-registration: timeslot can be empty.  Translate field_of_study into Dutch
-# V0.67: in a table, double click a row to edit
-# V0.68: edit registration: condense form to improve overview
-# V0.69: add sequence-numbers when on waiting-list.  Preempted empty integers (is a ''-string).  Added logging
-# V0.70: removed test code
-# V0.71: add more details to logging
-# V0.72: added over- and undercount to the registers.  Model: don't update properties when incorrect type.  Cleanup Guest callback
-# V0.73: added warnings
-# V0.74: log when registrationstatus is updated
-# V0.75: settings: bugfix misc-settings and default settings for json-strings
-# V0.76: added translation-settings to translate a key to dutch
-# V0.77: push to github: sui-aanmelden.  Update logo's
-# V0.78: esthetic updates.  Made a split between: no register + multiple fields of study and multiple registers + single field of study.
-# Part of the datatables config-structure is now in settings so it can be changed easily.
-# Translations is a setting (JSON).  Cached part of the settings to speed up access.
-# V0.79: guest registration pages: extra css stored in settings
-# V0.80: update in user-view
-# V0.81: add logo to git
-# V0.82: lowered werkzeug loglevel to get rid of traces.  Bugfixed socketio
-# V0.83: bugfixed cell_edit in datatables.  Added comment to start uwsgi from commandline
-# V0.84: update in uwsgi logging
-# V0.85: updated logo.  Handle commit-exception.  Registration: introduced multiselect to select fields-of-study
-# 86: add students (model, datatables).  Added tooltips in datatables
-# V0.87: typos.  Make code more generic.  Issue with formio datetime (don't use).  Student registration; backup regularly in local storage
-# V0.88; update navbar, icon and backgroundpicture
-# V0.89: add student: insert current datetime.  Delete students
-# V0.90: update requirements.txt
-# V0.91: layout update
-# V0.92: log in via smartschool.  Updated local storage (cache)
-# V0.93: line up view/user with rest of code
-# V0.94: first trial to generate pdf
-# V0.95: add button to download pdf with student data
-# V0.96: added filters to filter on flags
-# V0.97: esthetic update.  To use the API, a key is required.
-# V0.98: bugfix in intake date: omit seconds
-# V0.99: make navbar fixed
-# V0.100: esthetic updates
-# V0.101: put formio buttons in navbar.  Updated login-form
-# V0.102: rename student to student_care
-# V0.103: major clean up
-# V0.104: added student_intake
-# V0.105: update intake properties
-# V0.106: pdf: introduced a template
-# V0.107: finished intake form.  Added support (not working) for html2canvas.  Changed settings-value column to MEDIUMTEXT to support 64kB+
-# V0.108: generate new student code when a student is added in care or intake
-# V0.109: small bugfix
-
-#TODO: add sequence numbers when on the waiting list.  Add them on the confirmation document?
-#TODO: add statistic counters, e.g. number per field-of-study, ...
-#TODO: add note, when printing confirmation document, to print 2 copies
-#TODO: after printing confirmation document, go to new registration automatically
-#TODO: (preregistration) import list
-#TODO: (preregistration) send personal registration link
-#TODO: registration: allow access from certain ip-addresses only
-#TODO: make it possible to print a detailed registration-form, to be updated by the parents when they close the registration
-#TODO: login via smartschool
-#TODO: pre-registration: send invitation link via smartschool
-#TODO: detect overrun and underrun in regsiters (when a registered student moves from one register to another)
-#TODO: add warnings page
+# V0.1: copy from sum-zorg V0.109
+# 0.2: removed intake and care.  Added functionality to read database and photos from wisa
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.109', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.2', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -229,9 +98,9 @@ email = Mail(flask_app)
 send_emails = False
 
 SCHEDULER_API_ENABLED = True
-email_scheduler = APScheduler()
-email_scheduler.init_app(flask_app)
-email_scheduler.start()
+ap_scheduler = APScheduler()
+ap_scheduler.init_app(flask_app)
+ap_scheduler.start()
 
 if 'db' in sys.argv:
     from app.data import models
@@ -257,13 +126,12 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings,  api, warning, care, intake
+    from app.presentation.view import auth, user, settings,  api, warning, student
     flask_app.register_blueprint(api.api)
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(settings.settings)
-    flask_app.register_blueprint(care.care)
-    flask_app.register_blueprint(intake.intake)
+    flask_app.register_blueprint(student.student)
     flask_app.register_blueprint(warning.warning)
 
     @flask_app.errorhandler(403)

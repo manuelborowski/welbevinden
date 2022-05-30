@@ -84,13 +84,52 @@ default_configuration_settings = {
     'user-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'user-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 
-    'care-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'care-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'care-pdf-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'student-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'student-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 
-    'intake-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'intake-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
-    'intake-pdf-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'general-inhibit-update-external-databases': (True, Settings.SETTING_TYPE.E_BOOL),
+
+    'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
+
+    'smartschool-scheduler-cron': ('', Settings.SETTING_TYPE.E_STRING),
+    'smartschool-teacher-group': ('', Settings.SETTING_TYPE.E_STRING),
+    'smartschool-api-url': ('', Settings.SETTING_TYPE.E_STRING),
+    'smartschool-api-key': ('', Settings.SETTING_TYPE.E_STRING),
+    'smartschool-update-teachers': (False, Settings.SETTING_TYPE.E_BOOL),
+    'smartschool-update-students': (False, Settings.SETTING_TYPE.E_BOOL),
+
+    'cardpresso-scheduler-cron': ('', Settings.SETTING_TYPE.E_STRING),
+    'cardpresso-url': ('', Settings.SETTING_TYPE.E_STRING),
+    'cardpresso-file': ('', Settings.SETTING_TYPE.E_STRING),
+    'cardpresso-login': ('', Settings.SETTING_TYPE.E_STRING),
+    'cardpresso-password': ('', Settings.SETTING_TYPE.E_STRING),
+    'cardpresso-update-students': (False, Settings.SETTING_TYPE.E_BOOL),
+
+    'ad-url': ('', Settings.SETTING_TYPE.E_STRING),
+    'ad-login': ('', Settings.SETTING_TYPE.E_STRING),
+    'ad-password': ('', Settings.SETTING_TYPE.E_STRING),
+    'ad-update-accounts': (False, Settings.SETTING_TYPE.E_BOOL),
+
+    'papercut-url': ('', Settings.SETTING_TYPE.E_STRING),
+    'papercut-login': ('', Settings.SETTING_TYPE.E_STRING),
+    'papercut-password': ('', Settings.SETTING_TYPE.E_STRING),
+    'papercutscript-update-accounts': (False, Settings.SETTING_TYPE.E_BOOL),
+    'papercut-script-path': ('', Settings.SETTING_TYPE.E_STRING),
+    'papercut-script-pc_get_user_property-ps1': ('', Settings.SETTING_TYPE.E_STRING),
+    'papercut-scripts': ('', Settings.SETTING_TYPE.E_STRING),
+
+    'papercut-server-url': ('', Settings.SETTING_TYPE.E_STRING),
+    'papercut-server-port': ('', Settings.SETTING_TYPE.E_STRING),
+    'papercut-auth-token': ('', Settings.SETTING_TYPE.E_STRING),
+
+    'wisa-url': ('', Settings.SETTING_TYPE.E_STRING),
+    'wisa-login': ('', Settings.SETTING_TYPE.E_STRING),
+    'wisa-password': ('', Settings.SETTING_TYPE.E_STRING),
+    'wisa-photo-dir': ('', Settings.SETTING_TYPE.E_STRING),
+    'wisa-schoolyear': ('', Settings.SETTING_TYPE.E_STRING),
+    'wisa-update-teachers': (False, Settings.SETTING_TYPE.E_BOOL),
+    'wisa-update-students': (False, Settings.SETTING_TYPE.E_BOOL),
+
 }
 
 

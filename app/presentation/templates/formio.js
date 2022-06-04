@@ -14,6 +14,11 @@ function button_pushed(action) {
             break
         case 'cancel':
             if ('cancel_endpoint' in form_data.data) {
+                document.location.href = Flask.url_for(form_data.data['cancel_endpoint'])
+            }
+            break
+        case 'cancel-confirm':
+            if ('cancel_endpoint' in form_data.data) {
                 if (confirm('Opgelet, de inhoud van dit formulier gaat verloren.  Bent u zeker?')) {
                     clearInterval(backup_timer_id);
                     formio.resetValue();
@@ -51,7 +56,7 @@ $(document).ready( async function () {
             });
         }
         // Clear cache when the page is loaded for the first time.  Do NOT clear when page is reloaded...
-        if(performance.getEntriesByType('navigation')[0].type == 'navigate') {
+        if(performance.getEntriesByType('navigation')[0].type === 'navigate') {
             localStorage.removeItem('formio-cache')
         }
         // check if form data is present in the local browser

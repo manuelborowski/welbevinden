@@ -12,7 +12,7 @@ class Photo(db.Model, SerializerMixin):
     datetime_format = '%d/%m/%Y %H:%M'
 
     id = db.Column(db.Integer(), primary_key=True)
-    code = db.Column(db.String(256), default='')
+    filename = db.Column(db.String(256), default='')
     photo = db.Column(MEDIUMBLOB)
     timestamp = db.Column(db.DateTime)
 
@@ -20,13 +20,13 @@ class Photo(db.Model, SerializerMixin):
     delete = db.Column(db.Boolean, default=False)
     active = db.Column(db.Boolean, default=True)
     enable = db.Column(db.Boolean, default=True)
-    update = db.Column(db.Boolean, default=False)
+    changed = db.Column(db.Boolean, default=False)
 
 
 def add_photo(data = {}, commit=True):
     try:
         photo = Photo()
-        photo.code = data['code']
+        photo.filename = data['filename']
         photo.photo = data['photo']
         photo.timestamp = datetime.datetime.now()
         db.session.add(photo)
@@ -59,10 +59,10 @@ def commit():
     return None
 
 
-def update_photo(code, data, commit=True):
+def update_photo(filename, data, commit=True):
     try:
         q = db.session.query(Photo)
-        q = q.filter(Photo.code == code)
+        q = q.filter(Photo.filename == filename)
         data.update({'timestamp': datetime.datetime.now()})
         q.update(data)
         if commit:
@@ -77,12 +77,12 @@ def update_wisa_photos(data = []):
     try:
         for d in data:
             photo = d['photo']
-            for property in d['update']:
+            for property in d['changed']:
                 v = d[property]
                 if hasattr(photo, property):
                     if getattr(Photo, property).expression.type.python_type == type(v):
                         setattr(photo, property, v.strip() if isinstance(v, str) else v)
-            photo.update = json.dumps(d['update'])
+            photo.changed = json.dumps(d['changed'])
         db.session.commit()
     except Exception as e:
         db.session.rollback()
@@ -95,7 +95,7 @@ def flag_wisa_photos(data = []):
         for d in data:
             photo = d['photo']
             photo.new = d['new']
-            photo.update = d['update']
+            photo.changed = d['changed']
             photo.delete = d['delete']
         db.session.commit()
     except Exception as e:
@@ -151,7 +151,7 @@ def get_first_photo(data={}):
 
 def get_photos_size():
     try:
-        q = db.session.query(Photo.id, Photo.code, Photo.new, Photo.update, Photo.delete, func.octet_length(Photo.photo))
+        q = db.session.query(Photo.id, Photo.filename, Photo.new, Photo.changed, Photo.delete, func.octet_length(Photo.photo))
         q = q.all()
         return q
     except Exception as e:

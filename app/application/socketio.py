@@ -1,9 +1,10 @@
 from flask import request
 from flask_socketio import emit, join_room, leave_room, close_room
 from app import socketio
-import json
 
 socketio_cbs = {}
+
+# clients can subscribe to a room.  The server can broadcast an event into that room only.
 
 
 @socketio.event

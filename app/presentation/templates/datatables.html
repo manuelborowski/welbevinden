@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="/static/css/right_click.css">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+    <style>
+        .column-invisible-a {
+            border-color: orange;
+        }
+        .column-visible-a {
+            border-color: greenyellow;
+        }
+        .column-visible-div p {
+            border-style: solid;
+            border-radius: 1rem;
+            padding: 0.2rem;
+            margin-bottom: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {{ super() }}
+    {% if table_config %}
+        <div class="container-fluid">
+            <div class="center">
+                <h2>{{ table_config.title }}</h2>
+                <form method="post" id="action_form" enctype=multipart/form-data
+                      action="{{ url_for(table_config.table_action) }}">
+                    {% if filters %}
+                        <div class="flex-container">
+                            {% for f in filters %}
+                                {% if f.type == "select" %}
+                                    <div class="form-group "><label class="control-label" for="{{ f.name }}"
+                                                                    title="{{ f.tt }}">{{ f.label }}</label>
+                                        <select class="form-control table-filter" id="{{ f.name }}"
+                                                name="{{ f.name }} {{ f.multiple }}">
+                                            {% for o in f.choices %}
+                                                <option value="{{ o[0] }}"
+                                                        {% if o[0] == f.default %}selected{% endif %}>{{ o[1] }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                {% endif %}
+                                {% if f.type == "datepicker" %}
+                                    <div class="form-group "><label class="control-label"
+                                                                    for="{{ f.name }}">{{ f.label }}</label>
+                                        <br><input id="{{ f.name }}" name="{{ f.name }}" class="table-filter">
+                                    </div>
+                                {% endif %}
+                                {% if f.type == "checkbox" %}
+                                    {% for b in f.boxes %}
+                                        <input type="checkbox" class="form-control table-filter" id="{{ b[0] }}"
+                                               name="{{ b[0] }}" value="{{ b[0] }}">
+                                        <label for="{{ b[0] }}">{{ b[1] }}</label>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                            <button class="btn btn-danger" type="button" onclick="clear_filter_setting()">Reset</button>
+                        </div>
+
+
+                        <hr class="nice-green-line">
+                    {% endif %}
+                    <div class="column-visible-div flex-container">Kolom zichtbaar:&nbsp;</div>
+                    <br>
+                    <hr class="nice-green-line">
+
+                    {% if table_config.legend %}
+                        <br>
+                        <br>
+                        Legende: {{ table_config.legend|safe }}
+                    {% endif %}
+
+                    <table cellspacing="0" class="table table-striped table-bordered wrap" id="datatable" width="100%">
+                        <thead>
+                        <tr>
+                            {% if 'row_detail' in config %}
+                                <th></th>
+                            {% endif %}
+                            {% for h in table_config.template %}
+                                {% if h.name=='row_action' %}
+                                    <th><input type='checkbox' id="select_all"></th>
+                                {% elif h.name=='reviewed' %}
+                                    <th><img src="static/img/reviewed.png" style="width:20px;height:20px;"
+                                             title="Reeds gecontroleerd?"></th>
+                                {% else %}
+                                    <th title="{{ h.tt if 'tt' in h else '' }}">{{ h.name }}</th>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        </thead>
+                    </table>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if table_config.right_click %}
+    <div class="right-click-wrapper">
+        <div class="content">
+            <ul class="menu">
+                {%  for item in table_config.right_click.menu %}
+                    <li class="item" onclick=item_clicked("{{ item.item }}")>
+                        {% if 'iconscout' in item %}
+                            <i class="uil uil-{{ item.iconscout }}"></i>
+                        {%  endif %}
+                        <span>{{ item.label }}</span>
+                    </li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div id="formio-form"></div>
+    {%  endif %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {% if table_config %}
+        <script>
+            var filters = {{ (filters or []) | tojson }}
+            var pdf_template = {{ (pdf_template or []) | tojson }}
+            var table_config = {{ (table_config or []) | tojson }}
+            var config_columns ={{ table_config.template | tojson }}
+            {% if 'cell_color' in table_config %}
+                var cell_to_color = {{ (table_config.cell_color.color_keys or null) | tojson}}
+                var suppress_cell_content = {{(table_config.cell_color.supress_cell_content or false) | tojson}}
+            {% else %}
+                var cell_to_color = null
+                var suppress_cell_content = null
+            {% endif %}
+            var current_user_is_at_least_admin = {{ current_user.is_at_least_admin | tojson }}
+        </script>
+        <script type="text/javascript"> {% include "datatables.js" %}</script>
+    {% endif %}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/right_click.js') }}"></script>
+{% endblock %}

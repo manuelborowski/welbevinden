@@ -22,11 +22,12 @@ flask_app.config.from_pyfile('config.py')
 
 # V0.1: copy from sum-zorg V0.109
 # 0.2: removed intake and care.  Added functionality to read database and photos from wisa
+# 0.3: added functionality to print badges.  Added right-click
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.2', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.3', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -126,12 +127,13 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings,  api, warning, student
+    from app.presentation.view import auth, user, settings,  api, warning, student, cardpresso
     flask_app.register_blueprint(api.api)
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(settings.settings)
     flask_app.register_blueprint(student.student)
+    flask_app.register_blueprint(cardpresso.cardpresso)
     flask_app.register_blueprint(warning.warning)
 
     @flask_app.errorhandler(403)

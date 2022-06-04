@@ -31,6 +31,13 @@ function is_at_least_one_checkbox_selected() {
     }
 }
 
+function get_id_of_checked_boxes() {
+    let ids = [];
+    const chbxs = document.querySelectorAll('.chbx_all:checked')
+    chbxs.forEach(chbx => {ids.push(chbx.value);});
+    return ids;
+}
+
 function button_pushed(action) {
     switch (action) {
         case 'delete':
@@ -38,9 +45,7 @@ function button_pushed(action) {
                 let message = table_config.delete_message;
                 bootbox.confirm(message, function (result) {
                     if (result) {
-                        let ids = []
-                        const chbxs = document.querySelectorAll('.chbx_all:checked')
-                        chbxs.forEach(chbx => {ids.push(chbx.value);});
+                        const ids = get_id_of_checked_boxes();
                         location.href = Flask.url_for(table_config.table_action, {action: 'delete', ids: JSON.stringify(ids)})
                     }
                 });
@@ -305,7 +310,7 @@ $(document).ready(function () {
     }
 
     if (current_user_is_at_least_admin) {
-        datatable_config["lengthMenu"] = [500, 1000];
+        datatable_config["lengthMenu"] = [500, 1000, 2000];
     } else {
         datatable_config["lengthMenu"] = [200, 500];
     }

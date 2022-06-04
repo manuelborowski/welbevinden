@@ -12,10 +12,7 @@ import json
 @login_required
 def show():
     default_settings = msettings.get_configuration_settings()
-    data = {
-        'default': default_settings,
-        'template': settings_formio,
-    }
+    data = {'default': default_settings, 'template': settings_formio}
     return render_template('/settings/settings.html', data=data)
 
 
@@ -24,17 +21,12 @@ def update_settings_cb(msg, client_sid=None):
     data = msg['data']
     settings = json.loads(data['value'])
     msettings.set_setting_topic(settings)
-    msettings.set_configuration_setting(data['setting'], data['value'])
-    msocketio.send_to_room({'type': 'settings', 'data': {'status': True}}, client_sid)
+    msocketio.broadcast_message({'type': 'settings', 'data': {'status': True}})
   except Exception as e:
-    msocketio.send_to_room({'type': 'settings', 'data': {'status': False, 'message': str(e)}}, client_sid)
+    msocketio.broadcast_message({'type': 'settings', 'data': {'status': False, 'message': str(e)}})
 
-
-def event_received_cb(msg, client_sid=None):
-    mevent.process_event(msg['data']['event'])
 
 msocketio.subscribe_on_type('settings', update_settings_cb)
-msocketio.subscribe_on_type('event', event_received_cb)
 
 
 from app.presentation.view import false, true, null
@@ -45,9 +37,9 @@ settings_formio = \
     "display": "form",
     "components": [
       {
-        "label": "General",
+        "label": "Algemeen",
         "tableView": false,
-        "key": "container",
+        "key": "algemeen",
         "type": "container",
         "input": true,
         "components": [
@@ -71,13 +63,6 @@ settings_formio = \
                 "type": "button",
                 "input": true,
                 "saveOnEnter": false
-              },
-              {
-                "label": "Standaard leerlingcode (tx)",
-                "tableView": true,
-                "key": "generic-default-student-code",
-                "type": "textfield",
-                "input": true
               }
             ]
           }
@@ -95,9 +80,9 @@ settings_formio = \
         "tableView": false,
         "components": [
           {
-            "label": "Users",
+            "label": "Gebruikers",
             "tableView": false,
-            "key": "container1",
+            "key": "gebruikers",
             "type": "container",
             "input": true,
             "components": [
@@ -143,9 +128,9 @@ settings_formio = \
             ]
           },
           {
-            "label": "Studenten",
+            "label": "templates-studenten",
             "tableView": false,
-            "key": "students",
+            "key": "templates-studenten",
             "type": "container",
             "input": true,
             "components": [
@@ -183,6 +168,54 @@ settings_formio = \
                     "autoExpand": false,
                     "tableView": true,
                     "key": "student-datatables-template",
+                    "type": "textarea",
+                    "input": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "templates-cardpresso",
+            "tableView": false,
+            "key": "templates-cardpresso",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "Cardpresso",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "RegistratieTemplate1",
+                "type": "panel",
+                "label": "Studenten",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Opslaan",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true,
+                    "saveOnEnter": false
+                  },
+                  {
+                    "label": "Detail template (formio)",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "key": "cardpresso-formio-template",
+                    "type": "textarea",
+                    "input": true
+                  },
+                  {
+                    "label": "Lijst template (JSON)",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "key": "cardpresso-datatables-template",
                     "type": "textarea",
                     "input": true
                   }
@@ -411,15 +444,6 @@ settings_formio = \
                 "tableView": false,
                 "components": [
                   {
-                    "html": "<p>Check https://crontab.guru/ voor de layout van de cron template</p><p>Om onmiddelijk uit te voeren, vul in 'now'</p>",
-                    "label": "Content",
-                    "refreshOnChange": false,
-                    "key": "content",
-                    "type": "content",
-                    "input": false,
-                    "tableView": false
-                  },
-                  {
                     "label": "Opslaan ",
                     "showValidations": false,
                     "theme": "warning",
@@ -431,12 +455,13 @@ settings_formio = \
                   {
                     "label": "Cron template",
                     "labelPosition": "left-left",
+                    "tooltip": "Check https://crontab.guru/ voor de layout van de cron template",
                     "tableView": true,
                     "persistent": false,
                     "key": "cron-scheduler-template",
                     "type": "textfield",
-                    "input": true,
-                    "labelWidth": 20
+                    "labelWidth": 20,
+                    "input": true
                   },
                   {
                     "label": "FROM Smartschool: update teachers (full name, ss username, ad username, ss internal number)",
@@ -635,7 +660,7 @@ settings_formio = \
           {
             "label": "Active Directory",
             "tableView": false,
-            "key": "activeDirectory",
+            "key": "active-directory",
             "type": "container",
             "input": true,
             "components": [
@@ -759,7 +784,7 @@ settings_formio = \
           {
             "label": "Wisa",
             "tableView": false,
-            "key": "activeDirectory1",
+            "key": "wisa",
             "type": "container",
             "input": true,
             "components": [
@@ -784,13 +809,117 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "URL to server",
+                    "label": "Columns",
+                    "columns": [
+                      {
+                        "components": [
+                          {
+                            "label": "Laad gegevens van Wisa",
+                            "tableView": false,
+                            "defaultValue": false,
+                            "key": "check-load-from-wisa",
+                            "type": "checkbox",
+                            "input": true
+                          }
+                        ],
+                        "width": 3,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 3
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "Laad gegevens uit Wisa",
+                            "showValidations": false,
+                            "theme": "danger",
+                            "tableView": false,
+                            "key": "button-load-from-wisa",
+                            "conditional": {
+                              "show": true,
+                              "when": "wisa.check-load-from-wisa",
+                              "eq": "true"
+                            },
+                            "type": "button",
+                            "saveOnEnter": false,
+                            "input": true
+                          }
+                        ],
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      }
+                    ],
+                    "key": "columns",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
+                  },
+                  {
+                    "label": "Columns",
+                    "columns": [
+                      {
+                        "components": [
+                          {
+                            "label": "Laad foto's",
+                            "tableView": false,
+                            "defaultValue": false,
+                            "key": "check-load-photos",
+                            "type": "checkbox",
+                            "input": true
+                          }
+                        ],
+                        "width": 3,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 3
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "Laad foto's",
+                            "showValidations": false,
+                            "theme": "danger",
+                            "tableView": false,
+                            "key": "button-load-photos",
+                            "conditional": {
+                              "show": true,
+                              "when": "wisa.check-load-photos",
+                              "eq": "true"
+                            },
+                            "type": "button",
+                            "input": true,
+                            "saveOnEnter": false
+                          }
+                        ],
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      }
+                    ],
+                    "key": "columns1",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
+                  },
+                  {
+                    "label": "URL",
                     "labelPosition": "left-left",
-                    "labelWidth": 20,
                     "tableView": true,
                     "persistent": false,
                     "key": "wisa-url",
                     "type": "textfield",
+                    "labelWidth": 20,
                     "input": true
                   },
                   {
@@ -815,14 +944,14 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "Photo directory",
+                    "label": "Huidig schooljaar",
                     "labelPosition": "left-left",
-                    "labelWidth": 20,
                     "spellcheck": false,
                     "tableView": true,
                     "persistent": false,
-                    "key": "wisa-photo-dir",
+                    "key": "wisa-schoolyear",
                     "type": "textfield",
+                    "labelWidth": 20,
                     "input": true
                   }
                 ]

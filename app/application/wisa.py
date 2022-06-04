@@ -2,11 +2,12 @@ from app import log, flask_app
 from app.data import student as mstudent, photo as mphoto
 from app.data.utils import belgische_gemeenten
 from app.application import settings as msettings, warning as mwarning
+from app.application.settings import subscribe_handle_button_clicked
 import datetime
 import json, re, requests, os, glob, shutil, sys
 
 
-def read_from_wisa_database(local_file=None):
+def read_from_wisa_database(local_file=None, max=0):
     try:
         log.info('start import from wisa')
         if local_file:
@@ -37,13 +38,13 @@ def read_from_wisa_database(local_file=None):
         flag_list = []
         nbr_deleted = 0
         nbr_processed = 0
-        for item in data:  #clean up
+        for item in data:  #clean up, remove leading and trailing spaces
             for k, v in item.items():
                 item[k] = v.strip()
         for item in data:
             orig_geboorteplaats = None
             if "," in item['geboorteplaats'] or "-" in item['geboorteplaats'] and item['geboorteplaats'] not in belgische_gemeenten:
-                if "," in item['geboorteplaats']:
+                if "," in item['geboorteplaats']:   # sometimes, geboorteplaats is mis-used to also include geboorteland.
                     gl = item['geboorteplaats'].split(",")
                 else:
                     gl = item['geboorteplaats'].split("-")
@@ -66,21 +67,23 @@ def read_from_wisa_database(local_file=None):
                 item['delete'] = False
                 item['new'] = False
                 if update_properties:
-                    item['update'] = update_properties # student already present, did change
+                    item['changed'] = update_properties # student already present, but is changed
                     update_list.append(item)
                 else:
-                    item['update'] = None      # student already present, did not change
+                    item['changed'] = None      # student already present, no change
                     flag_list.append(item)
                 del(saved_students[item['rijksregisternummer']])
             else:
                 if orig_geboorteplaats:
-                    mwarning.new_warning(f'Leerling met code {item["code"]} heeft mogelijk een verkeerde geboorteplaats/-land: {orig_geboorteplaats}')
-                    log.info(f'Leerling met code {item["code"]} heeft mogelijk een verkeerde geboorteplaats/-land: {orig_geboorteplaats}')
+                    mwarning.new_warning(f'Leerling met leerlingnummer {item["leerlingnummer"]} heeft mogelijk een verkeerde geboorteplaats/-land: {orig_geboorteplaats}')
+                    log.info(f'Leerling met leerlingnummer {item["leerlingnummer"]} heeft mogelijk een verkeerde geboorteplaats/-land: {orig_geboorteplaats}')
                 new_list.append(item)  # new student
             nbr_processed += 1
+            if max > 0 and nbr_processed >= max:
+                break
         for k, v in saved_students.items(): # student not present in wisa anymore
             if not v.delete:
-                flag_list.append({'update': None, 'delete': True, 'new': False, 'student': v})
+                flag_list.append({'changed': None, 'delete': True, 'new': False, 'student': v})
                 nbr_deleted += 1
         mstudent.add_students(new_list)
         mstudent.update_wisa_students(update_list)
@@ -93,6 +96,7 @@ def read_from_wisa_database(local_file=None):
 # on the linux server, mount the windows-share (e.g  mount.cifs //MyMuse/SharedDocs /mnt/cifs -o username=putorius,password=notarealpass,domain=PUTORIUS)
 # in app/static, add a symlink to the the mounted windows share.  It is assumed all photo's are in the folder 'huidig'
 # photo's are copied to the 'photos' folder when a photo does not exist or it's size changed
+# sudo mount -t drvfs //10.10.0.211/sec /mnt/sec
 
 mapped_photos_path = 'app/static/mapped_photos/huidig'
 photos_path = 'app/static/photos/'
@@ -107,28 +111,28 @@ def get_photos():
         nbr_deleted = 0
 
         photo_sizes = mphoto.get_photos_size()
-        saved_photos = {p[1]: {'size': p[5], 'new': p[2], 'update': p[3], 'delete': p[4]} for p in photo_sizes}
+        saved_photos = {p[1]: {'size': p[5], 'new': p[2], 'changed': p[3], 'delete': p[4]} for p in photo_sizes}
 
         for mapped_photo in mapped_photos:
             base_name = os.path.basename(mapped_photo)
             if base_name not in saved_photos:
                 photo = open(mapped_photo, 'rb').read()     # new photo
-                mphoto.add_photo({'code': base_name, 'photo': photo}, commit=False)
+                mphoto.add_photo({'filename': base_name, 'photo': photo}, commit=False)
                 nbr_new += 1
             else:
                 mapped_size = os.path.getsize(mapped_photo)
                 if mapped_size != saved_photos[base_name]['size']:
-                    photo = open(mapped_photo, 'rb').read()  # new photo
-                    mphoto.update_photo(base_name, {'photo': photo, 'new': False, 'update': True, 'delete': False}, commit=False)
+                    photo = open(mapped_photo, 'rb').read()  # updated photo, different size
+                    mphoto.update_photo(base_name, {'photo': photo, 'new': False, 'changed': True, 'delete': False}, commit=False)
                     nbr_updated += 1
                 else:
-                    if saved_photos[base_name]['new'] or saved_photos[base_name]['update'] or saved_photos[base_name]['delete']:
-                        mphoto.update_photo(base_name, {'new': False, 'update': False, 'delete': False}, commit=False) # no update
+                    if saved_photos[base_name]['new'] or saved_photos[base_name]['changed'] or saved_photos[base_name]['delete']:
+                        mphoto.update_photo(base_name, {'new': False, 'changed': False, 'delete': False}, commit=False) # no update
                 del(saved_photos[base_name])
             nbr_processed += 1
-        for code, item in saved_photos.items():
-            if not saved_photos[code]['delete']:
-                mphoto.update_photo(code, {'new': False, 'update': False, 'delete': True}, commit=False)  # delete only when not already marked as delete
+        for filename, item in saved_photos.items():
+            if not saved_photos[filename]['delete']:
+                mphoto.update_photo(filename, {'new': False, 'changed': False, 'delete': True}, commit=False)  # delete only when not already marked as delete
                 nbr_deleted += 1
         mphoto.commit()
         log.info(f'get_new_photos: processed: {nbr_processed}, new {nbr_new}, updated {nbr_updated}, deleted {nbr_deleted}')
@@ -137,11 +141,22 @@ def get_photos():
         raise e
 
 
-def wisa_cront_task(opaque):
+def load_from_wisa(topic=None, opaque=None):
     with flask_app.app_context():
+        # read_from_wisa_database(max=30)
         read_from_wisa_database()
-        # get_photos()
 
+def load_photos_from_su_data(topic=None, opaque=None):
+    with flask_app.app_context():
+        get_photos()
+
+subscribe_handle_button_clicked('button-load-from-wisa', load_from_wisa, None)
+subscribe_handle_button_clicked('button-load-photos', load_photos_from_su_data, None)
+
+
+def wisa_cron_task(opaque):
+    load_from_wisa()
+    load_photos_from_su_data()
 
 #to have access to the photo's, mount the windowsshare
 #sudo apt install keyutils

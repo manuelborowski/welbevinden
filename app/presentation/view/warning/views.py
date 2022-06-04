@@ -2,7 +2,7 @@ from . import warning
 from app import supervisor_required, log
 from flask import redirect, url_for
 from flask_login import login_required
-from app.presentation.view import base_multiple_items
+from app.presentation.view import datatables
 from app.data.models import Warning
 from app.data import warning as mwarning
 from app.application import socketio as msocketio, warning as amwarning
@@ -13,14 +13,14 @@ import json, sys
 @login_required
 @supervisor_required
 def show():
-    return base_multiple_items.show(table_configuration)
+    return datatables.show(table_configuration)
 
 
 @warning.route('/warning/table_ajax', methods=['GET', 'POST'])
 @login_required
 @supervisor_required
 def table_ajax():
-    return base_multiple_items.ajax(table_configuration)
+    return datatables.ajax(table_configuration)
 
 
 @warning.route('/warning/table_action', methods=['GET', 'POST'])

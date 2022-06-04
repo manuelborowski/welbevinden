@@ -1,6 +1,6 @@
 import sys, json
 from app import log, db
-from sqlalchemy import text, func
+from sqlalchemy import text, func, desc
 from sqlalchemy_serializer import SerializerMixin
 
 
@@ -14,12 +14,19 @@ class Student(db.Model, SerializerMixin):
 
     voornaam = db.Column(db.String(256), default='')
     naam = db.Column(db.String(256), default='')
+    rijksregisternummer = db.Column(db.String(256), default='')
+    stamboeknummer = db.Column(db.String(256), default='')
+    leerlingnummer = db.Column(db.String(256), default='')
+    middag = db.Column(db.String(256), default='')
+    vsknummer = db.Column(db.String(256), default='')
+    rfid = db.Column(db.String(256))
+    foto = db.Column(db.String(256), default='')
+
     geboortedatum = db.Column(db.Date)
     geboorteplaats = db.Column(db.String(256), default='')
     geboorteland = db.Column(db.String(256), default='')
     geslacht = db.Column(db.String(256), default='')
     nationaliteit = db.Column(db.String(256), default='')
-
     straat = db.Column(db.String(256), default='')
     huisnummer = db.Column(db.String(256), default='')
     busnummer = db.Column(db.String(256), default='')
@@ -29,16 +36,12 @@ class Student(db.Model, SerializerMixin):
     gsm = db.Column(db.String(256), default='')
     email = db.Column(db.String(256), default='')
 
-    rijksregisternummer = db.Column(db.String(256), default='')
-
-    stamboeknummer = db.Column(db.String(256), default='')
-
-    code = db.Column(db.String(256), default='')
 
     inschrijvingsdatum = db.Column(db.Date)
-    schooljaar = db.Column(db.String(256), default='')
 
+    schooljaar = db.Column(db.String(256), default='')
     instellingsnummer = db.Column(db.String(256), default='')
+    schoolnaam = db.Column(db.String(256), default='')
     klascode = db.Column(db.String(256), default='')
     klasgroep = db.Column(db.String(256), default='')
     adminstratievecode = db.Column(db.String(256), default='')
@@ -82,18 +85,25 @@ class Student(db.Model, SerializerMixin):
     vo_postcode = db.Column(db.String(256), default='')
     vo_gemeente = db.Column(db.String(256), default='')
 
-    rfid_code = db.Column(db.String(256))
     timestamp = db.Column(db.DateTime)
 
     new = db.Column(db.Boolean, default=True)
     delete = db.Column(db.Boolean, default=False)
     active = db.Column(db.Boolean, default=True)
     enable = db.Column(db.Boolean, default=True)
-    update = db.Column(db.TEXT, default='')
+    changed = db.Column(db.TEXT, default='')
 
 
 def get_columns():
     return [p for p in dir(Student) if not p.startswith('_')]
+
+
+def commit():
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 def add_student(data = {}, commit=True):
@@ -147,7 +157,7 @@ def update_wisa_students(data = []):
                 if hasattr(student, property):
                     if getattr(Student, property).expression.type.python_type == type(v):
                         setattr(student, property, v.strip() if isinstance(v, str) else v)
-            student.update = json.dumps(d['update'])
+            student.changed = json.dumps(d['changed'])
         db.session.commit()
     except Exception as e:
         db.session.rollback()
@@ -160,7 +170,7 @@ def flag_wisa_students(data = []):
         for d in data:
             student = d['student']
             student.new = d['new']
-            student.update = d['update']
+            student.changed = d['changed']
             student.delete = d['delete']
         db.session.commit()
     except Exception as e:
@@ -183,14 +193,17 @@ def delete_students(ids=None):
     return None
 
 
-def get_students(data={}, special={}, order_by=None, first=False, count=False):
+def get_students(data={}, order_by=None, first=False, count=False):
     try:
         q = Student.query
         for k, v in data.items():
             if hasattr(Student, k):
                 q = q.filter(getattr(Student, k) == v)
         if order_by:
-            q = q.order_by(getattr(Student, order_by))
+            if order_by[0] == '-':
+                q = q.order_by(desc(getattr(Student, order_by[1::])))
+            else:
+                q = q.order_by(getattr(Student, order_by))
         if first:
             guest = q.first()
             return guest

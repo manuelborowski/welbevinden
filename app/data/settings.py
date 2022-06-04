@@ -87,6 +87,9 @@ default_configuration_settings = {
     'student-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'student-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 
+    'cardpresso-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'cardpresso-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+
     'general-inhibit-update-external-databases': (True, Settings.SETTING_TYPE.E_BOOL),
 
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),

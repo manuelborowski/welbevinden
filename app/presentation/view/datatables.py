@@ -1,6 +1,6 @@
 from app.data import settings as msettings
 from app.presentation.layout.utils import flash_plus
-from app.application.multiple_items import prepare_data_for_ajax
+from app.application.datatables import prepare_data_for_ajax
 from app.application import tables
 from flask import render_template, request, get_flashed_messages, jsonify
 
@@ -23,7 +23,7 @@ def update(table_configuration, fields=[]):
         table_configuration['template'].append(extra_field)
 
 
-def show(table_configuration):
+def show(table_configuration, template=None):
     filters = []
     pdf_template = []
     show_info = []
@@ -37,7 +37,9 @@ def show(table_configuration):
         config = tables.prepare_config_table_for_view(table_configuration)
     except Exception as e:
         flash_plus(f'Tabel kan niet getoond worden (show)', e)
-    return render_template('base_multiple_items.html', table_config=config, filters=filters, pdf_template=pdf_template, show_info=show_info)
+    if template:
+        return render_template(template, table_config=config, filters=filters, pdf_template=pdf_template, show_info=show_info)
+    return render_template('datatables.html', table_config=config, filters=filters, pdf_template=pdf_template, show_info=show_info)
 
 
 def format_datatable(table_configuration, data_list, total_count, filtered_count):

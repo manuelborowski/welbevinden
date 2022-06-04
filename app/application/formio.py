@@ -40,36 +40,12 @@ def extract_sub_component(form, key, item ={}, additional_fields = {}):
     return component
 
 
-# update the register-form:
-# -hide the 'header'
-# -unhide additional components
-# -make all components 'not required'
-# display the print-document-button
-# update the url in the print-document-iframe
 def prepare_for_edit(form, flat={}, unfold=False):
     def cb(component):
-        if component['key'] == 'header':
-            component['hidden'] = True
-        if component['key'] == 'mail-confirm':
-            component['hidden'] = True
-            component['disabled'] = True
-        if component['key'] == 'button-print-document':
-            component['hidden'] = False
-        if 'validate' in component and 'required' in component['validate']:
-            component['validate']['required'] = False
-        if 'tags' in component and 'show-when-edit' in component['tags']:
-            component['hidden'] = False
-        if component['type'] == "panel" and unfold:
-            component["collapsed"] = False
+        if component['key'] == 'photo':
+            component['attrs'][0]['value'] = component['attrs'][0]['value'] + str(flat['photo'])
 
     iterate_components_cb(form, cb)
-    iframe = search_component(form, 'container-iframe-document')
-    if iframe:
-        fill_in_tags(iframe, flat)
-        iframe['hidden'] = False
-    timeslots = search_component(form, 'radio-timeslots')
-    if timeslots:
-        timeslots['hidden'] = False
     return form
 
 
@@ -141,12 +117,24 @@ def iterate_components_cb(form, cb):
 
 
 def iterate_components(form):
-    components = form['components'] if 'components' in form else form['columns']
+    components = []
+    if 'components' in form:
+        components = form['components']
+    elif 'columns' in form:
+        components = form['columns']
     for component in components:
-        if 'components' in component or 'columns' in component:
+        if 'components' in component or 'columns' in component or 'rows' in component:
             yield from iterate_components(component)
         else:
             yield component
+    if 'rows' in form:
+        for row in form['rows']:
+            for column in row:
+                if 'components' in column or 'columns' in column or 'rows' in column:
+                    yield from iterate_components(column)
+                else:
+                    yield column
+
 
 def datetimestring_to_datetime(date_in, seconds=False):
     try:
@@ -187,6 +175,11 @@ def formiodate_to_date(formio_date):
     except:
         date = datetime.datetime.strptime(formio_date, "%d/%m/%Y")
     return date.date()
+
+
+def date_to_datestring(date):
+    string = datetime.datetime.strftime(date, '%d/%m/%Y')
+    return string
 
 
 def datetime_to_datetimestring(date):

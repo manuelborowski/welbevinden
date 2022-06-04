@@ -1,8 +1,9 @@
 from app import log
-from app.data import student as mstudent, settings as msettings
+from app.data import student as mstudent, settings as msettings, photo as mphoto
 import app.data.settings
 from app.application import formio as mformio
-import sys, datetime
+import sys, datetime, base64
+from app.application.settings import subscribe_handle_button_clicked
 
 
 def add_student(data):
@@ -40,10 +41,39 @@ def delete_students(ids):
     mstudent.delete_students(ids)
 
 
+# find the highest vsk number assigned to a student
+def get_last_vsk_number():
+    student = mstudent.get_students(order_by='-vsknummer', first=True)
+    return {"status": True, "data": student.vsknummer if student  and student.vsknummer else ''}
+
+
+# update students with no vsk number yet.  Start from the given number and increment for each student
+# return the number of updated students
+def update_vsk_numbers(vsknumber):
+    students = mstudent.get_students({'vsknummer': ''})
+    nbr_updated = 0
+    for student in students:
+        student.vsknummer = vsknumber
+        vsknumber += 1
+        nbr_updated += 1
+    mstudent.commit()
+    return {"status": True, "data": nbr_updated}
+
+
+def clear_vsk_numbers():
+    students = mstudent.get_students()
+    nbr_updated = 0
+    for student in students:
+        student.vsknummer = ''
+        nbr_updated += 1
+    mstudent.commit()
+    return {"status": True, "data": nbr_updated}
+
+
 ############## formio forms #############
 def prepare_add_form():
     try:
-        template = app.data.settings.get_json_template('care-formio-template')
+        template = app.data.settings.get_json_template('student-formio-template')
         now = datetime.datetime.now()
         return {'template': template,
                 'defaults': {
@@ -56,11 +86,17 @@ def prepare_add_form():
         raise e
 
 
-def prepare_edit_form(id, read_only=False, pdf=False):
+def prepare_edit_form(id, read_only=False):
     try:
         student = mstudent.get_first_student({"id": id})
-        template = app.data.settings.get_json_template('care-formio-template')
-        template = mformio.prepare_for_edit(template, student.to_dict(), pdf)
+        try:
+            filename = student.foto.split('\\')[1]
+        except:
+            filename = student.foto
+        template = app.data.settings.get_json_template('student-formio-template')
+        photo = mphoto.get_first_photo({'filename': filename})
+        data = {"photo": base64.b64encode(photo.photo).decode('utf-8')}
+        template = mformio.prepare_for_edit(template, data)
         return {'template': template,
                 'defaults': student.to_dict()}
     except Exception as e:
@@ -70,7 +106,7 @@ def prepare_edit_form(id, read_only=False, pdf=False):
 
 
 
-############ care overview list #########
+############ student overview list #########
 def format_data(db_list):
     out = []
     for student in db_list:
@@ -81,4 +117,3 @@ def format_data(db_list):
         })
         out.append(em)
     return out
-

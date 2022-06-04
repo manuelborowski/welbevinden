@@ -4,7 +4,7 @@ from app import log, admin_required, data, flask_app
 from . import user
 from app.application import user as muser
 from app.presentation.layout.utils import flash_plus
-from app.presentation.view import base_multiple_items
+from app.presentation.view import datatables
 import json
 
 @user.route('/user', methods=['GET', 'POST'])
@@ -12,8 +12,8 @@ import json
 @login_required
 def show():
     # start = datetime.datetime.now()
-    base_multiple_items.update(table_configuration)
-    ret = base_multiple_items.show(table_configuration)
+    datatables.update(table_configuration)
+    ret = datatables.show(table_configuration)
     # print('student.show', datetime.datetime.now() - start)
     return ret
 
@@ -22,8 +22,8 @@ def show():
 @login_required
 def table_ajax():
     # start = datetime.datetime.now()
-    base_multiple_items.update(table_configuration)
-    ret =  base_multiple_items.ajax(table_configuration)
+    datatables.update(table_configuration)
+    ret =  datatables.ajax(table_configuration)
     # print('student.table_ajax', datetime.datetime.now() - start)
     return ret
 
@@ -73,7 +73,7 @@ def get_form():
 @admin_required
 def item_add():
     try:
-        return render_template('render_formio.html', data={"form": "add",
+        return render_template('formio.html', data={"form": "add",
                                                            "get_form_endpoint": "user.get_form"})
     except Exception as e:
         log.error(f'Could not add user {e}')
@@ -103,7 +103,7 @@ def item_edit(ids=None):
                 return redirect(url_for('user.show'))
         else:
             id = ids[0]
-        return render_template('render_formio.html', data={"form": "edit",
+        return render_template('formio.html', data={"form": "edit",
                                                            "get_form_endpoint": "user.get_form",
                                                             "extra": id})
     except Exception as e:

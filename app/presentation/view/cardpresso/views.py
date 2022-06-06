@@ -4,7 +4,7 @@ from flask import redirect, url_for, request, render_template
 from flask_login import login_required, current_user
 from app.presentation.view import datatables
 from app.presentation.layout.utils import flash_plus
-from app.application import socketio as msocketio, settings as msettings
+from app.application import socketio as msocketio, cardpresso as mcardpresso
 import sys, json
 import app.data
 import app.application.cardpresso
@@ -121,33 +121,20 @@ def item_add():
         flash_plus(f'Kan cardpresso niet toevoegen: {e}')
     return redirect(url_for('cardpresso.show'))
 
-
-# # propagate changes in (some) properties to the table
-# def registration_update_cb(value, opaque):
-#     msocketio.broadcast_message({'type': 'celledit-cardpresso', 'data': {'reload-table': True}})
-#
-# mregistration.registration_subscribe_changed(registration_update_cb, None)
-
-# some columns can be edit inplace in the table.
-def celledit_event_cb(msg, client_sid=None):
+@cardpresso.route('/cardpresso/right_click/', methods=['POST', 'GET'])
+@login_required
+def right_click():
     try:
-        nbr = msg['data']['column']
-        column_template = table_configuration['template'][nbr]
-        if 'celltoggle' in column_template or 'celledit' in column_template:
-            mregistration.registration_update(msg['data']['id'], {column_template['data']: msg['data']['value']})
+        if 'jds' in request.values:
+            data = json.loads(request.values['jds'])
+            if 'item' in data:
+                if data['item'] == "delete":
+                    mcardpresso.delete_badges(data['item_ids'])
+                    return {"message": "studenten (badges) zijn verwijderd"}
     except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    msocketio.send_to_room({'type': 'celledit-cardpresso', 'data': {'status': True}}, client_sid)
-
-msocketio.subscribe_on_type('celledit-cardpresso', celledit_event_cb)
-
-
-def get_misc_fields(extra_fields, form):
-    misc_field = {}
-    for field in extra_fields:
-        if field in form:
-            misc_field[field] = form[field]
-    return misc_field
+        log.error(f"Error in get_form: {e}")
+        return {"status": False, "data": f"get_form: {e}"}
+    return {"status": False, "data": "iets is fout gelopen"}
 
 
 def get_filters():
@@ -158,15 +145,8 @@ def get_filters():
 table_configuration = {
     'view': 'cardpresso',
     'title': 'Studenten-badge',
-    'buttons': ['edit', 'add', 'delete'],
-    'delete_message': 'Opgelet!!<br>'
-                      'Bent u zeker om deze student(en) te verwijderen?<br>'
-                      'Eens verwijderd kunnen ze niet meer worden terug gehaald.<br>',
+    'buttons': [],
     'get_filters': get_filters,
-    'item': {
-        'edit': {'title': 'Wijzig een cardpresso', 'buttons': ['save', 'cancel']},
-        'add': {'title': 'Voeg een cardpresso toe', 'buttons': ['save', 'cancel']},
-    },
     'href': [],
     'pre_filter': app.data.cardpresso.pre_filter,
     'format_data': app.application.cardpresso.format_data,
@@ -174,7 +154,11 @@ table_configuration = {
     'search_data': app.data.cardpresso.search_data,
     'default_order': (1, 'asc'),
     'socketio_endpoint': 'celledit-cardpresso',
-    # 'cell_color': {'supress_cell_content': True, 'color_keys': {'X': 'red', 'O': 'green'}}, #TEST
-    # 'suppress_dom': True,
+    'right_click': {
+        'endpoint': 'cardpresso.right_click',
+        'menu': [
+            {'label': 'Verwijder', 'item': 'delete', 'iconscout': 'trash-alt'},
+        ]
+    }
 
 }

@@ -36,31 +36,27 @@ class Cardpresso(db.Model, SerializerMixin):
     changed = db.Column(db.TEXT, default='')
 
 
-def get_columns():
-    return [p for p in dir(Cardpresso) if not p.startswith('_')]
-
-
-def add_student(data = {}, commit=True):
+def add_badge(data = {}, commit=True):
     try:
-        student = Cardpresso()
+        item = Cardpresso()
         for k, v in data.items():
-            if hasattr(student, k):
+            if hasattr(item, k):
                 if getattr(Cardpresso, k).expression.type.python_type == type(v):
-                    setattr(student, k, v.strip() if isinstance(v, str) else v)
-        db.session.add(student)
+                    setattr(item, k, v.strip() if isinstance(v, str) else v)
+        db.session.add(item)
         if commit:
             db.session.commit()
-        return student
+        return item
     except Exception as e:
         db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
 
-def add_students(data = []):
+def add_badges(data = []):
     try:
         for d in data:
-            add_student(d, commit=False)
+            add_badge(d, commit=False)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
@@ -68,30 +64,12 @@ def add_students(data = []):
     return None
 
 
-def update_student(student, data={}):
-    try:
-        for k, v in data.items():
-            if hasattr(student, k):
-                if getattr(Cardpresso, k).expression.type.python_type == type(v):
-                    setattr(student, k, v.strip() if isinstance(v, str) else v)
-        db.session.commit()
-        return student
-    except Exception as e:
-        db.session.rollback()
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return None
-
-
-def update_wisa_students(data = []):
+def delete_badges(data):
     try:
         for d in data:
-            student = d['student']
-            for property in d['changed']:
-                v = d[property]
-                if hasattr(student, property):
-                    if getattr(Cardpresso, property).expression.type.python_type == type(v):
-                        setattr(student, property, v.strip() if isinstance(v, str) else v)
-            student.changed = json.dumps(d['changed'])
+            item = get_first_badge(d)
+            if item:
+                db.session.delete(item)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
@@ -99,35 +77,7 @@ def update_wisa_students(data = []):
     return None
 
 
-def flag_wisa_students(data = []):
-    try:
-        for d in data:
-            student = d['student']
-            student.new = d['new']
-            student.changed = d['changed']
-            student.delete = d['delete']
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return None
-
-
-
-
-def delete_students(ids=None):
-    try:
-        for id in ids:
-            student = get_first_student({"id": id})
-            db.session.delete(student)
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return None
-
-
-def get_students(data={}, special={}, order_by=None, first=False, count=False):
+def get_badges(data={}, order_by=None, first=False, count=False):
     try:
         q = Cardpresso.query
         for k, v in data.items():
@@ -136,21 +86,21 @@ def get_students(data={}, special={}, order_by=None, first=False, count=False):
         if order_by:
             q = q.order_by(getattr(Cardpresso, order_by))
         if first:
-            guest = q.first()
-            return guest
+            item = q.first()
+            return item
         if count:
             return q.count()
-        guests = q.all()
-        return guests
+        items = q.all()
+        return items
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
 
-def get_first_student(data={}):
+def get_first_badge(data={}):
     try:
-        user = get_students(data, first=True)
-        return user
+        item = get_badges(data, first=True)
+        return item
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None

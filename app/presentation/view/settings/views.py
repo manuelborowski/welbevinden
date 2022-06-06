@@ -170,6 +170,19 @@ settings_formio = \
                     "key": "student-datatables-template",
                     "type": "textarea",
                     "input": true
+                  },
+                  {
+                    "label": "Detail zicht van studenten: maximum aantal studenten te bekijken met 1 click",
+                    "labelPosition": "left-left",
+                    "mask": false,
+                    "tableView": false,
+                    "delimiter": false,
+                    "requireDecimal": false,
+                    "inputFormat": "plain",
+                    "truncateMultipleSpaces": false,
+                    "key": "student-max-students-to-view-with-one-click",
+                    "type": "number",
+                    "input": true
                   }
                 ]
               }
@@ -464,58 +477,110 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "FROM Smartschool: update teachers (full name, ss username, ad username, ss internal number)",
+                    "label": "Columns",
+                    "columns": [
+                      {
+                        "components": [
+                          {
+                            "label": "Start cron cyclus",
+                            "tableView": false,
+                            "defaultValue": false,
+                            "key": "check-start-cron-cycle",
+                            "type": "checkbox",
+                            "input": true
+                          }
+                        ],
+                        "width": 3,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 3
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "Start cron cyclus",
+                            "showValidations": false,
+                            "theme": "danger",
+                            "tableView": false,
+                            "key": "button-start-cron-cycle",
+                            "conditional": {
+                              "show": true,
+                              "when": "cron.check-start-cron-cycle",
+                              "eq": "true"
+                            },
+                            "type": "button",
+                            "saveOnEnter": false,
+                            "input": true
+                          }
+                        ],
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      }
+                    ],
+                    "key": "columns",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
+                  },
+                  {
+                    "label": "(1) VAN foto (windows share), leerlingen bijwerken",
                     "tableView": false,
                     "defaultValue": false,
-                    "key": "smartschool-update-teachers",
+                    "key": "cron-enable-update-student-photo",
                     "type": "checkbox",
                     "input": true
                   },
                   {
-                    "label": "FROM Smartschool: update students (full name, ss username, ad username, ss internal number)",
+                    "label": "(2) VAN wisa, leerlingen bijwerken",
                     "tableView": false,
                     "defaultValue": false,
-                    "key": "smartschool-update-students",
+                    "key": "cron-enable-update-student-from-wisa",
                     "type": "checkbox",
                     "input": true
                   },
                   {
-                    "label": "FROM Wisa: update teachers",
+                    "label": "(3) NAAR centrale database, Vsk nummers bijwerken",
                     "tableView": false,
                     "defaultValue": false,
-                    "key": "wisa-update-teachers",
+                    "key": "cron-enable-update-vsk-numbers",
                     "type": "checkbox",
                     "input": true
                   },
                   {
-                    "label": "FROM Wisa: update students ",
+                    "label": "(4) NAAR cardpresso, nieuwe badges klaarmaken",
                     "tableView": false,
                     "defaultValue": false,
-                    "key": "wisa-update-students",
+                    "key": "cron-enable-update-student-badge",
                     "type": "checkbox",
                     "input": true
                   },
                   {
-                    "label": "FROM Cardpresso: update students (RFID code)",
+                    "label": "(5) VAN cardpresso, RFID van studenten bijwerken",
                     "tableView": false,
                     "defaultValue": false,
-                    "key": "cardpresso-update-students",
+                    "key": "cron-enable-update-student-rfid",
                     "type": "checkbox",
                     "input": true
                   },
                   {
-                    "label": "TO AD: update accounts",
+                    "label": "NAAR AD, studenten bijwerken",
                     "tableView": false,
                     "defaultValue": false,
-                    "key": "ad-update-accounts",
+                    "key": "cron-enable-update-student-ad",
                     "type": "checkbox",
                     "input": true
                   },
                   {
-                    "label": "TO Papercut: update accounts",
+                    "label": "NAAR smartschool, studenten bijwerken",
                     "tableView": false,
                     "defaultValue": false,
-                    "key": "papercut-update-accounts",
+                    "key": "cron-enable-update-student-smartschool",
                     "type": "checkbox",
                     "input": true
                   }
@@ -612,45 +677,125 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "URL to server",
-                    "labelPosition": "left-left",
-                    "tableView": true,
-                    "persistent": false,
-                    "key": "cardpresso-url",
-                    "type": "textfield",
-                    "input": true,
-                    "labelWidth": 20
+                    "label": "Columns",
+                    "columns": [
+                      {
+                        "components": [
+                          {
+                            "label": "Nieuw of aangepaste studenten krijgen nieuwe badge",
+                            "tableView": false,
+                            "defaultValue": false,
+                            "key": "check-new-badges",
+                            "type": "checkbox",
+                            "input": true
+                          }
+                        ],
+                        "width": 4,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 4
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "Nieuw of aangepaste studenten krijgen nieuwe badge",
+                            "showValidations": false,
+                            "theme": "danger",
+                            "tableView": false,
+                            "key": "button-new-badges",
+                            "conditional": {
+                              "show": true,
+                              "when": "cardpresso.check-new-badges",
+                              "eq": "true"
+                            },
+                            "type": "button",
+                            "saveOnEnter": false,
+                            "input": true
+                          }
+                        ],
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      }
+                    ],
+                    "key": "columns",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
                   },
                   {
-                    "label": "Server login",
-                    "labelPosition": "left-left",
-                    "tableView": true,
-                    "persistent": false,
-                    "key": "cardpresso-login",
-                    "type": "textfield",
-                    "input": true,
-                    "labelWidth": 20
+                    "label": "Columns",
+                    "columns": [
+                      {
+                        "components": [
+                          {
+                            "label": "nieuwe RFID naar centrale database",
+                            "tableView": false,
+                            "defaultValue": false,
+                            "key": "check-new-rfid",
+                            "type": "checkbox",
+                            "input": true
+                          }
+                        ],
+                        "width": 4,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 4
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "nieuwe RFID naar centrale database",
+                            "showValidations": false,
+                            "theme": "danger",
+                            "tableView": false,
+                            "key": "button-new-rfid",
+                            "conditional": {
+                              "show": true,
+                              "when": "cardpresso.check-new-rfid",
+                              "eq": "true"
+                            },
+                            "type": "button",
+                            "saveOnEnter": false,
+                            "input": true
+                          }
+                        ],
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      }
+                    ],
+                    "key": "columns1",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
                   },
                   {
-                    "label": "Server password",
+                    "label": "Vsk startnummer",
                     "labelPosition": "left-left",
-                    "spellcheck": false,
                     "tableView": true,
-                    "persistent": false,
-                    "key": "cardpresso-password",
+                    "key": "cardpresso-vsk-startnumber",
                     "type": "textfield",
-                    "input": true,
-                    "labelWidth": 20
+                    "input": true
                   },
                   {
-                    "label": "Excel file location (use / or \\\\)",
-                    "labelPosition": "left-left",
+                    "label": "Meldt veranderingen aan volgende adressen",
+                    "tooltip": "één adres per rij\nEen adres wordt niet gebruikt als er een # voor staat",
+                    "autoExpand": false,
                     "tableView": true,
-                    "persistent": false,
-                    "key": "cardpresso-file",
-                    "type": "textfield",
-                    "input": true,
-                    "labelWidth": 20
+                    "key": "cardpresso-inform-emails",
+                    "type": "textarea",
+                    "input": true
                   }
                 ],
                 "collapsed": true
@@ -861,58 +1006,6 @@ settings_formio = \
                     "tableView": false
                   },
                   {
-                    "label": "Columns",
-                    "columns": [
-                      {
-                        "components": [
-                          {
-                            "label": "Laad foto's",
-                            "tableView": false,
-                            "defaultValue": false,
-                            "key": "check-load-photos",
-                            "type": "checkbox",
-                            "input": true
-                          }
-                        ],
-                        "width": 3,
-                        "offset": 0,
-                        "push": 0,
-                        "pull": 0,
-                        "size": "md",
-                        "currentWidth": 3
-                      },
-                      {
-                        "components": [
-                          {
-                            "label": "Laad foto's",
-                            "showValidations": false,
-                            "theme": "danger",
-                            "tableView": false,
-                            "key": "button-load-photos",
-                            "conditional": {
-                              "show": true,
-                              "when": "wisa.check-load-photos",
-                              "eq": "true"
-                            },
-                            "type": "button",
-                            "input": true,
-                            "saveOnEnter": false
-                          }
-                        ],
-                        "width": 6,
-                        "offset": 0,
-                        "push": 0,
-                        "pull": 0,
-                        "size": "md",
-                        "currentWidth": 6
-                      }
-                    ],
-                    "key": "columns1",
-                    "type": "columns",
-                    "input": false,
-                    "tableView": false
-                  },
-                  {
                     "label": "URL",
                     "labelPosition": "left-left",
                     "tableView": true,
@@ -955,6 +1048,178 @@ settings_formio = \
                     "input": true
                   }
                 ]
+              }
+            ]
+          },
+          {
+            "label": "Foto",
+            "tableView": false,
+            "key": "photo",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "Foto",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "photo",
+                "type": "panel",
+                "label": "Cardpresso",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Opslaan ",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true
+                  },
+                  {
+                    "label": "Columns",
+                    "columns": [
+                      {
+                        "components": [
+                          {
+                            "label": "Laad foto's",
+                            "tableView": false,
+                            "defaultValue": false,
+                            "key": "check-load-photos",
+                            "type": "checkbox",
+                            "input": true
+                          }
+                        ],
+                        "width": 3,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 3
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "Laad foto's",
+                            "showValidations": false,
+                            "theme": "danger",
+                            "tableView": false,
+                            "key": "button-load-photos",
+                            "conditional": {
+                              "show": true,
+                              "when": "photo.check-load-photos",
+                              "eq": "true"
+                            },
+                            "type": "button",
+                            "saveOnEnter": false,
+                            "input": true
+                          }
+                        ],
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      }
+                    ],
+                    "key": "columns1",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "Emailserver",
+            "tableView": false,
+            "key": "emailserver",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "E-mail server instellingen",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "emailserver",
+                "type": "panel",
+                "label": "E-mail server settings",
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Submit",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true
+                  },
+                  {
+                    "label": "Aantal keer dat een e-mail geprobeerd wordt te verzenden",
+                    "labelPosition": "left-left",
+                    "mask": false,
+                    "spellcheck": false,
+                    "tableView": false,
+                    "delimiter": false,
+                    "requireDecimal": false,
+                    "inputFormat": "plain",
+                    "key": "email-send-max-retries",
+                    "type": "number",
+                    "input": true
+                  },
+                  {
+                    "label": "Tijd (seconden) tussen het verzenden van e-mails",
+                    "labelPosition": "left-left",
+                    "mask": false,
+                    "spellcheck": true,
+                    "tableView": false,
+                    "persistent": false,
+                    "delimiter": false,
+                    "requireDecimal": false,
+                    "inputFormat": "plain",
+                    "key": "email-task-interval",
+                    "type": "number",
+                    "input": true
+                  },
+                  {
+                    "label": "Max aantal e-mails per minuut",
+                    "labelPosition": "left-left",
+                    "mask": false,
+                    "spellcheck": true,
+                    "tableView": false,
+                    "persistent": false,
+                    "delimiter": false,
+                    "requireDecimal": false,
+                    "inputFormat": "plain",
+                    "key": "emails-per-minute",
+                    "type": "number",
+                    "input": true
+                  },
+                  {
+                    "label": "Basis URL",
+                    "labelPosition": "left-left",
+                    "tableView": true,
+                    "key": "email-base-url",
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "E-mails mogen worden verzonden",
+                    "tableView": false,
+                    "persistent": false,
+                    "key": "email-enable-send-email",
+                    "type": "checkbox",
+                    "input": true,
+                    "defaultValue": false
+                  }
+                ],
+                "collapsed": true
               }
             ]
           }

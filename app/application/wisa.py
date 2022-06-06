@@ -1,10 +1,9 @@
 from app import log, flask_app
-from app.data import student as mstudent, photo as mphoto
+from app.data import student as mstudent
 from app.data.utils import belgische_gemeenten
 from app.application import settings as msettings, warning as mwarning
-from app.application.settings import subscribe_handle_button_clicked
 import datetime
-import json, re, requests, os, glob, shutil, sys
+import json, requests
 
 
 def read_from_wisa_database(local_file=None, max=0):
@@ -24,17 +23,21 @@ def read_from_wisa_database(local_file=None, max=0):
         for key in keys:
             response_text = response_text.replace(f'"{key.upper()}"', f'"{key}"')
         data = json.loads(response_text)
-        saved_schoolyear = msettings.get_configuration_setting('wisa-schoolyear')
+
+        # deactivate deleted students first
+        flag_list = []
+        deleted_students = mstudent.get_students({"delete": True})
+        nbr_deactivated = len(deleted_students)
+        for student in deleted_students:
+            flag_list.append({'changed': '', 'delete': False, 'new': False, 'student': student, 'active': False})
+        mstudent.flag_wisa_students(flag_list)
+
         saved_students = {}
-        if saved_schoolyear == '':
-            wisa_schoolyear = data[0]['schooljaar']
-            msettings.set_configuration_setting('wisa-schoolyear', wisa_schoolyear)
-        else:
-            students = mstudent.get_students({'schooljaar': saved_schoolyear})
-            if students:
-                saved_students = {s.rijksregisternummer: s for s in students}
+        students = mstudent.get_students()
+        if students:
+            saved_students = {s.rijksregisternummer: s for s in students}
         new_list = []
-        update_list = []
+        changed_list = []
         flag_list = []
         nbr_deleted = 0
         nbr_processed = 0
@@ -54,9 +57,17 @@ def read_from_wisa_database(local_file=None, max=0):
             item['inschrijvingsdatum'] = datetime.datetime.strptime(item['inschrijvingsdatum'].split(' ')[0], '%Y-%m-%d').date()
             item['geboortedatum'] = datetime.datetime.strptime(item['geboortedatum'].split(' ')[0], '%Y-%m-%d').date()
             try:
+                item['foto'] = item['foto'].split('\\')[1]
+            except:
+                pass
+            try:
                 item['klasnummer'] = int(item['klasnummer'])
             except:
                 item['klasnummer'] = 0
+            try:
+                item['schooljaar'] = item['schooljaar'].split(' ')[1]
+            except:
+                pass
             if item['rijksregisternummer'] in saved_students:
                 update_properties = []
                 student = saved_students[item['rijksregisternummer']]
@@ -68,10 +79,10 @@ def read_from_wisa_database(local_file=None, max=0):
                 item['new'] = False
                 if update_properties:
                     item['changed'] = update_properties # student already present, but is changed
-                    update_list.append(item)
+                    changed_list.append(item)
                 else:
-                    item['changed'] = None      # student already present, no change
-                    flag_list.append(item)
+                    item['changed'] = ''      # student already present, no change
+                    flag_list.append({'changed': '', 'delete': False, 'new': False, 'student': student})
                 del(saved_students[item['rijksregisternummer']])
             else:
                 if orig_geboorteplaats:
@@ -83,80 +94,28 @@ def read_from_wisa_database(local_file=None, max=0):
                 break
         for k, v in saved_students.items(): # student not present in wisa anymore
             if not v.delete:
-                flag_list.append({'changed': None, 'delete': True, 'new': False, 'student': v})
+                flag_list.append({'changed': '', 'delete': True, 'new': False, 'student': v})
                 nbr_deleted += 1
         mstudent.add_students(new_list)
-        mstudent.update_wisa_students(update_list)
+        mstudent.update_students(changed_list, overwrite=True) # previous changes are lost
         mstudent.flag_wisa_students(flag_list)
-        log.info(f'read_from_wisa_database: processed {nbr_processed}, new {len(new_list)}, updated {len(update_list)}, deleted {nbr_deleted}')
+        log.info(f'read_from_wisa_database: processed {nbr_processed}, new {len(new_list)}, updated {len(changed_list)}, deleted {nbr_deleted}, deactivated {nbr_deactivated}')
     except Exception as e:
         log.error(f'update from wisa error: {e}')
-
-# https://www.putorius.net/mount-windows-share-linux.html#using-the-mountcifs-command
-# on the linux server, mount the windows-share (e.g  mount.cifs //MyMuse/SharedDocs /mnt/cifs -o username=putorius,password=notarealpass,domain=PUTORIUS)
-# in app/static, add a symlink to the the mounted windows share.  It is assumed all photo's are in the folder 'huidig'
-# photo's are copied to the 'photos' folder when a photo does not exist or it's size changed
-# sudo mount -t drvfs //10.10.0.211/sec /mnt/sec
-
-mapped_photos_path = 'app/static/mapped_photos/huidig'
-photos_path = 'app/static/photos/'
-
-def get_photos():
-    try:
-        log.info("start import photo's")
-        mapped_photos = glob.glob(f'{mapped_photos_path}/*jpg')
-        nbr_new = 0
-        nbr_updated = 0
-        nbr_processed = 0
-        nbr_deleted = 0
-
-        photo_sizes = mphoto.get_photos_size()
-        saved_photos = {p[1]: {'size': p[5], 'new': p[2], 'changed': p[3], 'delete': p[4]} for p in photo_sizes}
-
-        for mapped_photo in mapped_photos:
-            base_name = os.path.basename(mapped_photo)
-            if base_name not in saved_photos:
-                photo = open(mapped_photo, 'rb').read()     # new photo
-                mphoto.add_photo({'filename': base_name, 'photo': photo}, commit=False)
-                nbr_new += 1
-            else:
-                mapped_size = os.path.getsize(mapped_photo)
-                if mapped_size != saved_photos[base_name]['size']:
-                    photo = open(mapped_photo, 'rb').read()  # updated photo, different size
-                    mphoto.update_photo(base_name, {'photo': photo, 'new': False, 'changed': True, 'delete': False}, commit=False)
-                    nbr_updated += 1
-                else:
-                    if saved_photos[base_name]['new'] or saved_photos[base_name]['changed'] or saved_photos[base_name]['delete']:
-                        mphoto.update_photo(base_name, {'new': False, 'changed': False, 'delete': False}, commit=False) # no update
-                del(saved_photos[base_name])
-            nbr_processed += 1
-        for filename, item in saved_photos.items():
-            if not saved_photos[filename]['delete']:
-                mphoto.update_photo(filename, {'new': False, 'changed': False, 'delete': True}, commit=False)  # delete only when not already marked as delete
-                nbr_deleted += 1
-        mphoto.commit()
-        log.info(f'get_new_photos: processed: {nbr_processed}, new {nbr_new}, updated {nbr_updated}, deleted {nbr_deleted}')
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        raise e
 
 
 def load_from_wisa(topic=None, opaque=None):
     with flask_app.app_context():
-        # read_from_wisa_database(max=30)
+        # read_from_wisa_database(max=10)
         read_from_wisa_database()
 
-def load_photos_from_su_data(topic=None, opaque=None):
-    with flask_app.app_context():
-        get_photos()
 
-subscribe_handle_button_clicked('button-load-from-wisa', load_from_wisa, None)
-subscribe_handle_button_clicked('button-load-photos', load_photos_from_su_data, None)
+msettings.subscribe_handle_button_clicked('button-load-from-wisa', load_from_wisa, None)
 
 
 def wisa_cron_task(opaque):
-    load_from_wisa()
-    load_photos_from_su_data()
+    if msettings.get_configuration_setting('cron-enable-update-student-from-wisa'):
+        load_from_wisa()
 
 #to have access to the photo's, mount the windowsshare
 #sudo apt install keyutils

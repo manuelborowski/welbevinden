@@ -89,10 +89,9 @@ class Student(db.Model, SerializerMixin):
 
     new = db.Column(db.Boolean, default=True)
     delete = db.Column(db.Boolean, default=False)
-    active = db.Column(db.Boolean, default=True)
-    enable = db.Column(db.Boolean, default=True)
+    active = db.Column(db.Boolean, default=True)    # long term
+    enable = db.Column(db.Boolean, default=True)    # short term
     changed = db.Column(db.TEXT, default='')
-
 
 def get_columns():
     return [p for p in dir(Student) if not p.startswith('_')]
@@ -147,17 +146,27 @@ def update_student(student, data={}):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
-
-def update_wisa_students(data = []):
+# data is a list, with:
+# student: the ORM-student-object
+# changed: a list of properties that are changed
+# property#1: the first property changed
+# property#2: ....
+def update_students(data = [], overwrite=False):
     try:
         for d in data:
             student = d['student']
-            for property in d['update']:
+            for property in d['changed']:
                 v = d[property]
                 if hasattr(student, property):
                     if getattr(Student, property).expression.type.python_type == type(v):
                         setattr(student, property, v.strip() if isinstance(v, str) else v)
-            student.changed = json.dumps(d['changed'])
+            if overwrite:
+                student.changed = json.dumps(d['changed'])
+            else:
+                changed = json.loads(student.changed) if student.changed != '' else []
+                changed.extend(d['changed'])
+                changed = list(set(changed))
+                student.changed = json.dumps(changed)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
@@ -169,16 +178,14 @@ def flag_wisa_students(data = []):
     try:
         for d in data:
             student = d['student']
-            student.new = d['new']
-            student.changed = d['changed']
-            student.delete = d['delete']
+            for k, v in d.items():
+                if hasattr(student, k):
+                    setattr(student, k, v)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
-
-
 
 
 def delete_students(ids=None):
@@ -193,24 +200,29 @@ def delete_students(ids=None):
     return None
 
 
-def get_students(data={}, order_by=None, first=False, count=False):
+def get_students(data={}, order_by=None, first=False, count=False, active=True):
     try:
         q = Student.query
         for k, v in data.items():
-            if hasattr(Student, k):
-                q = q.filter(getattr(Student, k) == v)
+            if k[0] == '-':
+                if hasattr(Student, k[1::]):
+                    q = q.filter(getattr(Student, k[1::]) != v)
+            else:
+                if hasattr(Student, k):
+                    q = q.filter(getattr(Student, k) == v)
         if order_by:
             if order_by[0] == '-':
                 q = q.order_by(desc(getattr(Student, order_by[1::])))
             else:
                 q = q.order_by(getattr(Student, order_by))
+        q = q.filter(Student.active == active)
         if first:
-            guest = q.first()
-            return guest
+            item = q.first()
+            return item
         if count:
             return q.count()
-        guests = q.all()
-        return guests
+        items = q.all()
+        return items
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
@@ -228,7 +240,7 @@ def get_first_student(data={}):
 
 ############ student overview list #########
 def pre_filter():
-    return db.session.query(Student)
+    return db.session.query(Student).filter(Student.active == True)
 
 
 def filter_data(query, filter):

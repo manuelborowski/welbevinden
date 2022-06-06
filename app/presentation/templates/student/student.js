@@ -32,7 +32,7 @@ async function new_vsk_numbers(item) {
                 title: "Er zijn nog geen nummers toegekend. Geef het startnummer in",
                 inputType: "number",
                 callback: result => {
-                    update_vsk_numbers(result)
+                    if (result) update_vsk_numbers(result)
                 }
             })
         } else {
@@ -64,8 +64,6 @@ async function new_vsk_numbers(item) {
                     },
                 }
             })
-
-
         }
     } else {
         bootbox.alert(`Sorry, er is iets fout gegaan: ${data.data}`)

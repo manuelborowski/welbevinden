@@ -55,6 +55,10 @@ $(document).ready( async function () {
                 }
             });
         }
+        // update window title, if required
+        if ('title' in form_data.data) {
+            document.title = form_data.data.title;
+        }
         // Clear cache when the page is loaded for the first time.  Do NOT clear when page is reloaded...
         if(performance.getEntriesByType('navigation')[0].type === 'navigate') {
             localStorage.removeItem('formio-cache')

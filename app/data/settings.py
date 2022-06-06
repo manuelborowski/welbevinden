@@ -86,13 +86,19 @@ default_configuration_settings = {
 
     'student-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'student-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'student-max-students-to-view-with-one-click': (5, Settings.SETTING_TYPE.E_INT),
 
     'cardpresso-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cardpresso-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 
-    'general-inhibit-update-external-databases': (True, Settings.SETTING_TYPE.E_BOOL),
-
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'cron-enable-update-student-from-wisa': (False, Settings.SETTING_TYPE.E_BOOL),
+    'cron-enable-update-student-photo': (False, Settings.SETTING_TYPE.E_BOOL),
+    'cron-enable-update-vsk-numbers': (False, Settings.SETTING_TYPE.E_BOOL),
+    'cron-enable-update-student-badge': (False, Settings.SETTING_TYPE.E_BOOL),
+    'cron-enable-update-student-rfid': (False, Settings.SETTING_TYPE.E_BOOL),
+    'cron-enable-update-student-ad': (False, Settings.SETTING_TYPE.E_BOOL),
+    'cron-enable-update-student-smartschool': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'smartschool-scheduler-cron': ('', Settings.SETTING_TYPE.E_STRING),
     'smartschool-teacher-group': ('', Settings.SETTING_TYPE.E_STRING),
@@ -106,6 +112,8 @@ default_configuration_settings = {
     'cardpresso-file': ('', Settings.SETTING_TYPE.E_STRING),
     'cardpresso-login': ('', Settings.SETTING_TYPE.E_STRING),
     'cardpresso-password': ('', Settings.SETTING_TYPE.E_STRING),
+    'cardpresso-inform-emails': ('', Settings.SETTING_TYPE.E_STRING),
+    'cardpresso-vsk-startnumber': ('', Settings.SETTING_TYPE.E_STRING),
     'cardpresso-update-students': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'ad-url': ('', Settings.SETTING_TYPE.E_STRING),
@@ -132,6 +140,12 @@ default_configuration_settings = {
     'wisa-schoolyear': ('', Settings.SETTING_TYPE.E_STRING),
     'wisa-update-teachers': (False, Settings.SETTING_TYPE.E_BOOL),
     'wisa-update-students': (False, Settings.SETTING_TYPE.E_BOOL),
+
+    'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
+    'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),
+    'email-send-max-retries': (2, Settings.SETTING_TYPE.E_INT),
+    'email-base-url': ('localhost:5000', Settings.SETTING_TYPE.E_STRING),
+    'email-enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
 
 }
 

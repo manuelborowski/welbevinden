@@ -23,11 +23,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.1: copy from sum-zorg V0.109
 # 0.2: removed intake and care.  Added functionality to read database and photos from wisa
 # 0.3: added functionality to print badges.  Added right-click
+# 0.4: added cron tasks: import photo's, assign vsk numbers, create badges.  Send email when something changed related to cardpresso.
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.3', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.4', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -97,6 +98,7 @@ migrate = Migrate(flask_app, db)
 # configure e-mailclient
 email = Mail(flask_app)
 send_emails = False
+flask_app.extensions['mail'].debug = 0
 
 SCHEDULER_API_ENABLED = True
 ap_scheduler = APScheduler()

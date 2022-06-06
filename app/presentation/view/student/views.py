@@ -34,16 +34,11 @@ def table_ajax():
 @student.route('/student/table_action/<string:action>', methods=['GET', 'POST'])
 @student.route('/student/table_action/<string:action>/<string:ids>', methods=['GET', 'POST'])
 @login_required
-# @supervisor_required
 def table_action(action, ids=None):
     if ids:
         ids = json.loads(ids)
-    if action == 'edit':
-        return item_edit(ids)
-    if action == 'add':
-        return item_add()
-    if action == 'delete':
-        return item_delete(ids)
+    if action == 'view':
+        return item_view(ids)
     return redirect(url_for('student.show'))
 
 
@@ -57,37 +52,19 @@ def get_form():
             'cancel_endpoint': 'student.show',
             'api_key': flask_app.config['API_KEY']
         }
-        if current_user.is_at_least_supervisor:
-            if request.values['form'] == 'edit':
-                data = app.application.student.prepare_edit_form(request.values['extra'])
-                data.update(common)
-            elif request.values['form'] == 'add':
-                data = app.application.student.prepare_add_form()
-                data.update(common)
-                data['post_data_endpoint'] ='api.student_add'
-            else:
-                return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
+        if request.values['form'] == 'view':
+            data = app.application.student.prepare_view_form(request.values['extra'])
+            data.update(common)
+            data.update({'title': f"{data['defaults']['naam']} {data['defaults']['voornaam']}"})
         else:
-            return {"status": False, "data": f"U hebt geen toegang tot deze url"}
+            return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
         return {"status": True, "data": data}
     except Exception as e:
         log.error(f"Error in get_form: {e}")
         return {"status": False, "data": f"get_form: {e}"}
 
 
-@supervisor_required
-def item_delete(ids=None):
-    try:
-        if ids == None:
-            ids = request.form.getlist('chbx')
-        app.application.student_student.delete_students(ids)
-    except Exception as e:
-        log.error(f'could not delete student {request.args}: {e}')
-    return redirect(url_for('student.show'))
-
-
-@supervisor_required
-def item_edit(ids=None):
+def item_view(ids=None):
     try:
         if ids == None:
             chbx_id_list = request.form.getlist('chbx')
@@ -97,25 +74,12 @@ def item_edit(ids=None):
                 return redirect(url_for('student.show'))
         else:
             id = ids[0]
-        return render_template('formio.html', data={"form": "edit",
+        return render_template('formio.html', data={"form": "view",
                                                            "get_form_endpoint": "student.get_form",
                                                            "extra": id,
                                                            "buttons": ["cancel"]})
     except Exception as e:
-        log.error(f'Could not edit guest {e}')
-        flash_plus('Kan gebruiker niet aanpassen', e)
-    return redirect(url_for('student.show'))
-
-
-@supervisor_required
-def item_add():
-    try:
-        return render_template('formio.html', data={"form": "add",
-                                                           "get_form_endpoint": "student.get_form",
-                                                           "buttons": ["save", "cancel", "clear"]})
-    except Exception as e:
-        log.error(f'Could not add student {e}')
-        flash_plus(f'Kan student niet toevoegen: {e}')
+        log.error(f'Could not view student {e}')
     return redirect(url_for('student.show'))
 
 
@@ -127,36 +91,16 @@ def right_click():
             data = json.loads(request.values['jds'])
             if 'item' in data:
                 if data['item'] == "new-badge":
-                    ret = mcardpresso.add_new_badges(data['item_ids'])
+                    ret = mcardpresso.add_badges(data['item_ids'])
                     return {"message": ret['data']}
                 if data['item'] == "view":
-                    return {"redirect": f"/student/table_action/edit/[{data['item_id']}]"}
-
+                    max_ids = msettings.get_configuration_setting('student-max-students-to-view-with-one-click')
+                    ids = data['item_ids'][:max_ids]
+                    return {"redirect": {"url": f"/student/table_action/view", "ids": ids, "new_tab": True}}
     except Exception as e:
         log.error(f"Error in get_form: {e}")
-        return {"status": False, "data": f"get_form: {e}"}
-    return {"status": False, "data": "iets is fout gelopen"}
-
-
-
-# # propagate changes in (some) properties to the table
-# def registration_update_cb(value, opaque):
-#     msocketio.broadcast_message({'type': 'celledit-student', 'data': {'reload-table': True}})
-#
-# mregistration.registration_subscribe_changed(registration_update_cb, None)
-
-# some columns can be edit inplace in the table.
-def celledit_event_cb(msg, client_sid=None):
-    try:
-        nbr = msg['data']['column']
-        column_template = table_configuration['template'][nbr]
-        if 'celltoggle' in column_template or 'celledit' in column_template:
-            mregistration.registration_update(msg['data']['id'], {column_template['data']: msg['data']['value']})
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    msocketio.send_to_room({'type': 'celledit-student', 'data': {'status': True}}, client_sid)
-
-msocketio.subscribe_on_type('celledit-student', celledit_event_cb)
+        return {"message": f"get_form: {e}"}
+    return {"message": "iets is fout gelopen"}
 
 
 def get_misc_fields(extra_fields, form):

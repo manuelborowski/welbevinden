@@ -33,19 +33,26 @@ datatable.addEventListener("contextmenu", e => {
 });
 
 function item_clicked(item) {
+    busy_indication_on();
     if (item in right_click_cbs) {
         right_click_cbs[item](item);
+        busy_indication_off();
     } else {
         $.getJSON(Flask.url_for(table_config.right_click.endpoint, {'jds': JSON.stringify({item, item_ids})}),
             function (data) {
                 if ("message" in data) {
                     bootbox.alert(data.message);
-                    window.setTimeout(() => {bootbox.hideAll();},2000);
-                } else if ("redirect" in data.data) {
-                    window.location = data.redirect;
+                    // window.setTimeout(() => {bootbox.hideAll();},1000);
+                } else if ("redirect" in data) {
+                    if (data.redirect.new_tab) {
+                        data.redirect.ids.forEach(id => window.open(`${data.redirect.url}/[${id}]`, '_blank'))
+                    } else {
+                        window.location = data.redirect.url;
+                    }
                 } else {
-                    bootbox.alert('Fout: kan waarde niet aanpassen');
+                    bootbox.alert('Sorry, er is iets fout gegaan');
                 }
+                busy_indication_off();
             }
         );
     }

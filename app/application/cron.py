@@ -1,7 +1,8 @@
-from app import ap_scheduler, log
+from app import ap_scheduler, log, flask_app
 from app.application import settings as msettings
-import datetime, time
+import datetime
 from apscheduler.triggers.cron import CronTrigger
+
 
 CRON_TASK = 'datacollector-task'
 
@@ -53,3 +54,11 @@ def start_job():
 
 
 start_job()
+
+
+def emulate_cron_start(topic=None, opaque=None):
+    with flask_app.app_context():
+        cron_task()
+
+
+msettings.subscribe_handle_button_clicked('button-start-cron-cycle', emulate_cron_start, None)

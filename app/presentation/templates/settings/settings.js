@@ -32,10 +32,18 @@ function load_formio_form() {
 
 function socketio_settings_ack(type, data) {
     _form.emit('submitDone')
-    setTimeout(function() {$("#configuration-settings .alert").css("display", "none");}, 1000);
+    // setTimeout(function() {$("#configuration-settings .alert").css("display", "none");}, 1000);
+    setTimeout(function() {
+        document.querySelectorAll("[ref=buttonMessageContainer]").forEach(b => b.style.display="none");
+        document.querySelectorAll("[ref=button]").forEach(b => {
+            b.classList.remove('btn-success');
+            b.classList.remove('submit-success');
+        });
+    }, 1000);
     if (!data.status) {
         bootbox.alert("Warning, following error appeared:<br>" + data.message);
     }
+    busy_indication_off();
 }
 
 function socketio_event_ack(type, data) {
@@ -48,6 +56,7 @@ function socketio_event_ack(type, data) {
 }
 
 function socketio_transmit_setting(setting, value) {
+    busy_indication_on();
     socketio.send_to_server('settings', {setting: setting, value: value});
     return false;
 }

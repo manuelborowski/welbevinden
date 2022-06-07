@@ -47,7 +47,7 @@ def photo_get(id):
 
 @api.route('/api/vsknumber/get', methods=['GET'])
 def get_last_vsk_number():
-    ret = mstudent.get_last_vsk_number()
+    ret = mstudent.get_next_vsk_number()
     return json.dumps(ret)
 
 

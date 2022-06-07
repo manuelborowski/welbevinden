@@ -25,21 +25,17 @@ def update(table_configuration, fields=[]):
 
 def show(table_configuration, template=None):
     filters = []
-    pdf_template = []
-    show_info = []
     config = None
     try:
         table_configuration['template'] = msettings.get_datatables_config(table_configuration['view'])
         if 'get_filters' in table_configuration:
             filters = table_configuration['get_filters']()
-        if 'get_pdf_template' in table_configuration:
-            pdf_template = table_configuration['get_pdf_template']()
         config = tables.prepare_config_table_for_view(table_configuration)
     except Exception as e:
         flash_plus(f'Tabel kan niet getoond worden (show)', e)
     if template:
-        return render_template(template, table_config=config, filters=filters, pdf_template=pdf_template, show_info=show_info)
-    return render_template('datatables.html', table_config=config, filters=filters, pdf_template=pdf_template, show_info=show_info)
+        return render_template(template, table_config=config, filters=filters)
+    return render_template('datatables.html', table_config=config, filters=filters)
 
 
 def format_datatable(table_configuration, data_list, total_count, filtered_count):

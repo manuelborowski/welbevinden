@@ -21,6 +21,7 @@ class Student(db.Model, SerializerMixin):
     vsknummer = db.Column(db.String(256), default='')
     rfid = db.Column(db.String(256))
     foto = db.Column(db.String(256), default='')
+    foto_id = db.Column(db.Integer, default=-1)
 
     geboortedatum = db.Column(db.Date)
     geboorteplaats = db.Column(db.String(256), default='')
@@ -47,6 +48,7 @@ class Student(db.Model, SerializerMixin):
     adminstratievecode = db.Column(db.String(256), default='')
     klastitularis = db.Column(db.String(256), default='')
     klasnummer = db.Column(db.Integer(), default=0)
+    computer = db.Column(db.String(256), default='')
 
     naamcorrespondentieadres = db.Column(db.String(256), default='')
     aansprekingcorrespondentieadres = db.Column(db.String(256), default='')
@@ -174,7 +176,7 @@ def update_students(data = [], overwrite=False):
     return None
 
 
-def flag_wisa_students(data = []):
+def flag_students(data = []):
     try:
         for d in data:
             student = d['student']
@@ -244,6 +246,10 @@ def pre_filter():
 
 
 def filter_data(query, filter):
+    for f in filter:
+        if f['name'] == 'photo-not-found':
+            if f['value'] == 'not-found':
+                query = query.filter(Student.foto_id == -1)
     return query
 
 

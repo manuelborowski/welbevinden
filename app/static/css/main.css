@@ -103,6 +103,7 @@ figure.selected {
 }
 
 .flex-container > div {
+    margin-right: 10px;
 }
 
 .bootbox-confirm div div div button.btn-primary{

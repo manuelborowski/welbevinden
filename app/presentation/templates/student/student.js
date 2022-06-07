@@ -27,7 +27,7 @@ async function new_vsk_numbers(item) {
     const ret = await fetch(Flask.url_for('api.get_last_vsk_number'))
     const data = await ret.json();
     if (data.status) {
-        if (data.data === '') { // no numbers yet
+        if (data.data === -1) { // no numbers yet
             bootbox.prompt({
                 title: "Er zijn nog geen nummers toegekend. Geef het startnummer in",
                 inputType: "number",
@@ -36,7 +36,7 @@ async function new_vsk_numbers(item) {
                 }
             })
         } else {
-            const start = parseInt(data.data) + 1;
+            const start = parseInt(data.data);
             bootbox.dialog({
                 title: 'Vsk nummers toekennen',
                 message: `<p>Het eerstvolgende nummer is ${start}</p>`,

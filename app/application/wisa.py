@@ -1,7 +1,8 @@
 from app import log, flask_app
-from app.data import student as mstudent
+from app.data import student as mstudent, photo as mphoto, settings as msettings
 from app.data.utils import belgische_gemeenten
-from app.application import settings as msettings, warning as mwarning
+from app.application import warning as mwarning
+from app.application.settings import subscribe_handle_button_clicked
 import datetime
 import json, requests
 
@@ -10,6 +11,7 @@ def read_from_wisa_database(local_file=None, max=0):
     try:
         log.info('start import from wisa')
         if local_file:
+            log.info(f'Reading from local file {local_file}')
             response_text = open(local_file).read()
         else:
             login = msettings.get_configuration_setting('wisa-login')
@@ -23,15 +25,7 @@ def read_from_wisa_database(local_file=None, max=0):
         for key in keys:
             response_text = response_text.replace(f'"{key.upper()}"', f'"{key}"')
         data = json.loads(response_text)
-
-        # deactivate deleted students first
-        flag_list = []
-        deleted_students = mstudent.get_students({"delete": True})
-        nbr_deactivated = len(deleted_students)
-        for student in deleted_students:
-            flag_list.append({'changed': '', 'delete': False, 'new': False, 'student': student, 'active': False})
-        mstudent.flag_wisa_students(flag_list)
-
+        saved_photos = {p[1]: p[0] for p in mphoto.get_photos_size()}
         saved_students = {}
         students = mstudent.get_students()
         if students:
@@ -60,6 +54,7 @@ def read_from_wisa_database(local_file=None, max=0):
                 item['foto'] = item['foto'].split('\\')[1]
             except:
                 pass
+            item['foto_id'] = saved_photos[item['foto']] if item['foto'] in saved_photos else -1
             try:
                 item['klasnummer'] = int(item['klasnummer'])
             except:
@@ -78,11 +73,11 @@ def read_from_wisa_database(local_file=None, max=0):
                 item['delete'] = False
                 item['new'] = False
                 if update_properties:
+                    update_properties.extend(['delete', 'new'])
                     item['changed'] = update_properties # student already present, but is changed
                     changed_list.append(item)
                 else:
-                    item['changed'] = ''      # student already present, no change
-                    flag_list.append({'changed': '', 'delete': False, 'new': False, 'student': student})
+                    flag_list.append({'changed': '', 'delete': False, 'new': False, 'student': student}) # student already present, no change
                 del(saved_students[item['rijksregisternummer']])
             else:
                 if orig_geboorteplaats:
@@ -98,19 +93,32 @@ def read_from_wisa_database(local_file=None, max=0):
                 nbr_deleted += 1
         mstudent.add_students(new_list)
         mstudent.update_students(changed_list, overwrite=True) # previous changes are lost
-        mstudent.flag_wisa_students(flag_list)
-        log.info(f'read_from_wisa_database: processed {nbr_processed}, new {len(new_list)}, updated {len(changed_list)}, deleted {nbr_deleted}, deactivated {nbr_deactivated}')
+        mstudent.flag_students(flag_list)
+        log.info(f'read_from_wisa_database: processed {nbr_processed}, new {len(new_list)}, updated {len(changed_list)}, deleted {nbr_deleted}')
     except Exception as e:
         log.error(f'update from wisa error: {e}')
 
 
 def load_from_wisa(topic=None, opaque=None):
     with flask_app.app_context():
-        # read_from_wisa_database(max=10)
-        read_from_wisa_database()
+        wisa_files = msettings.get_list('test-wisa-json-list')
+        if wisa_files:  # test with wisa files
+            current_wisa_file = msettings.get_configuration_setting('test-wisa-current-json')
+            if current_wisa_file == '' or current_wisa_file not in wisa_files:
+                current_wisa_file = wisa_files[0]
+            else:
+                new_index = wisa_files.index(current_wisa_file) + 1
+                if new_index >= len(wisa_files):
+                    new_index = 0
+                current_wisa_file = wisa_files[new_index]
+            msettings.set_configuration_setting('test-wisa-current-json', current_wisa_file)
+            read_from_wisa_database(local_file=current_wisa_file)
+        else:
+            # read_from_wisa_database(max=10)
+            read_from_wisa_database()
 
 
-msettings.subscribe_handle_button_clicked('button-load-from-wisa', load_from_wisa, None)
+subscribe_handle_button_clicked('button-load-from-wisa', load_from_wisa, None)
 
 
 def wisa_cron_task(opaque):

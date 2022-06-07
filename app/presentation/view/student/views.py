@@ -112,15 +112,31 @@ def get_misc_fields(extra_fields, form):
 
 
 def get_filters():
-    filters = []
-    return filters
+    return [
+        {
+            'type': 'select',
+            'name': 'photo-not-found',
+            'label': 'Foto\'s',
+            'choices': [
+                ['default', 'Alles'],
+                ['not-found', 'Geen foto'],
+            ],
+            'default': 'default',
+        },
+    ]
 
+
+def get_info():
+    return [
+        f'Niet gevonden foto\'s: {app.application.student.get_nbr_photo_not_found()}'
+    ]
 
 table_configuration = {
     'view': 'student',
     'title': 'Studenten',
     'buttons': [],
     'get_filters': get_filters,
+    'get_show_info': get_info,
     'href': [],
     'pre_filter': app.data.student.pre_filter,
     'format_data': app.application.student.format_data,

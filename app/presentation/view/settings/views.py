@@ -249,19 +249,20 @@ settings_formio = \
         "tableView": false,
         "components": [
           {
-            "label": "General",
+            "label": "School Data Hub",
             "tableView": false,
-            "key": "general",
+            "key": "sdh",
             "type": "container",
             "input": true,
             "components": [
               {
-                "title": "Algmeen",
+                "title": "Centrale database",
                 "theme": "primary",
                 "collapsible": true,
                 "key": "general1",
                 "type": "panel",
                 "label": "General",
+                "collapsed": true,
                 "input": false,
                 "tableView": false,
                 "components": [
@@ -275,167 +276,15 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "Externe databases NIET updaten",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "key": "general-inhibit-update-external-databases",
-                    "type": "checkbox",
+                    "label": "Meldt veranderingen aan volgende adressen",
+                    "tooltip": "één adres per rij\nEen adres wordt niet gebruikt als er een # voor staat",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "key": "sdh-inform-emails",
+                    "type": "textarea",
                     "input": true
-                  },
-                  {
-                    "label": "Table",
-                    "cellAlignment": "left",
-                    "key": "table",
-                    "type": "table",
-                    "numRows": 4,
-                    "numCols": 2,
-                    "input": false,
-                    "tableView": false,
-                    "rows": [
-                      [
-                        {
-                          "components": [
-                            {
-                              "label": "Haal de leerkrachten RFID uit Papercut",
-                              "tableView": false,
-                              "defaultValue": false,
-                              "key": "chk-rfid-from-papercut",
-                              "type": "checkbox",
-                              "input": true,
-                              "hideOnChildrenHidden": false
-                            }
-                          ]
-                        },
-                        {
-                          "components": [
-                            {
-                              "label": "Haal de leerkrachten RFID uit Papercut",
-                              "action": "event",
-                              "showValidations": false,
-                              "theme": "warning",
-                              "tableView": false,
-                              "key": "getTeacerRfidFromPapercut",
-                              "conditional": {
-                                "show": true,
-                                "when": "general.chk-rfid-from-papercut",
-                                "eq": "true"
-                              },
-                              "type": "button",
-                              "event": "event-get-teacher-rfid-from-papercut",
-                              "input": true,
-                              "hideOnChildrenHidden": false
-                            }
-                          ]
-                        }
-                      ],
-                      [
-                        {
-                          "components": [
-                            {
-                              "label": "Populate own database (from Smartschool and Papercut). Do this once!",
-                              "tableView": false,
-                              "defaultValue": false,
-                              "key": "chk-populate-database",
-                              "type": "checkbox",
-                              "input": true,
-                              "hideOnChildrenHidden": false
-                            }
-                          ]
-                        },
-                        {
-                          "components": [
-                            {
-                              "label": "Populate Database",
-                              "action": "event",
-                              "showValidations": false,
-                              "theme": "warning",
-                              "tableView": false,
-                              "key": "loadDatabase",
-                              "conditional": {
-                                "show": true,
-                                "when": "general.chk-populate-database",
-                                "eq": "true"
-                              },
-                              "type": "button",
-                              "event": "event-populate-database",
-                              "input": true,
-                              "hideOnChildrenHidden": false
-                            }
-                          ]
-                        }
-                      ],
-                      [
-                        {
-                          "components": [
-                            {
-                              "label": "Run update cycle now",
-                              "tableView": false,
-                              "defaultValue": false,
-                              "key": "chk-update-database-now",
-                              "type": "checkbox",
-                              "input": true
-                            }
-                          ]
-                        },
-                        {
-                          "components": [
-                            {
-                              "label": "Run update cycle now",
-                              "action": "event",
-                              "showValidations": false,
-                              "theme": "warning",
-                              "tableView": false,
-                              "key": "updateDatabaseNow",
-                              "conditional": {
-                                "show": true,
-                                "when": "general.chk-update-database-now",
-                                "eq": "true"
-                              },
-                              "type": "button",
-                              "event": "event-update-database-now",
-                              "input": true
-                            }
-                          ]
-                        }
-                      ],
-                      [
-                        {
-                          "components": [
-                            {
-                              "label": "Clear own database",
-                              "tableView": false,
-                              "key": "chk-clear-own-database",
-                              "type": "checkbox",
-                              "input": true,
-                              "defaultValue": false
-                            }
-                          ]
-                        },
-                        {
-                          "components": [
-                            {
-                              "label": "Clear own database",
-                              "action": "event",
-                              "showValidations": false,
-                              "theme": "danger",
-                              "tableView": false,
-                              "key": "clearOwnDatabase",
-                              "conditional": {
-                                "show": true,
-                                "when": "general.chk-clear-own-database",
-                                "eq": "true"
-                              },
-                              "type": "button",
-                              "event": "event-clear-own-database",
-                              "input": true
-                            }
-                          ]
-                        }
-                      ]
-                    ]
                   }
-                ],
-                "collapsed": true
+                ]
               }
             ]
           },
@@ -581,6 +430,14 @@ settings_formio = \
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-enable-update-student-smartschool",
+                    "type": "checkbox",
+                    "input": true
+                  },
+                  {
+                    "label": "NAAR centrale database, deactiveer verwijderde studenten",
+                    "tableView": false,
+                    "defaultValue": false,
+                    "key": "cron-deactivate-deleted-students",
                     "type": "checkbox",
                     "input": true
                   }
@@ -1220,6 +1077,64 @@ settings_formio = \
                   }
                 ],
                 "collapsed": true
+              }
+            ]
+          },
+          {
+            "label": "Test",
+            "tableView": false,
+            "key": "test",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "Test instellingen",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "test",
+                "type": "panel",
+                "label": "E-mail server settings",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Submit",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true
+                  },
+                  {
+                    "label": "Wisa testbestanden",
+                    "tooltip": "Als de croncyclus wordt uitgevoerd, haal de wisa data uit onderstaande bestanden\nEen regel met # wordt genegeerd",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "key": "test-wisa-json-list",
+                    "type": "textarea",
+                    "input": true
+                  },
+                  {
+                    "label": "Huidig wisa test bestand",
+                    "labelPosition": "left-left",
+                    "tooltip": "Bovenstaande lijst wordt continu van boven naar beneden doorlopen.\nHier wordt het huidige wisa testbestand weergegeven.",
+                    "tableView": true,
+                    "key": "test-wisa-current-json",
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
+                    "label": "RFID start code",
+                    "labelPosition": "left-left",
+                    "tooltip": "hex code in the form '113ABC'\nIf the code is valid and there is no #, then this code is used as dummy RFID in the badges\nEach time the code is read, it is incremented by one",
+                    "tableView": true,
+                    "key": "test-rfid-start-code",
+                    "type": "textfield",
+                    "input": true
+                  }
+                ]
               }
             ]
           }

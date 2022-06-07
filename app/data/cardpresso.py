@@ -19,7 +19,7 @@ class Cardpresso(db.Model, SerializerMixin):
     klascode = db.Column(db.String(256), default='')
     middag = db.Column(db.String(256), default='')
     vsknummer = db.Column(db.String(256), default='')
-    rfid = db.Column(db.String(256))
+    rfid = db.Column(db.String(256), default = '')
     geboortedatum = db.Column(db.String(256), default='')
     straat = db.Column(db.String(256), default='')
     huisnummer = db.Column(db.String(256), default='')
@@ -35,6 +35,9 @@ class Cardpresso(db.Model, SerializerMixin):
     enable = db.Column(db.Boolean, default=True)
     changed = db.Column(db.TEXT, default='')
 
+
+def commit():
+    db.session.commit()
 
 def add_badge(data = {}, commit=True):
     try:

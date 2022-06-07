@@ -32,15 +32,16 @@ def add_badges(student_ids):
         nbr_no_photo = 0
         nbr_empty_propery = 0
         delete_badges = []
+        saved_photos = {p.id : p.photo for p in mphoto.get_photos()}
         for student_id in student_ids:
             student = mstudent.get_first_student({'id': student_id})
             if student:
                 badge = mcardpresso.get_first_badge({'leerlingnummer': student.leerlingnummer})
                 if badge:
                     delete_badges.append({"id":badge.id})
-                photo = mphoto.get_first_photo({'filename': student.foto})
+                photo = saved_photos[student.foto_id] if student.foto_id in saved_photos else None
                 if photo:
-                    data = {'photo': photo.photo}
+                    data = {'photo': photo}
                     student_dict = student.to_dict()
                     for p, r in badge_properties.items():
                         if r and student_dict[p] != '' or not r:
@@ -74,11 +75,13 @@ def add_badges(student_ids):
         return {"status": False, "data": f'generic error {e}'}
 
 
-def badges_cron_task(opaque):
+def new_badges_cron_task(opaque):
     if msettings.get_configuration_setting('cron-enable-update-student-badge'):
         process_new_badges()
 
-check_properties_changed = ['middag', 'vsknummer', 'photo', 'schooljaar']
+
+check_properties_changed = ['middag', 'vsknummer', 'photo', 'schooljaar', 'klascode', 'klasgroep']
+
 
 def process_new_badges(topic=None, opaque=None):
     with flask_app.app_context():
@@ -103,6 +106,47 @@ def process_new_badges(topic=None, opaque=None):
 
 msettings.subscribe_handle_button_clicked('button-new-badges', process_new_badges, None)
 
+
+def check_for_new_rfid():
+    try:
+        changed_students = []
+        deleted_badges = []
+        badges = mcardpresso.get_badges({'changed': '["rfid"]'})
+        if badges:
+            saved_students = {s.leerlingnummer: s for s in mstudent.get_students({'delete': False})}
+            for badge in badges:
+                if badge.rfid != '':
+                    changed_students.append({'changed': ['rfid'],
+                                             'rfid': badge.rfid,
+                                             'student': saved_students[badge.leerlingnummer]})
+                    deleted_badges.append({'id': badge.id})
+            if changed_students:
+                mstudent.update_students(changed_students)
+            if deleted_badges:
+                mcardpresso.delete_badges(deleted_badges)
+        log.info(f'check_for_new_rfid: updated {len(changed_students)} rfids of students')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": False, "data": f'generic error {e}'}
+
+
+def new_rfid_to_database_cron_task(opaque):
+    if msettings.get_configuration_setting('cron-enable-update-student-rfid'):
+        rfid_code = msettings.get_configuration_setting('test-rfid-start-code')
+        try:
+            code = int(rfid_code, 16)
+            badges = mcardpresso.get_badges()
+            for badge in badges:
+                badge.rfid = hex(code)[2:]
+                badge.changed = '["rfid"]'
+                code += 1
+            mcardpresso.commit()
+            msettings.set_configuration_setting('test-rfid-start-code', hex(code)[2:])
+            log.info('new_rfid_to_database_cron_task: test: inserted dummy rfid codes')
+        except:
+            log.error(f'new_rfid_to_database_cron_task: error, not a valid hex rfid-code {rfid_code}')
+            pass
+        check_for_new_rfid()
 
 ############ badges overview list #########
 def format_data(db_list):

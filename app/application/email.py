@@ -15,6 +15,12 @@ def send_email(to_list, subject, content):
             return True
         except Exception as e:
             log.error(f'send_email: ERROR, could not send email: {e}')
+            if 'Temporary server error. Please try again later' in str(e):
+                try:
+                    email.send(msg)
+                    return True
+                except Exception as e:
+                    log.error(f'send_email: ERROR, could not send email: {e}')
         return False
     else:
         log.info('email server is not enabled')
@@ -22,7 +28,7 @@ def send_email(to_list, subject, content):
 
 
 def compose_message(receipients_template, subject, message):
-    email_to = get_email_recipients(receipients_template)
+    email_to = msettings.get_list(receipients_template)
     if email_to:
         body = f'{datetime.datetime.now().strftime("%d/%m/%Y %H:%M")}<br>' \
                f'{message}<br><br>' \

@@ -14,4 +14,7 @@ import app.application.cardpresso
 cron.subscribe_cron_task(1, photo.photo_cron_task, None)
 cron.subscribe_cron_task(2, wisa.wisa_cron_task, None)
 cron.subscribe_cron_task(3, student.vsk_numbers_cron_task, None)
-cron.subscribe_cron_task(4, cardpresso.badges_cron_task, None)
+cron.subscribe_cron_task(4, cardpresso.new_badges_cron_task, None)
+cron.subscribe_cron_task(5, cardpresso.new_rfid_to_database_cron_task, None)
+
+cron.subscribe_cron_task(8, student.deactivate_deleted_students_cron_task, None)

@@ -2,24 +2,22 @@ from app import log
 from app.data import student as mstudent, settings as msettings, photo as mphoto
 import app.data.settings
 from app.application import formio as mformio, email as memail
-import sys, datetime, base64
-from app.application.settings import subscribe_handle_button_clicked
+import sys, base64
 
 
 def delete_students(ids):
     mstudent.delete_students(ids)
 
 
-# find the highest vsk number assigned to a student
-def get_last_vsk_number():
+# find the first next vsk number, to be assigned to a student, or -1 when not found
+def get_next_vsk_number():
     try:
-        student = mstudent.get_students(order_by='-vsknummer', first=True)
+        student = mstudent.get_students({'delete': False}, order_by='-vsknummer', first=True)
         if student and student.vsknummer != '':
-            return {"status": True, "data": student.vsknummer}
+            return {"status": True, "data": int(student.vsknummer) + 1}
         else:
             start_number = msettings.get_configuration_setting('cardpresso-vsk-startnumber')
-            return {"status": True, "data": start_number
-                    }
+            return {"status": True, "data": start_number}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": False, "data": f'Error: {e}'}
@@ -31,7 +29,7 @@ def update_vsk_numbers(vsknumber):
     try:
         vsknumber = int(vsknumber)
         changed_students = []
-        students = mstudent.get_students({'vsknummer': ''})
+        students = mstudent.get_students({'vsknummer': '', 'delete': False})
         nbr_updated = 0
         for student in students:
             changed_students.append({
@@ -60,8 +58,13 @@ def clear_vsk_numbers():
 
 def vsk_numbers_cron_task(opaque):
     if msettings.get_configuration_setting('cron-enable-update-vsk-numbers'):
-        ret = get_last_vsk_number()
-        if ret['data'] != '':
+        # check if schooljaar has changed.  If so, clear all vsk numbers first
+        student = mstudent.get_first_student({'delete': False, 'new': False, '-changed': ''})
+        if student and 'schooljaar' in student.changed:
+            ret = clear_vsk_numbers()
+            log.info(f'vsk_numbers_cron_task: deleted {ret["data"]} vsk numbers')
+        ret = get_next_vsk_number()
+        if ret['status'] and ret['data'] > -1:
             ret = update_vsk_numbers(ret['data'])
             if ret['status']:
                 log.info(f'vsk cron task, {ret["data"]} numbers updated')
@@ -69,8 +72,27 @@ def vsk_numbers_cron_task(opaque):
                 log.error(f'vsk cron task, error: {ret["data"]}')
         else:
             log.error('vsk cron task, error: no vsk numbers available')
-            memail.compose_message('cardpresso-inform-emails', "SDH: Vsk nummers", "Waarschuwing, er zijn geen Vsk nummers toegekend (niet beschikbaar?)")
+            memail.compose_message('sdh-inform-emails', "SDH: Vsk nummers", "Waarschuwing, er zijn geen Vsk nummers toegekend (niet beschikbaar?)")
 
+
+def deactivate_deleted_students():
+    try:
+        flag_list = []
+        deleted_students = mstudent.get_students({"delete": True})
+        for student in deleted_students:
+            flag_list.append({'changed': '', 'delete': False, 'new': False, 'student': student, 'active': False})
+        mstudent.flag_students(flag_list)
+        log.info(f"deactivate_deleted_students: deactivated {len(deleted_students)}")
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def deactivate_deleted_students_cron_task(opaque):
+    if msettings.get_configuration_setting('cron-deactivate-deleted-students'):
+        deactivate_deleted_students()
+
+
+############## formio #########################
 
 def prepare_view_form(id, read_only=False):
     try:
@@ -87,12 +109,12 @@ def prepare_view_form(id, read_only=False):
 
 
 ############ student overview list #########
+
 def format_data(db_list):
     out = []
-    photos = [p[1] for p in mphoto.get_photos_size()]
     for student in db_list:
         em = student.to_dict()
-        if student.foto not in photos:
+        if student.foto_id == -1:
             em['overwrite_cell_color'] = [['foto', 'pink']]
         em.update({
             'row_action': student.id,
@@ -100,3 +122,8 @@ def format_data(db_list):
         })
         out.append(em)
     return out
+
+
+def get_nbr_photo_not_found():
+    nbr_students_no_photo = mstudent.get_students({'foto_id': -1}, count=True)
+    return nbr_students_no_photo

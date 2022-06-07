@@ -81,6 +81,8 @@ def get_test_server():
 default_configuration_settings = {
     'generic-default-student-code': ('t1', Settings.SETTING_TYPE.E_STRING),
 
+    'sdh-inform-emails': ('t1', Settings.SETTING_TYPE.E_STRING),
+
     'user-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'user-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 
@@ -99,6 +101,7 @@ default_configuration_settings = {
     'cron-enable-update-student-rfid': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-enable-update-student-ad': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-enable-update-student-smartschool': (False, Settings.SETTING_TYPE.E_BOOL),
+    'cron-deactivate-deleted-students': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'smartschool-scheduler-cron': ('', Settings.SETTING_TYPE.E_STRING),
     'smartschool-teacher-group': ('', Settings.SETTING_TYPE.E_STRING),
@@ -113,7 +116,7 @@ default_configuration_settings = {
     'cardpresso-login': ('', Settings.SETTING_TYPE.E_STRING),
     'cardpresso-password': ('', Settings.SETTING_TYPE.E_STRING),
     'cardpresso-inform-emails': ('', Settings.SETTING_TYPE.E_STRING),
-    'cardpresso-vsk-startnumber': ('', Settings.SETTING_TYPE.E_STRING),
+    'cardpresso-vsk-startnumber': (-1, Settings.SETTING_TYPE.E_INT),
     'cardpresso-update-students': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'ad-url': ('', Settings.SETTING_TYPE.E_STRING),
@@ -146,6 +149,10 @@ default_configuration_settings = {
     'email-send-max-retries': (2, Settings.SETTING_TYPE.E_INT),
     'email-base-url': ('localhost:5000', Settings.SETTING_TYPE.E_STRING),
     'email-enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
+
+    'test-wisa-json-list': ('', Settings.SETTING_TYPE.E_STRING),
+    'test-wisa-current-json': ('', Settings.SETTING_TYPE.E_STRING),
+    'test-rfid-start-code': ('', Settings.SETTING_TYPE.E_STRING),
 
 }
 
@@ -225,3 +232,14 @@ def get_and_increment_default_student_code():
         return code
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+# Read from formio text-area and format a list.
+# Lines with # are ignored
+def get_list(list_name):
+    out = []
+    recepients = get_configuration_setting(list_name)
+    if recepients != '':
+        recepients = recepients.split('\n')
+        out = [r.strip() for r in recepients if '#' not in r]
+    return out

@@ -82,6 +82,9 @@ default_configuration_settings = {
     'generic-default-student-code': ('t1', Settings.SETTING_TYPE.E_STRING),
 
     'sdh-inform-emails': ('t1', Settings.SETTING_TYPE.E_STRING),
+    'sdh-prev-schoolyear': ('', Settings.SETTING_TYPE.E_STRING),
+    'sdh-current-schoolyear': ('', Settings.SETTING_TYPE.E_STRING),
+    'sdh-schoolyear-changed': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'user-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'user-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
@@ -102,6 +105,7 @@ default_configuration_settings = {
     'cron-enable-update-student-ad': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-enable-update-student-smartschool': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-deactivate-deleted-students': (False, Settings.SETTING_TYPE.E_BOOL),
+    'cron-clear-changed-year-flag': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'smartschool-scheduler-cron': ('', Settings.SETTING_TYPE.E_STRING),
     'smartschool-teacher-group': ('', Settings.SETTING_TYPE.E_STRING),
@@ -123,6 +127,7 @@ default_configuration_settings = {
     'ad-login': ('', Settings.SETTING_TYPE.E_STRING),
     'ad-password': ('', Settings.SETTING_TYPE.E_STRING),
     'ad-update-accounts': (False, Settings.SETTING_TYPE.E_BOOL),
+    'ad-schoolyear-changed': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'papercut-url': ('', Settings.SETTING_TYPE.E_STRING),
     'papercut-login': ('', Settings.SETTING_TYPE.E_STRING),
@@ -153,7 +158,6 @@ default_configuration_settings = {
     'test-wisa-json-list': ('', Settings.SETTING_TYPE.E_STRING),
     'test-wisa-current-json': ('', Settings.SETTING_TYPE.E_STRING),
     'test-rfid-start-code': ('', Settings.SETTING_TYPE.E_STRING),
-
 }
 
 
@@ -243,3 +247,20 @@ def get_list(list_name):
         recepients = recepients.split('\n')
         out = [r.strip() for r in recepients if '#' not in r]
     return out
+
+
+def set_changed_schoolyear(prev, current):
+    set_configuration_setting('sdh-schoolyear-changed', True)
+    set_configuration_setting('sdh-prev-schoolyear', prev)
+    set_configuration_setting('sdh-current-schoolyear', current)
+
+
+def reset_changed_schoolyear():
+    set_configuration_setting('sdh-schoolyear-changed', False)
+
+
+def get_changed_schoolyear():
+    changed = get_configuration_setting('sdh-schoolyear-changed')
+    prev = get_configuration_setting('sdh-prev-schoolyear')
+    current = get_configuration_setting('sdh-current-schoolyear')
+    return changed, prev, current

@@ -133,19 +133,20 @@ def check_for_new_rfid():
 def new_rfid_to_database_cron_task(opaque):
     if msettings.get_configuration_setting('cron-enable-update-student-rfid'):
         rfid_code = msettings.get_configuration_setting('test-rfid-start-code')
-        try:
-            code = int(rfid_code, 16)
-            badges = mcardpresso.get_badges()
-            for badge in badges:
-                badge.rfid = hex(code)[2:]
-                badge.changed = '["rfid"]'
-                code += 1
-            mcardpresso.commit()
-            msettings.set_configuration_setting('test-rfid-start-code', hex(code)[2:])
-            log.info('new_rfid_to_database_cron_task: test: inserted dummy rfid codes')
-        except:
-            log.error(f'new_rfid_to_database_cron_task: error, not a valid hex rfid-code {rfid_code}')
-            pass
+        if rfid_code != '' and '#' not in rfid_code:
+            try:
+                code = int(rfid_code, 16)
+                badges = mcardpresso.get_badges()
+                for badge in badges:
+                    badge.rfid = hex(code)[2:]
+                    badge.changed = '["rfid"]'
+                    code += 1
+                mcardpresso.commit()
+                msettings.set_configuration_setting('test-rfid-start-code', hex(code)[2:])
+                log.info('new_rfid_to_database_cron_task: test: inserted dummy rfid codes')
+            except:
+                log.error(f'new_rfid_to_database_cron_task: error, not a valid hex rfid-code {rfid_code}')
+                pass
         check_for_new_rfid()
 
 ############ badges overview list #########

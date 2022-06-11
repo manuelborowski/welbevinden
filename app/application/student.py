@@ -59,8 +59,8 @@ def clear_vsk_numbers():
 def vsk_numbers_cron_task(opaque):
     if msettings.get_configuration_setting('cron-enable-update-vsk-numbers'):
         # check if schooljaar has changed.  If so, clear all vsk numbers first
-        student = mstudent.get_first_student({'delete': False, 'new': False, '-changed': ''})
-        if student and 'schooljaar' in student.changed:
+        schoolyear_changed, _, _ = msettings.get_changed_schoolyear()
+        if schoolyear_changed:
             ret = clear_vsk_numbers()
             log.info(f'vsk_numbers_cron_task: deleted {ret["data"]} vsk numbers')
         ret = get_next_vsk_number()
@@ -90,6 +90,11 @@ def deactivate_deleted_students():
 def deactivate_deleted_students_cron_task(opaque):
     if msettings.get_configuration_setting('cron-deactivate-deleted-students'):
         deactivate_deleted_students()
+
+
+def clear_schoolyear_changed_flag_cron_task(opaque):
+    if msettings.get_configuration_setting('cron-clear-changed-year-flag'):
+        msettings.reset_changed_schoolyear()
 
 
 ############## formio #########################

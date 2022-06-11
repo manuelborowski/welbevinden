@@ -283,6 +283,72 @@ settings_formio = \
                     "key": "sdh-inform-emails",
                     "type": "textarea",
                     "input": true
+                  },
+                  {
+                    "label": "Columns",
+                    "columns": [
+                      {
+                        "components": [
+                          {
+                            "label": "Nieuw schooljaar?",
+                            "disabled": true,
+                            "tableView": false,
+                            "defaultValue": false,
+                            "key": "sdh-schoolyear-changed",
+                            "type": "checkbox",
+                            "input": true
+                          }
+                        ],
+                        "width": 4,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 4
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "Vorig schooljaar",
+                            "labelPosition": "left-left",
+                            "disabled": true,
+                            "tableView": true,
+                            "key": "sdh-prev-schoolyear",
+                            "type": "textfield",
+                            "input": true
+                          }
+                        ],
+                        "width": 4,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 4
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "Huidig schooljaar",
+                            "labelPosition": "left-left",
+                            "disabled": true,
+                            "tableView": true,
+                            "key": "sdh-current-schoolyear",
+                            "type": "textfield",
+                            "input": true
+                          }
+                        ],
+                        "size": "md",
+                        "width": 4,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "currentWidth": 4
+                      }
+                    ],
+                    "key": "columns",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
                   }
                 ]
               }
@@ -418,7 +484,7 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "NAAR AD, studenten bijwerken",
+                    "label": "(6) NAAR AD, studenten bijwerken",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-enable-update-student-ad",
@@ -426,7 +492,7 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "NAAR smartschool, studenten bijwerken",
+                    "label": "(7) NAAR smartschool, studenten bijwerken",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-enable-update-student-smartschool",
@@ -434,10 +500,18 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "NAAR centrale database, deactiveer verwijderde studenten",
+                    "label": "(8) NAAR centrale database, deactiveer verwijderde studenten",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-deactivate-deleted-students",
+                    "type": "checkbox",
+                    "input": true
+                  },
+                  {
+                    "label": "(9) NAAR centrale database, wis schooljaar-is-veranderd-vlag",
+                    "tableView": false,
+                    "defaultValue": false,
+                    "key": "cron-clear-changed-year-flag",
                     "type": "checkbox",
                     "input": true
                   }
@@ -715,6 +789,15 @@ settings_formio = \
                     "type": "textfield",
                     "input": true,
                     "labelWidth": 20
+                  },
+                  {
+                    "label": "Nieuw schooljaar?",
+                    "disabled": true,
+                    "tableView": false,
+                    "key": "ad-schoolyear-changed",
+                    "type": "checkbox",
+                    "input": true,
+                    "defaultValue": false
                   }
                 ],
                 "collapsed": true

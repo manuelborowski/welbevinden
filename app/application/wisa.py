@@ -27,9 +27,21 @@ def read_from_wisa_database(local_file=None, max=0):
         data = json.loads(response_text)
         saved_photos = {p[1]: p[0] for p in mphoto.get_photos_size()}
         saved_students = {}
+        # default previous and current schoolyear
+        _, current_schoolyear, prev_schoolyear = msettings.get_changed_schoolyear()
+        if current_schoolyear == '':
+            now = datetime.datetime.now()
+            if now.month <= 8:
+                current_schoolyear = f'{now.year-1}-{now.year}'
+                prev_schoolyear = f'{now.year-2}-{now.year-1}'
+            else:
+                current_schoolyear = f'{now.year}-{now.year+1}'
+                prev_schoolyear = f'{now.year-1}-{now.year}'
+            msettings.set_changed_schoolyear(prev_schoolyear, current_schoolyear)
         students = mstudent.get_students()
         if students:
             saved_students = {s.rijksregisternummer: s for s in students}
+            current_schoolyear = students[0].schooljaar
         new_list = []
         changed_list = []
         flag_list = []
@@ -94,6 +106,12 @@ def read_from_wisa_database(local_file=None, max=0):
         mstudent.add_students(new_list)
         mstudent.update_students(changed_list, overwrite=True) # previous changes are lost
         mstudent.flag_students(flag_list)
+        if new_list:
+            if new_list[0]['schooljaar'] != current_schoolyear:
+                msettings.set_changed_schoolyear(current_schoolyear, new_list[0]['schooljaar'])
+        if changed_list:
+            if 'schooljaar' in changed_list[0]['changed']:
+                msettings.set_changed_schoolyear(current_schoolyear, changed_list[0]['schooljaar'])
         log.info(f'read_from_wisa_database: processed {nbr_processed}, new {len(new_list)}, updated {len(changed_list)}, deleted {nbr_deleted}')
     except Exception as e:
         log.error(f'update from wisa error: {e}')

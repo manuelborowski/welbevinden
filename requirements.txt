@@ -24,12 +24,15 @@ greenlet==1.0.0
 idna==3.3
 itsdangerous==1.1.0
 Jinja2==2.11.3
+ldap3==2.9.1
 lorem-text==2.1
 Mako==1.1.4
 MarkupSafe==1.1.1
 names==0.3.0
 openpyxl==3.0.7
 packaging==21.3
+pyasn1==0.4.8
+pyasn1-modules==0.2.8
 PyMySQL==1.0.2
 pyparsing==3.0.7
 python-dateutil==2.8.1

@@ -1,4 +1,4 @@
-__all__ = ['tables', 'datatables', 'socketio', 'settings', 'warning', 'wisa', 'cron', 'cardpresso', 'photo', 'student', 'ad']
+__all__ = ['tables', 'datatables', 'socketio', 'settings', 'warning', 'wisa', 'cron', 'cardpresso', 'photo', 'student', 'ad', 'test']
 
 import app.application.socketio
 import app.application.tables
@@ -11,7 +11,9 @@ import app.application.ad
 import app.application.student
 import app.application.cron
 import app.application.cardpresso
+import app.application.test
 
+cron.subscribe_cron_task(0, test.test_cron_task, None)
 cron.subscribe_cron_task(1, photo.photo_cron_task, None)
 cron.subscribe_cron_task(2, wisa.wisa_cron_task, None)
 cron.subscribe_cron_task(3, student.vsk_numbers_cron_task, None)

@@ -1191,6 +1191,15 @@ settings_formio = \
                     "input": true
                   },
                   {
+                    "label": "Test voorbereiden.  OPGELET, database wordt leeg gemaakt!!!",
+                    "tooltip": "Maak de database leeg, wis huidig en vorig schooljaar,...",
+                    "tableView": false,
+                    "defaultValue": false,
+                    "key": "test-prepare",
+                    "type": "checkbox",
+                    "input": true
+                  },
+                  {
                     "label": "Wisa testbestanden",
                     "tooltip": "Als de croncyclus wordt uitgevoerd, haal de wisa data uit onderstaande bestanden\nEen regel met # wordt genegeerd",
                     "autoExpand": false,

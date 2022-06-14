@@ -16,7 +16,6 @@
 
 #all ou's under leerlingen:  l.search_s("OU=Leerlingen,OU=Accounts,DC=SU,DC=local", ldap.SCOPE_SUBTREE, "(objectCategory=Organizationalunit)")
 
-
 # use ldap3 (pip install ldap3)
 # from ldap3 import Server, Connection, SAFE_SYNC
 
@@ -33,138 +32,322 @@
 # ldap_s.modify("CN=manuel test,OU=manuel-test,OU=Leerlingen,OU=Accounts,DC=SU,DC=local", {'description': [(ldap3.MODIFY_REPLACE, 'dit is een test')]})
 # conn.modify_dn('CN=Rik Fabri,OU=2018-2019,OU=Leerlingen,OU=Accounts,DC=SU,DC=local', 'CN=Rik Fabri', new_superior='OU=manuel-test,OU=Leerlingen,OU=Accounts,DC=SU,DC=local')
 #  attributes = {'samaccountname': 's66666', 'wwwhomepage': '66666', 'name': 'manuel test', 'useraccountcontrol': 544, 'cn': 'manuel test', 'sn': 'test', 'l': 'manuel-6IT', 'description': 'manuel-test manuel-6IT', 'postalcode': '26-27', 'physicalDeliveryOfficeName': 'manuel-6IT', 'givenname': 'manuel', 'displayname': 'manuel test'}
-
+# ldap_s.add(f'CN=manuel-test,{klas_location_toplevel}', 'group', {'cn': 'manuel-test', 'member': 'CN=Michiel Smans,OU=2021-2022,OU=Leerlingen,OU=Accounts,DC=SU,DC=local'})
 
 from app import log
 from app.data import student as mstudent
 from app.data import settings as msettings
+import ldap3, json, sys
 
-# from ldap3 import Server, Connection, SYNC
-import ldap3, json
 
-student_location_toplevel = 'OU=Leerlingen,OU=Accounts,DC=SU,DC=local'
+class Context:
+    def __init__(self):
+        self.check_properties_changed = ['naam', 'voornaam', 'klascode', 'schooljaar', 'rifd', 'computer']
+        self.student_location_toplevel = 'OU=Leerlingen,OU=Accounts,DC=SU,DC=local'
+        self.klas_location_toplevel = 'OU=Klassen,OU=Groepen,DC=SU,DC=local'
+        self.leerlingen_group = 'CN=Leerlingen,OU=Groepen,DC=SU,DC=local'
+        self.email_domain = '@lln.campussintursula.be'
+        self.student_location_current_year = ''
+        self.ad_active_students_leerlingnummer = {}  # cache active students, use leerlingnummer as key
+        self.ad_active_students_cn = {}  # cache active students, use cn as key
+        self.leerlingnummer_to_klas = {} # find a klas a student belongs to, use leerlingnummer as key
+        self.ad_klassen = []
+        self.add_student_to_klas = {}  # dict of klassen with list-of-students-to-add-to-the-klas
+        self.delete_student_from_klas = {}  # dict of klassen with list-of-students-to-delete-from-the-klas
+        self.new_students_to_add = []  # these students do not exist yet in AD, must be added
+        self.move_students_to_current_year_ou = []
+        self.changed_schoolyear = False
+        self.prev_year = ''
+        self.current_year = ''
+        self.ldap = None
 
-check_properties_changed = ['naam', 'voornaam', 'klascode', 'schooljaar', 'rifd', 'computer']
+
+normalMap = {'À': 'A', 'Á': 'A', 'Â': 'A', 'Ã': 'A', 'Ä': 'A','à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'ª': 'A',
+             'È': 'E', 'É': 'E', 'Ê': 'E', 'Ë': 'E', 'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
+             'Í': 'I', 'Ì': 'I', 'Î': 'I', 'Ï': 'I','í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
+             'Ò': 'O', 'Ó': 'O', 'Ô': 'O', 'Õ': 'O', 'Ö': 'O', 'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o', 'º': 'O', '°': 'O',
+             'Ù': 'U', 'Ú': 'U', 'Û': 'U', 'Ü': 'U','ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
+             'Ñ': 'N', 'ñ': 'n',
+             'Ç': 'C', 'ç': 'c',
+             '§': 'S',  '³': '3', '²': '2', '¹': '1'}
+normalize = str.maketrans(normalMap)
+
+
+# move/add/delete student from/to a klas
+def update_klassen_prepare(ctx, student):
+    try:
+        if student.new or 'klascode' in student.changed:
+            if student.klascode in ctx.add_student_to_klas:
+                ctx.add_student_to_klas[student.klascode].append(ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['dn'])
+            else:
+                ctx.add_student_to_klas[student.klascode] = [ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['dn']]
+        if student.delete or 'klascode' in student.changed:
+            if student.leerlingnummer in ctx.leerlingnummer_to_klas:
+                current_klas = ctx.leerlingnummer_to_klas[student.leerlingnummer]
+                if current_klas in ctx.delete_student_from_klas:
+                    ctx.delete_student_from_klas[current_klas].append(ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['dn'])
+                else:
+                    ctx.delete_student_from_klas[current_klas] = [ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['dn']]
+            else:
+                log.error(f'AD, update klassen prepare, student {student.leerlingnummer} not found in AD')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+
+def update_klassen_apply_to_ad(ctx):
+    try:
+        for klas, members in ctx.delete_student_from_klas.items():
+            klas_dn = f'CN={klas},{ctx.klas_location_toplevel}'
+            res = ctx.ldap.modify(klas_dn, {'member': [(ldap3.MODIFY_DELETE, members)]})
+            if res:
+                log.info(f'AD: removed from klas {klas_dn} members {members}')
+            else:
+                log.error(f'AD: could not remove from klas {klas_dn} members {members}')
+        # add students to klassen
+        for klas, members in ctx.add_student_to_klas.items():
+            klas_dn = f'CN={klas},{ctx.klas_location_toplevel}'
+            if klas not in ctx.ad_klassen:
+                ctx.ad_klassen.append(klas)
+                res = ctx.ldap.add(klas_dn, 'group', {'cn': f'{klas}', 'member': members})
+                if res:
+                    log.info(f'AD: added new klas {klas}')
+                else:
+                    log.error(f'AD: could not add klas {klas}')
+            else:
+                res = ctx.ldap.modify(klas_dn, {'member': [(ldap3.MODIFY_ADD, members)]})
+                if res:
+                    log.info(f'AD: added to klas {klas_dn} members {members}')
+                else:
+                    log.error(f'AD: could not add to klas {klas_dn} members {members}')
+        # remove empty klassen
+        res = ctx.ldap.search(ctx.klas_location_toplevel, '(&(objectclass=group)(!(member=*)))', attributes=['cn'])
+        if res:
+            ad_klassen = ctx.ldap.response
+            for klas in ad_klassen:
+                res = ctx.ldap.delete(klas['dn'])
+                if res:
+                    log.info(f'AD, removed empty klas {klas["dn"]}')
+                else:
+                    log.error(f'AD, could not remove empty klass {klas["dn"]}')
+            log.info(f'AD, removed {len(ad_klassen)} empty klassen')
+        else:
+            log.error('AD, could not remove empty klassen')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def init():
+    try:
+        ctx = Context()
+        ctx.changed_schoolyear, ctx.prev_year, ctx.current_year = msettings.get_changed_schoolyear()
+        if ctx.changed_schoolyear:  # keep a local copy of changed-schoolyear
+            msettings.set_configuration_setting('ad-schoolyear-changed', True)
+        ctx.changed_schoolyear = msettings.get_configuration_setting('ad-schoolyear-changed')
+        ad_host = msettings.get_configuration_setting('ad-url')
+        ad_login = msettings.get_configuration_setting('ad-login')
+        ad_password = msettings.get_configuration_setting('ad-password')
+        ldap_server = ldap3.Server(ad_host, use_ssl=True)
+        ctx.ldap = ldap3.Connection(ldap_server, ad_login, ad_password, auto_bind=True, authentication=ldap3.NTLM)
+        # Create student caches
+        res = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))', ldap3.SUBTREE, attributes=['cn', 'wwwhomepage', 'userAccountControl'])
+        if res:
+            ctx.ad_active_students_leerlingnummer = {s['attributes']['wwwhomepage']: s for s in ctx.ldap.response if s['attributes']['wwwhomepage'] != []}
+            ctx.ad_active_students_cn = {s['dn']: s for s in ctx.ldap.response if s['attributes']['wwwhomepage'] != []}
+            log.info(f'AD: create active-students-caches, {len(ctx.ad_active_students_leerlingnummer)} entries')
+        else:
+            log.error('AD: could not create active-students-caches')
+
+        # Create klas caches
+        res = ctx.ldap.search(ctx.klas_location_toplevel, '(objectclass=group)', ldap3.SUBTREE, attributes=['member', 'cn'])
+        if res:
+            for klas in ctx.ldap.response:
+                ctx.ad_klassen.append(klas['attributes']['cn'])
+                ctx.leerlingnummer_to_klas.update({ctx.ad_active_students_cn[m]['attributes']['wwwhomepage']: klas['attributes']['cn'] for m in klas['attributes']['member'] if m in ctx.ad_active_students_cn})
+            log.info(f'AD: create student-to-leerlingnummer-cache, with {len(ctx.leerlingnummer_to_klas)} entries')
+        else:
+            log.error('AD: could not create student-to-leerlingnummer-cache')
+        return ctx
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def deinit(ctx):
+    try:
+        ctx.ldap.unbind()
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def create_current_year_ou(ctx):
+    try:
+        # check if OU current year exists.  If not, create
+        find_current_year_ou = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=organizationalunit)(name={ctx.current_year}))', ldap3.SUBTREE)
+        if not find_current_year_ou:
+            res = ctx.ldap.add(f'OU={ctx.current_year},{ctx.student_location_toplevel}', 'organizationalunit')
+            if res:
+                log.info(f'AD: added new OU: {ctx.current_year}')
+            else:
+                log.error(f'AD error: could not add OU {ctx.current_year}, aborting...')
+                return False
+        ctx.student_location_current_year = f'OU={ctx.current_year},{ctx.student_location_toplevel}'
+        return True
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def new_students(ctx):
+    try:
+        # check if new student already exists in AD (student left school and came back)
+        # if so, activate and put in current OU
+        new_students = mstudent.get_students({"new": True})
+        log.info('AD: new students: if student is already in AD: activate and put in current year OU')
+        for student in new_students:
+            res = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=user)(wwwhomepage={student.leerlingnummer}))', ldap3.SUBTREE, attributes=['cn', 'userAccountControl'])
+            if res:  # student already in AD, but inactive and probably in wrong OU and wrong klas
+                ad_student = ctx.ldap.response[0]
+                dn = ad_student['dn']  # old OU
+                account_control = ad_student['attributes']['userAccountControl']  # to activate
+                ctx.move_students_to_current_year_ou.append(ad_student)
+                account_control &= ~2  # clear bit 2 to activate
+                changes = {
+                    'userAccountControl': [(ldap3.MODIFY_REPLACE, [account_control])],
+
+                    'description': [ldap3.MODIFY_REPLACE, (f'{student.schooljaar} {student.klascode}')],
+                     'postalcode': [ldap3.MODIFY_REPLACE, (student.schooljaar,)],
+                     'l': [ldap3.MODIFY_REPLACE, (student.klascode)],
+                     'physicalDeliveryOfficeName': [ldap3.MODIFY_REPLACE, (student.klascode)]
+                }
+                if student.rfid and student.rfid != '':
+                    changes.update({'pager': [ldap3.MODIFY_REPLACE, (student.rfid)]})
+                res = ctx.ldap.modify(dn, changes)
+                if not res:
+                    log.error(f'AD error, could not activate {dn}')
+                # add student to cache
+                ctx.ad_active_students_leerlingnummer[student.leerlingnummer] = ad_student
+                update_klassen_prepare(ctx, student)
+            else:
+                ctx.new_students_to_add.append(student)
+        log.info('AD: add (create) new students to current year OU')
+
+        # add new students to current OU
+        object_class = ['top', 'person', 'organizationalPerson', 'user']
+        for student in ctx.new_students_to_add:
+            attributes = {'samaccountname': f's{student.leerlingnummer}', 'wwwhomepage': f'{student.leerlingnummer}',
+                          'userprincipalname': f's{student.leerlingnummer}{ctx.email_domain}',
+                          'mail': f'{student.voornaam.translate(normalize)}.{student.naam.translate(normalize)}{ctx.email_domain}',
+                          'name': f'{student.naam} {student.voornaam}',
+                          'useraccountcontrol': 544,
+                          'cn': f'{student.naam} {student.voornaam}',
+                          'sn': student.naam,
+                          'l': student.klascode,
+                          'description': f'{student.schooljaar} {student.klascode}', 'postalcode': student.schooljaar,
+                          'physicaldeliveryofficename': student.klascode, 'givenname': student.voornaam,
+                          'displayname': f'{student.naam} {student.voornaam}'}
+            if student.rfid and student.rfid != '':
+                attributes['pager'] = student.rfid
+            cn = f'{student.naam} {student.voornaam}'
+            dn = f'CN={cn},{ctx.student_location_current_year}'
+            res = ctx.ldap.add(dn, object_class, attributes)
+            if not res:
+                log.error(f'AD: could not add new student with attributes: {attributes}')
+            ctx.ad_active_students_leerlingnummer[student.leerlingnummer] = {'dn': dn, 'attributes': {'cn': cn}}
+            update_klassen_prepare(ctx, student)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def changed_students(ctx):
+    try:
+        # check if there are students with valid, changed attributes.  If so, update the attributes
+        # if required, move the students to the current OU
+        log.info('AD: check for changed students')
+        changed_students = mstudent.get_students({"-changed": "", "new": False})
+        if changed_students:
+            for student in changed_students:
+                changed = json.loads(student.changed)
+                if list(set(ctx.check_properties_changed).intersection(changed)):
+                    if student.leerlingnummer in ctx.ad_active_students_leerlingnummer:
+                        changes = {}
+                        if 'naam' in changed or 'voornaam' in changed:
+                            changes.update({'name': [ldap3.MODIFY_REPLACE, (f'{student.naam} {student.voornaam}')],
+                                            'cn': [ldap3.MODIFY_REPLACE, (f'{student.naam} {student.voornaam}')],
+                                            'sn': [ldap3.MODIFY_REPLACE, (student.naam)],
+                                            'givenname': [ldap3.MODIFY_REPLACE, (student.voornaam)],
+                                            'displayname': [ldap3.MODIFY_REPLACE, (f'{student.naam} {student.voornaam}')]})
+                        if 'rfid' in changed:
+                            changes.update({'pager': [ldap3.MODIFY_REPLACE, (student.rfid)]})
+                        if 'schooljaar' in changed or 'klascode' in changed:
+                            changes.update(
+                                {'description': [ldap3.MODIFY_REPLACE, (f'{student.schooljaar} {student.klascode}')],
+                                 'postalcode': [ldap3.MODIFY_REPLACE, (student.schooljaar,)],
+                                 'l': [ldap3.MODIFY_REPLACE, (student.klascode)],
+                                 'physicalDeliveryOfficeName': [ldap3.MODIFY_REPLACE, (student.klascode)]})
+                        res = ctx.ldap.modify(ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['dn'], changes)
+                        if not res:
+                            log.error(f'AD error: could not update changes of {student.leerlingnummer}: {changes}')
+                        if 'schooljaar' in changed:  # move to new OU
+                            ctx.move_students_to_current_year_ou.append(ctx.ad_active_students_leerlingnummer[student.leerlingnummer])
+                        if 'klascode' in changed:
+                            update_klassen_prepare(ctx, student)
+                    else:
+                        log.error(f'AD error: student {student.leerlingnummer} is not active in AD')
+        log.info(f'AD, updated {len(changed_students)} students')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def deleted_students(ctx):
+    try:
+        log.info('AD: check for deleted students')
+        deleted_students = mstudent.get_students({"delete": True})
+        if deleted_students:
+            for student in deleted_students:
+                ad_student = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]
+                dn = ad_student['dn']
+                account_control = ad_student['attributes']['userAccountControl']  # to activate
+                account_control |= 2  # set bit 2 to deactivate
+                changes = {'userAccountControl': [(ldap3.MODIFY_REPLACE, [account_control])]}
+                res = ctx.ldap.modify(dn, changes)
+                if not res:
+                    log.error(f'AD error, could not deactivate {dn}')
+                update_klassen_prepare(ctx, student)
+        log.info(f'AD, deleted {len(deleted_students)} students')
+
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def move_students_to_current_year_ou(ctx):
+    try:
+        log.info('AD, move students to the current schoolyear OU')
+        for student in ctx.move_students_to_current_year_ou:
+            res = ctx.ldap.modify_dn(student['dn'], f"CN={student['attributes']['cn']}", new_superior=ctx.student_location_current_year)
+            if not res:
+                log.error(f'AD error, could not move {student.leerlingnummer} from {ctx.ad_active_students_leerlingnummer[student.leerlingnummer]["dn"]} to {ctx.student_location_current_year}')
+        log.info(f'AD, moved {len(ctx.move_students_to_current_year_ou)} to the current schoolyear OU')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 def update_ad():
     try:
         log.info(('Start update to AD'))
-        changed_schoolyear, prev_year, current_year =  msettings.get_changed_schoolyear()
-        if changed_schoolyear: # keep a local copy of changed-schoolyear
-            msettings.set_configuration_setting('ad-schoolyear-changed', True)
-        changed_schoolyear = msettings.get_configuration_setting('ad-schoolyear-changed')
+        ctx = init()
+        if not create_current_year_ou(ctx):
+            deinit(ctx)
+            return
+        new_students(ctx)
+        changed_students(ctx)
+        deleted_students(ctx)
+        update_klassen_apply_to_ad(ctx) # first update the klassen because the dn refers to the previous schoolyear OU
+        move_students_to_current_year_ou(ctx) # then move the students to the current schoolyear OU
 
-        ad_host = msettings.get_configuration_setting('ad-url')
-        ad_login = msettings.get_configuration_setting('ad-login')
-        ad_password = msettings.get_configuration_setting('ad-password')
-        ldap_server = ldap3.Server(ad_host, use_ssl=True)
-        ldap = ldap3.Connection(ldap_server, ad_login, ad_password, auto_bind=True, authentication=ldap3.NTLM)
-
-        # cache active students, use leerlingnummer as key
-        ad_active_students = {}
-        res = ldap.search(student_location_toplevel, f'(&(objectclass=user)!(userAccountControl:1.2.840.113556.1.4.803:=2))', ldap3.SUBTREE, attributes=['cn', 'wwwhomepage'])
-        if res:
-            ad_active_students = {s['attributes']['wwwhomepage']: s for s in res.response if s['attributes']['wwwhomepage'] != []}
-            log.info(f'AD: create active-students-cache, {len(ad_active_students)} entries')
-
-        # cache klas
-
-        # check if OU current year exists.  If not, create
-        find_current_year_ou = ldap.search(student_location_toplevel, f'(&(objectclass=organizationalunit)(name={current_year}))', ldap3.SUBTREE)
-        if not find_current_year_ou:
-            res = ldap.add(f'OU={current_year},{student_location_toplevel}', 'organizationalunit')
-            if res:
-                log.info(f'AD: added new OU: {current_year}')
-            else:
-                log.error(f'AD error: could not add OU {current_year}, aborting...')
-                ldap.unbind()
-                return
-        student_location_current_year = f'OU={current_year},{student_location_toplevel}'
-
-        # check if new student already exists in AD (student left school and came back)
-        # if so, activate and put in current OU
-        new_students = mstudent.get_students({"new": True})
-        new_students_to_add = []    # these students do not exist yet in AD, must be added
-        log.info('AD: new students: if student is already in AD: activate and put in current year OU')
-        for student in new_students:
-            res = ldap.search(student_location_toplevel, f'(&(objectclass=user)(wwwhomepage={student.leerlingnummer}))', ldap3.SUBTREE, attributes=['cn', 'userAccountControl'])
-            if res:
-                dn = ldap.response[0]['dn']     # current OU
-                cn = ldap.response[0]['attributes']['cn'] # student
-                account_control = ldap.response[0]['attributes']['userAccountControl'] # to activate
-                res = ldap.modify_dn(dn, cn, student_location_current_year) # move student to current year OU
-                if not res:
-                    log.error(f'AD error, could not move {cn} from {dn} to {student_location_current_year}')
-                account_control &= 2  # clear bit 2 to activate
-                res = ldap.modify(f'CN={cn},{student_location_current_year}', {'userAccountControl' : [(ldap3.MODIFY_REPLACE, [account_control])]})
-                if not res:
-                    log.error(f'AD error, could not activate {cn}')
-            else:
-                new_students_to_add.append(student)
-        log.info('AD: add (create) new students to current year OU')
-
-        # add new students to current OU
-        object_class = ['top', 'person', 'organizationalPerson', 'user']
-        for student in new_students_to_add:
-            attributes = {'samaccountname': f's{student.leerlingnummer}', 'wwwhomepage': f'{student.leerlingnummer}',
-                          'name': f'{student.naam} {student.voornaam}',
-                          'useraccountcontrol': 544, 'pager': student.rfid,
-                          'cn': f'{student.naam} {student.voornaam}',
-                          'sn': student.naam,
-                          'l': student.klascode,
-                          'description': f'{student.schooljaar} {student.klascode}', 'postalcode': student.schooljaar,
-                          'physicalDeliveryOfficeName': student.klascode, 'givenname': student.voornaam,
-                          'displayname': f'{student.naam} {student.voornaam}'}
-            res = ldap.add(f'CN={student.naam} {student.voornaam},{student_location_current_year}', object_class, attributes)
-            if not res:
-                log.error(f'AD: could not add new student with attributes: {attributes}')
-
-        # check if there are students with valid, changed attributes.  If so, update the attributes
-        # if required, move the students to the current OU
-        changed_students = mstudent.get_students({"-changed": "", "new": False})
-        if changed_students:
-            for student in changed_students:
-                changed = json.loads(student.changed)
-                if list(set(check_properties_changed).intersection(changed)):
-                    if student.leerlingnummer in ad_active_students:
-                        changes = {}
-                        if 'naam' in changed or 'voornaam' in changed:
-                            changes.update({'name': [ldap3.MODIFY_REPLACE, (f'{student.naam} {student.voornaam}')],
-                                          'cn': [ldap3.MODIFY_REPLACE, (f'{student.naam} {student.voornaam}')],
-                                          'sn': [ldap3.MODIFY_REPLACE, (student.naam)],
-                                          'givenname': [ldap3.MODIFY_REPLACE, (student.voornaam)],
-                                          'displayname': [ldap3.MODIFY_REPLACE, (f'{student.naam} {student.voornaam}')]})
-                        if 'rfid' in changed:
-                            changes.update({'pager': [ldap3.MODIFY_REPLACE, (student.rfid)]})
-                        if 'schooljaar' in changed or 'klascode' in changed:
-                            changes.update({'description': [ldap3.MODIFY_REPLACE, (f'{student.schooljaar} {student.klascode}')],
-                                          'postalcode': [ldap3.MODIFY_REPLACE, (student.schooljaar,)],
-                                          'physicalDeliveryOfficeName': [ldap3.MODIFY_REPLACE, (student.klascode)]})
-                        res = ldap.modify(ad_active_students[student.leerlingnummer]['dn'], changes)
-                        if not res:
-                            log.error(f'AD error: could not update changes of {student.leerlingnummer}: {changes}')
-                        if 'schooljaar' in changed: # move to new OU
-                            res = ldap.modify_dn(ad_active_students[student.leerlingnummer]['dn'],
-                                                 ad_active_students[student.leerlingnummer]['cn'],
-                                                 student_location_current_year)  # move student to current year OU
-                            if not res:
-                                log.error(f'AD error, could not move {student.leerlingnummer} from {ad_active_students[student.leerlingnummer]["dn"]} to {student_location_current_year}')
-                    else:
-                        log.error(f'AD error: student {student.leerlingnummer} is not active in AD')
-
-        # new student, check if already in AD (use leerlingnummer as key).  If exists, use this object else create
-        # changed student, update in AD (not klas and klasgroep).  If schooljaar changed, move to new OU
-        # deleted students, deactivate in AD
-
-        #new or changed student, move to correct klas and klasgroep
-
-        ldap.unbind()
+        deinit(ctx)
         msettings.set_configuration_setting('ad-schoolyear-changed', False)
         log.info(f'update_ad: processed ')
     except Exception as e:
         log.error(f'update from wisa error: {e}')
-
 
 
 def ad_cron_task(opaque):

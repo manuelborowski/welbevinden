@@ -135,19 +135,6 @@ def add_students(data = []):
     return None
 
 
-def update_student(student, data={}):
-    try:
-        for k, v in data.items():
-            if hasattr(student, k):
-                if getattr(Student, k).expression.type.python_type == type(v):
-                    setattr(student, k, v.strip() if isinstance(v, str) else v)
-        db.session.commit()
-        return student
-    except Exception as e:
-        db.session.rollback()
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return None
-
 # data is a list, with:
 # student: the ORM-student-object
 # changed: a list of properties that are changed
@@ -162,13 +149,17 @@ def update_students(data = [], overwrite=False):
                 if hasattr(student, property):
                     if getattr(Student, property).expression.type.python_type == type(v):
                         setattr(student, property, v.strip() if isinstance(v, str) else v)
-            if overwrite:
-                student.changed = json.dumps(d['changed'])
+            # if the student is new, do not set the changed flag in order not to confuse other modules that need to process the students (new has priority over changed)
+            if student.new:
+                student.changed = ''
             else:
-                changed = json.loads(student.changed) if student.changed != '' else []
-                changed.extend(d['changed'])
-                changed = list(set(changed))
-                student.changed = json.dumps(changed)
+                if overwrite:
+                    student.changed = json.dumps(d['changed'])
+                else:
+                    changed = json.loads(student.changed) if student.changed != '' else []
+                    changed.extend(d['changed'])
+                    changed = list(set(changed))
+                    student.changed = json.dumps(changed)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
@@ -190,10 +181,12 @@ def flag_students(data = []):
     return None
 
 
-def delete_students(ids=None):
+def delete_students(ids=[], students=[]):
     try:
         for id in ids:
             student = get_first_student({"id": id})
+            db.session.delete(student)
+        for student in students:
             db.session.delete(student)
         db.session.commit()
     except Exception as e:

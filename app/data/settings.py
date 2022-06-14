@@ -155,6 +155,7 @@ default_configuration_settings = {
     'email-base-url': ('localhost:5000', Settings.SETTING_TYPE.E_STRING),
     'email-enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
 
+    'test-prepare': (False, Settings.SETTING_TYPE.E_BOOL),
     'test-wisa-json-list': ('', Settings.SETTING_TYPE.E_STRING),
     'test-wisa-current-json': ('', Settings.SETTING_TYPE.E_STRING),
     'test-rfid-start-code': ('', Settings.SETTING_TYPE.E_STRING),

@@ -32,11 +32,7 @@ def update_vsk_numbers(vsknumber):
         students = mstudent.get_students({'vsknummer': '', 'delete': False})
         nbr_updated = 0
         for student in students:
-            changed_students.append({
-                'vsknummer': str(vsknumber),
-                'student': student,
-                'changed': ['vsknummer']
-            })
+            changed_students.append({'vsknummer': str(vsknumber), 'student': student, 'changed': ['vsknummer']})
             vsknumber += 1
             nbr_updated += 1
         mstudent.update_students(changed_students)
@@ -75,21 +71,15 @@ def vsk_numbers_cron_task(opaque):
             memail.compose_message('sdh-inform-emails', "SDH: Vsk nummers", "Waarschuwing, er zijn geen Vsk nummers toegekend (niet beschikbaar?)")
 
 
-def deactivate_deleted_students():
-    try:
-        flag_list = []
-        deleted_students = mstudent.get_students({"delete": True})
-        for student in deleted_students:
-            flag_list.append({'changed': '', 'delete': False, 'new': False, 'student': student, 'active': False})
-        mstudent.flag_students(flag_list)
-        log.info(f"deactivate_deleted_students: deactivated {len(deleted_students)}")
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-
-
+# do not deactivate, but delete
 def deactivate_deleted_students_cron_task(opaque):
     if msettings.get_configuration_setting('cron-deactivate-deleted-students'):
-        deactivate_deleted_students()
+        try:
+            deleted_students = mstudent.get_students({"delete": True})
+            mstudent.delete_students(students=deleted_students)
+            log.info(f"deleted {len(deleted_students)} students")
+        except Exception as e:
+            log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 def clear_schoolyear_changed_flag_cron_task(opaque):

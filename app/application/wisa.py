@@ -26,7 +26,7 @@ def read_from_wisa_database(local_file=None, max=0):
             response_text = response_text.replace(f'"{key.upper()}"', f'"{key}"')
         data = json.loads(response_text)
         saved_photos = {p[1]: p[0] for p in mphoto.get_photos_size()}
-        saved_students = {}
+        saved_students = {} # the current, active students in the database
         # default previous and current schoolyear
         _, current_schoolyear, prev_schoolyear = msettings.get_changed_schoolyear()
         if current_schoolyear == '':
@@ -47,9 +47,12 @@ def read_from_wisa_database(local_file=None, max=0):
         flag_list = []
         nbr_deleted = 0
         nbr_processed = 0
-        for item in data:  #clean up, remove leading and trailing spaces
+        # clean up, remove leading and trailing spaces
+        for item in data:
             for k, v in item.items():
                 item[k] = v.strip()
+        # massage the imported data so that it fits the database.
+        # for each student in the import, check if it's new or changed
         for item in data:
             orig_geboorteplaats = None
             if "," in item['geboorteplaats'] or "-" in item['geboorteplaats'] and item['geboorteplaats'] not in belgische_gemeenten:
@@ -76,22 +79,22 @@ def read_from_wisa_database(local_file=None, max=0):
             except:
                 pass
             if item['rijksregisternummer'] in saved_students:
-                update_properties = []
+                # student already exists in database
+                # check if a student has updated properties
+                changed_properties = []
                 student = saved_students[item['rijksregisternummer']]
                 for k, v in item.items():
                     if v != getattr(student, k):
-                        update_properties.append(k)
-                item['student'] = student
-                item['delete'] = False
-                item['new'] = False
-                if update_properties:
-                    update_properties.extend(['delete', 'new'])
-                    item['changed'] = update_properties # student already present, but is changed
+                        changed_properties.append(k)
+                if changed_properties:
+                    changed_properties.extend(['delete', 'new'])  # student already present, but has changed properties
+                    item.update({'changed': changed_properties, 'student': student, 'delete': False, 'new': False})
                     changed_list.append(item)
                 else:
                     flag_list.append({'changed': '', 'delete': False, 'new': False, 'student': student}) # student already present, no change
                 del(saved_students[item['rijksregisternummer']])
             else:
+                # student not present in database, i.e. a new student
                 if orig_geboorteplaats:
                     mwarning.new_warning(f'Leerling met leerlingnummer {item["leerlingnummer"]} heeft mogelijk een verkeerde geboorteplaats/-land: {orig_geboorteplaats}')
                     log.info(f'Leerling met leerlingnummer {item["leerlingnummer"]} heeft mogelijk een verkeerde geboorteplaats/-land: {orig_geboorteplaats}')
@@ -99,13 +102,18 @@ def read_from_wisa_database(local_file=None, max=0):
             nbr_processed += 1
             if max > 0 and nbr_processed >= max:
                 break
-        for k, v in saved_students.items(): # student not present in wisa anymore
+        # at this point, saved_students contains the students not present in the wisa-import, i.e. the deleted students
+        for k, v in saved_students.items():
             if not v.delete:
                 flag_list.append({'changed': '', 'delete': True, 'new': False, 'student': v})
                 nbr_deleted += 1
+        # add the new students to the database
         mstudent.add_students(new_list)
+        # update the changed properties of the students
         mstudent.update_students(changed_list, overwrite=True) # previous changes are lost
+        # deleted students and students that are not changed, set the flags correctly
         mstudent.flag_students(flag_list)
+        # if required, update the current and previous schoolyear (normally at the beginning of a new schoolyear)
         if new_list:
             if new_list[0]['schooljaar'] != current_schoolyear:
                 msettings.set_changed_schoolyear(current_schoolyear, new_list[0]['schooljaar'])
@@ -143,7 +151,5 @@ def wisa_cron_task(opaque):
     if msettings.get_configuration_setting('cron-enable-update-student-from-wisa'):
         load_from_wisa()
 
-#to have access to the photo's, mount the windowsshare
-#sudo apt install keyutils
 
 

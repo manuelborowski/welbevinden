@@ -8,7 +8,8 @@ def get_photo(id):
     photo = mphoto.get_first_photo({"id": id})
     return base64.b64encode(photo.photo)
 
-
+#to have access to the photo's, mount the windowsshare
+#sudo apt install keyutils
 # https://www.putorius.net/mount-windows-share-linux.html#using-the-mountcifs-command
 # on the linux server, mount the windows-share (e.g  mount.cifs //MyMuse/SharedDocs /mnt/cifs -o username=putorius,password=notarealpass,domain=PUTORIUS)
 # in app/static, add a symlink to the the mounted windows share.  It is assumed all photo's are in the folder 'huidig'

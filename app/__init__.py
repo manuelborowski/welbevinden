@@ -25,11 +25,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.3: added functionality to print badges.  Added right-click
 # 0.4: added cron tasks: import photo's, assign vsk numbers, create badges.  Send email when something changed related to cardpresso.
 # 0.5: updated cron badges task.  Added tests for wisa-cron-task and rfid-cron-task
+# 0.6: AD interface is OK.  added testing
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.5', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.6', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

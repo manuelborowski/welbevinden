@@ -22,7 +22,10 @@
 # s = ldap3.Server('ldaps://x.x.x.x', use_ssl=True)
 # ldap_s = ldap3.Connection(s, 'su.local\\<user>', '<pasword>', auto_bind=True, authentication=ldap3.NTLM)
 # ldap3.extend.microsoft.modifyPassword.ad_modify_password(ldap_s, 'CN=manuel test,OU=manuel-test,OU=Leerlingen,OU=Accounts,DC=SU,DC=local', 'Azerty12', None)
-
+# set password empty
+# ldap3.extend.microsoft.modifyPassword.ad_modify_password(ldap, 'CN=M-Akhunbaev Deniz,OU=2026-2027,OU=Leerlingen,OU=Accounts,DC=SU,DC=local', '', None)
+# user must change password at next logon
+# ldap.modify('CN=M-Akhunbaev Deniz,OU=2026-2027,OU=Leerlingen,OU=Accounts,DC=SU,DC=local', changes={"pwdLastSet": (ldap3.MODIFY_REPLACE, [0])})
 # status, result, response, _ = conn.search('o=test', '(objectclass=*)')  # usually yo
 # conn.add('OU=manuel-test,OU=Leerlingen,OU=Accounts,DC=SU,DC=local', 'organizationalunit') # add OU manuel-test
 # ret = conn.search('OU=Leerlingen,OU=Accounts,DC=SU,DC=local', '(objectclass=*)')  returns true or false
@@ -56,6 +59,7 @@ class Context:
         self.delete_student_from_klas = {}  # dict of klassen with list-of-students-to-delete-from-the-klas
         self.new_students_to_add = []  # these students do not exist yet in AD, must be added
         self.move_students_to_current_year_ou = []
+        self.students_must_update_password = []
         self.changed_schoolyear = False
         self.prev_year = ''
         self.current_year = ''
@@ -209,20 +213,24 @@ def new_students(ctx):
                 dn = ad_student['dn']  # old OU
                 account_control = ad_student['attributes']['userAccountControl']  # to activate
                 ctx.move_students_to_current_year_ou.append(ad_student)
+                ctx.students_must_update_password.append(ad_student)
                 account_control &= ~2  # clear bit 2 to activate
                 changes = {
                     'userAccountControl': [(ldap3.MODIFY_REPLACE, [account_control])],
-
                     'description': [ldap3.MODIFY_REPLACE, (f'{student.schooljaar} {student.klascode}')],
-                     'postalcode': [ldap3.MODIFY_REPLACE, (student.schooljaar,)],
-                     'l': [ldap3.MODIFY_REPLACE, (student.klascode)],
-                     'physicalDeliveryOfficeName': [ldap3.MODIFY_REPLACE, (student.klascode)]
+                    'postalcode': [ldap3.MODIFY_REPLACE, (student.schooljaar,)],
+                    'l': [ldap3.MODIFY_REPLACE, (student.klascode)],
+                    'physicalDeliveryOfficeName': [ldap3.MODIFY_REPLACE, (student.klascode)],
+                    "pwdLastSet": [(ldap3.MODIFY_REPLACE, [0])]   # student must update password at first login
                 }
                 if student.rfid and student.rfid != '':
                     changes.update({'pager': [ldap3.MODIFY_REPLACE, (student.rfid)]})
                 res = ctx.ldap.modify(dn, changes)
                 if not res:
-                    log.error(f'AD error, could not activate {dn}')
+                    log.error(f'AD error, could not activate {dn}, with changes {changes}')
+                res = ldap3.extend.microsoft.modifyPassword.ad_modify_password(ctx.ldap, dn, '', None)  # reset the password to empty
+                if not res:
+                    log.error(f'AD error, could clear password of {dn}')
                 # add student to cache
                 ctx.ad_active_students_leerlingnummer[student.leerlingnummer] = ad_student
                 update_klassen_prepare(ctx, student)
@@ -231,13 +239,14 @@ def new_students(ctx):
         log.info('AD: add (create) new students to current year OU')
 
         # add new students to current OU
+        # new students are created with empty password and are required to set a password at first login
         object_class = ['top', 'person', 'organizationalPerson', 'user']
         for student in ctx.new_students_to_add:
             attributes = {'samaccountname': f's{student.leerlingnummer}', 'wwwhomepage': f'{student.leerlingnummer}',
                           'userprincipalname': f's{student.leerlingnummer}{ctx.email_domain}',
                           'mail': f'{student.voornaam.translate(normalize)}.{student.naam.translate(normalize)}{ctx.email_domain}',
                           'name': f'{student.naam} {student.voornaam}',
-                          'useraccountcontrol': 544,
+                          'useraccountcontrol': 0X220,     #password not required, normal account, account active
                           'cn': f'{student.naam} {student.voornaam}',
                           'sn': student.naam,
                           'l': student.klascode,
@@ -330,6 +339,20 @@ def move_students_to_current_year_ou(ctx):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
+def students_must_update_password(ctx):
+    try:
+        log.info('AD, students must update password')
+        for student in ctx.students_must_update_password:
+            dn = f'CN={student["attributes"]["cn"]},{ctx.student_location_current_year}'
+            changes = {"pwdLastSet": [(ldap3.MODIFY_REPLACE, [0])]}  # student must update password at first login
+            res = ctx.ldap.modify(dn, changes)
+            if not res:
+                log.error(f'AD error, update setting of {dn}, with changes {changes}')
+        log.info(f'AD, {len(ctx.move_students_to_current_year_ou)} students must update their password')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
 def update_ad():
     try:
         log.info(('Start update to AD'))
@@ -342,7 +365,8 @@ def update_ad():
         deleted_students(ctx)
         update_klassen_apply_to_ad(ctx) # first update the klassen because the dn refers to the previous schoolyear OU
         move_students_to_current_year_ou(ctx) # then move the students to the current schoolyear OU
-
+        # for some reason, it is only possible to change the setting to update the password AFTER the student is moved to the new OU
+        students_must_update_password(ctx) # then change a setting so that the student must update the password
         deinit(ctx)
         msettings.set_configuration_setting('ad-schoolyear-changed', False)
         log.info(f'update_ad: processed ')

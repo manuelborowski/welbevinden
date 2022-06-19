@@ -4,6 +4,8 @@ from app.application import settings as msettings, email as memail
 import sys, json, datetime
 
 
+# remark; for contactless operations (RFID), use Springcard crazywriter Contactless 0 as encoder
+
 def delete_badges(ids):
     data = [{"id": id} for id in ids]
     mcardpresso.delete_badges(data)

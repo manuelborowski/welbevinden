@@ -29,11 +29,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.7: new and resurrected students: empty password and password must be changed at first logon
 # 0.8: minor updates
 # 0.9: update python-package, use configurable IP address
+# 0.10: small bugfix
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.9', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.10', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -77,11 +78,10 @@ log.addHandler(log_handler)
 log.info(f"start {flask_app.config['SITE_NAME']}")
 
 jsglue = JSGlue(flask_app)
-db.app=flask_app  #  hack:-(
+db.app = flask_app  #  hack:-(
 db.init_app(flask_app)
 
-socketio = SocketIO(flask_app, async_mode=flask_app.config['SOCKETIO_ASYNC_MODE'], ping_timeout=10, ping_interval=5,
-                    cors_allowed_origins=flask_app.config['SOCKETIO_CORS_ALLOWED_ORIGIN'])
+socketio = SocketIO(flask_app, async_mode=flask_app.config['SOCKETIO_ASYNC_MODE'], ping_timeout=10, ping_interval=5, cors_allowed_origins=flask_app.config['SOCKETIO_CORS_ALLOWED_ORIGIN'])
 
 
 def create_admin():

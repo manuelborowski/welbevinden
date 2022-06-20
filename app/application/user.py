@@ -10,6 +10,10 @@ def add_user(data):
             log.error(f'Error, user {user.username} already exists')
             return {"status": False, "data": f'Fout, gebruiker {user.username} bestaat al'}
         user = app.data.user.add_user(data)
+        if 'confirm_password' in data:
+            del data['confirm_password']
+        if 'password' in data:
+            del data['password']
         log.info(f"Add user: {data}")
         return {"status": True, "data": {'id': user.id}}
     except Exception as e:
@@ -25,6 +29,10 @@ def update_user(data):
             del data['id']
             user = app.data.user.update_user(user, data)
             if user:
+                if 'confirm_password' in data:
+                    del data['confirm_password']
+                if 'password' in data:
+                    del data['password']
                 log.info(f"Update user: {data}")
                 return {"status": True, "data": {'id': user.id}}
         return {"status": False, "data": "Er is iets fout gegaan"}

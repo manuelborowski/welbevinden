@@ -83,7 +83,7 @@ class User(UserMixin, db.Model, SerializerMixin):
         if self.password_hash:
             return check_password_hash(self.password_hash, password)
         else:
-            return True
+            return False
 
     def __repr__(self):
         return '<User: {}>'.format(self.username)
@@ -107,6 +107,8 @@ def add_user(data = {}):
             if hasattr(user, k):
                 if getattr(User, k).expression.type.python_type == type(v):
                     setattr(user, k, v.strip() if isinstance(v, str) else v)
+        if 'password' in data:
+            user.password = data['password']
         db.session.add(user)
         db.session.commit()
         return user
@@ -122,6 +124,8 @@ def update_user(user, data={}):
             if hasattr(user, k):
                 if getattr(User, k).expression.type.python_type == type(v):
                     setattr(user, k, v.strip() if isinstance(v, str) else v)
+        if 'password' in data:
+            user.password = data['password']
         db.session.commit()
         return user
     except Exception as e:

@@ -45,9 +45,17 @@ function item_clicked(item) {
                     // window.setTimeout(() => {bootbox.hideAll();},1000);
                 } else if ("redirect" in data) {
                     if (data.redirect.new_tab) {
-                        data.redirect.ids.forEach(id => window.open(`${data.redirect.url}/[${id}]`, '_blank'))
+                        if ("ids" in data.redirect) {
+                            data.redirect.ids.forEach(id => window.open(`${data.redirect.url}/[${id}]`, '_blank'))
+                        } else {
+                            window.open(data.redirect.url, '_blank')
+                        }
                     } else {
-                        window.location = data.redirect.url;
+                        if ('ids' in data.redirect) {
+                            window.location = `${data.redirect.url}/[${data.redirect.ids.join(', ')}]`;
+                        } else {
+                            window.location = data.redirect.url;
+                        }
                     }
                 } else {
                     bootbox.alert('Sorry, er is iets fout gegaan');

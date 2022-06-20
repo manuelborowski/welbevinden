@@ -73,8 +73,7 @@ def get_form():
 @admin_required
 def item_add():
     try:
-        return render_template('formio.html', data={"form": "add",
-                                                           "get_form_endpoint": "user.get_form"})
+        return render_template('formio.html', data={"form": "add", "get_form_endpoint": "user.get_form"})
     except Exception as e:
         log.error(f'Could not add user {e}')
         flash_plus(f'Kan gebruiker niet toevoegen: {e}')
@@ -112,25 +111,47 @@ def item_edit(ids=None):
     return redirect(url_for('user.show'))
 
 
+@user.route('/user/right_click/', methods=['POST', 'GET'])
+@login_required
+def right_click():
+    try:
+        if 'jds' in request.values:
+            data = json.loads(request.values['jds'])
+            if 'item' in data:
+                if data['item'] == "delete":
+                    muser.delete_users(data['item_ids'])
+                    return {"message": "gebruikers zijn verwijderd, ververs het browserscherm"}
+                if data['item'] == "add":
+                    return {"redirect": {"url": f"/user/table_action/add"}}
+                if data['item'] == "edit":
+                    return {"redirect": {"url": f"/user/table_action/edit", "ids": data['item_ids']}}
+
+    except Exception as e:
+        log.error(f"Error in get_form: {e}")
+        return {"status": False, "data": f"get_form: {e}"}
+    return {"status": False, "data": "iets is fout gelopen"}
+
+
 
 
 table_configuration = {
     'view': 'user',
     'title': 'Gebruikers',
-    'buttons': ['delete', 'add', 'edit'],
+    'buttons': [],
     'delete_message': u'Wilt u deze gebruiker(s) verwijderen?',
     'filter': [],
-    'item': {
-        'edit': {'title': 'Wijzig een gebruiker', 'buttons': ['save', 'cancel']},
-        'view': {'title': 'Bekijk een gebruiker', 'buttons': ['edit', 'cancel']},
-        'add': {'title': 'Voeg een gebruiker toe', 'buttons': ['save', 'cancel']},
-    },
     'href': [],
     'pre_filter': data.user.pre_filter,
     'format_data': data.user.format_data,
     'search_data': data.user.search_data,
     'default_order': (1, 'asc'),
-    # 'cell_color': {'supress_cell_content': True, 'color_keys': {'X': 'red', 'O': 'green'}}, #TEST
-    # 'suppress_dom': True,
+    'right_click': {
+        'endpoint': 'user.right_click',
+        'menu': [
+            {'label': 'Nieuwe gebruiker', 'item': 'add', 'iconscout': 'plus-circle'},
+            {'label': 'Gebruiker aanpassen', 'item': 'edit', 'iconscout': 'pen'},
+            {'label': 'Gebruiker(s) verwijderen', 'item': 'delete', 'iconscout': 'trash-alt'},
+        ]
+    }
 
 }

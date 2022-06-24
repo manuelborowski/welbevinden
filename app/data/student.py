@@ -195,9 +195,13 @@ def delete_students(ids=[], students=[]):
     return None
 
 
-def get_students(data={}, order_by=None, first=False, count=False, active=True):
+def get_students(data={}, fields=[], order_by=None, first=False, count=False, active=True):
     try:
-        q = Student.query
+        entities = [text(f) for f in fields]
+        if entities:
+            q = Student.query.with_entities(*entities)
+        else:
+            q = Student.query
         for k, v in data.items():
             if k[0] == '-':
                 if hasattr(Student, k[1::]):

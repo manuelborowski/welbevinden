@@ -31,11 +31,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.9: update python-package, use configurable IP address
 # 0.10: small bugfix
 # 0.11: update frontend (css), bugfix right-click
+# 0.12: update api-key, added endpoint to get student info
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.11', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.12', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

@@ -83,7 +83,8 @@ $(document).ready( async function () {
             let extra = null;
             if ('post_data_endpoint' in form_data.data) {
                 const api_key = form_data.data.api_key || '';
-                const ret = await fetch(Flask.url_for(form_data.data.post_data_endpoint, {api_key}), {
+                const ret = await fetch(Flask.url_for(form_data.data.post_data_endpoint), {
+                    headers: {'x-api-key':  api_key,},
                     method: 'POST',
                     body: JSON.stringify(submitted.data),
                 });

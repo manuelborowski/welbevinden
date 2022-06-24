@@ -87,8 +87,29 @@ def clear_schoolyear_changed_flag_cron_task(opaque):
         msettings.reset_changed_schoolyear()
 
 
-############## formio #########################
+############## api ####################
+def get_fields():
+    try:
+        return mstudent.get_columns()
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return False
 
+
+def get_students(options=None):
+    try:
+        fields = options['fields'].split(',') if 'fields' in options else []
+        students = mstudent.get_students(fields=fields)
+        if fields:
+            out = [dict(zip(fields, s)) for s in students]
+        else:
+            out = [s.to_dict() for s in students]
+        return out
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+############## formio #########################
 def prepare_view_form(id, read_only=False):
     try:
         student = mstudent.get_first_student({"id": id})
@@ -103,8 +124,7 @@ def prepare_view_form(id, read_only=False):
         raise e
 
 
-############ student overview list #########
-
+############ datatables: student overview list #########
 def format_data(db_list):
     out = []
     for student in db_list:

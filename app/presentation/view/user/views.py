@@ -132,8 +132,6 @@ def right_click():
     return {"status": False, "data": "iets is fout gelopen"}
 
 
-
-
 table_configuration = {
     'view': 'user',
     'title': 'Gebruikers',

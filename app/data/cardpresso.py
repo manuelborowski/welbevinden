@@ -37,7 +37,11 @@ class Cardpresso(db.Model, SerializerMixin):
 
 
 def commit():
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 def add_badge(data = {}, commit=True):
     try:

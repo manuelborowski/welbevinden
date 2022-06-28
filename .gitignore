@@ -1,0 +1,7 @@
+test/**
+instance/**
+migrations/**
+venv/**
+.idea/**
+**/__pycache__/**
+app/static/log/sdh-*

@@ -50,11 +50,16 @@ def get_setting(name, id=-1):
 
 
 def add_setting(name, value, type, id=-1):
-    setting = Settings(name=name, value=str(value), type=type, user_id=id if id > -1 else current_user.id)
-    db.session.add(setting)
-    db.session.commit()
-    log.info('add: {}'.format(setting.log()))
-    return True
+    try:
+        setting = Settings(name=name, value=str(value), type=type, user_id=id if id > -1 else current_user.id)
+        db.session.add(setting)
+        db.session.commit()
+        log.info('add: {}'.format(setting.log()))
+        return True
+    except Exception as e:
+        db.session.rollback()
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
 
 
 def set_setting(name, value, id=-1):
@@ -66,6 +71,7 @@ def set_setting(name, value, id=-1):
             setting.value = value
             db.session.commit()
     except Exception as e:
+        db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: could not set setting {name}: {e}')
         return False
     return True

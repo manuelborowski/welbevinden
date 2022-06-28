@@ -14,6 +14,7 @@ def add_warning(data):
         db.session.commit()
         return warning
     except Exception as e:
+        db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
@@ -25,6 +26,7 @@ def delete_warnings(warning_ids):
             db.session.delete(warning)
         db.session.commit()
     except Exception as e:
+        db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
@@ -66,6 +68,7 @@ def update_warning(warning, data={}):
         db.session.commit()
         return warning
     except Exception as e:
+        db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 

@@ -32,11 +32,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.10: small bugfix
 # 0.11: update frontend (css), bugfix right-click
 # 0.12: update api-key, added endpoint to get student info
+# 0.13: commit: add rollback in case of exception
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.12', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.13', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -87,12 +88,16 @@ socketio = SocketIO(flask_app, async_mode=flask_app.config['SOCKETIO_ASYNC_MODE'
 
 
 def create_admin():
-    from app.data.user import User
-    find_admin = User.query.filter(User.username == 'admin').first()
-    if not find_admin:
-        admin = User(username='admin', password='admin', level=User.LEVEL.ADMIN, user_type=User.USER_TYPE.LOCAL)
-        db.session.add(admin)
-        db.session.commit()
+    try:
+        from app.data.user import User
+        find_admin = User.query.filter(User.username == 'admin').first()
+        if not find_admin:
+            admin = User(username='admin', password='admin', level=User.LEVEL.ADMIN, user_type=User.USER_TYPE.LOCAL)
+            db.session.add(admin)
+            db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 flask_app.url_map.converters['int'] = IntegerConverter

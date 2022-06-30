@@ -189,6 +189,54 @@ settings_formio = \
             ]
           },
           {
+            "label": "templates-staff",
+            "tableView": false,
+            "key": "templates-staff",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "Personeelsleden",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "RegistratieTemplate1",
+                "type": "panel",
+                "label": "Studenten",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Opslaan",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true,
+                    "saveOnEnter": false
+                  },
+                  {
+                    "label": "Detail template (formio)",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "key": "staff-formio-template",
+                    "type": "textarea",
+                    "input": true
+                  },
+                  {
+                    "label": "Lijst template (JSON)",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "key": "staff-datatables-template",
+                    "type": "textarea",
+                    "input": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "label": "templates-cardpresso",
             "tableView": false,
             "key": "templates-cardpresso",
@@ -460,7 +508,15 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "(3) NAAR centrale database, Vsk nummers bijwerken",
+                    "label": "(3) VAN wisa, personeel bijwerken",
+                    "tableView": false,
+                    "defaultValue": false,
+                    "key": "cron-enable-update-staff-from-wisa",
+                    "type": "checkbox",
+                    "input": true
+                  },
+                  {
+                    "label": "(4) NAAR centrale database, Vsk nummers bijwerken",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-enable-update-vsk-numbers",
@@ -468,7 +524,7 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "(4) NAAR cardpresso, nieuwe badges klaarmaken",
+                    "label": "(5) NAAR cardpresso, nieuwe badges klaarmaken",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-enable-update-student-badge",
@@ -476,7 +532,7 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "(5) VAN cardpresso, RFID van studenten bijwerken",
+                    "label": "(6) VAN cardpresso, RFID van studenten bijwerken",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-enable-update-student-rfid",
@@ -484,7 +540,7 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "(6) NAAR AD, studenten bijwerken",
+                    "label": "(7) NAAR AD, studenten bijwerken",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-enable-update-student-ad",
@@ -492,7 +548,7 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "(7) NAAR smartschool, studenten bijwerken",
+                    "label": "(8) NAAR smartschool, studenten bijwerken",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-enable-update-student-smartschool",
@@ -500,7 +556,7 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "(8) NAAR centrale database, deactiveer verwijderde studenten",
+                    "label": "(9) NAAR centrale database, deactiveer verwijderde studenten",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-deactivate-deleted-students",
@@ -508,7 +564,15 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "(9) NAAR centrale database, wis schooljaar-is-veranderd-vlag",
+                    "label": "(10) NAAR centrale database, deactiveer verwijderde personeelsleden",
+                    "tableView": false,
+                    "defaultValue": false,
+                    "key": "cron-deactivate-deleted-staff",
+                    "type": "checkbox",
+                    "input": true
+                  },
+                  {
+                    "label": "(11) NAAR centrale database, wis schooljaar-is-veranderd-vlag",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-clear-changed-year-flag",
@@ -894,63 +958,31 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "Columns",
-                    "columns": [
-                      {
-                        "components": [
-                          {
-                            "label": "Laad gegevens van Wisa",
-                            "tableView": false,
-                            "defaultValue": false,
-                            "key": "check-load-from-wisa",
-                            "type": "checkbox",
-                            "input": true
-                          }
-                        ],
-                        "width": 3,
-                        "offset": 0,
-                        "push": 0,
-                        "pull": 0,
-                        "size": "md",
-                        "currentWidth": 3
-                      },
-                      {
-                        "components": [
-                          {
-                            "label": "Laad gegevens uit Wisa",
-                            "showValidations": false,
-                            "theme": "danger",
-                            "tableView": false,
-                            "key": "button-load-from-wisa",
-                            "conditional": {
-                              "show": true,
-                              "when": "wisa.check-load-from-wisa",
-                              "eq": "true"
-                            },
-                            "type": "button",
-                            "saveOnEnter": false,
-                            "input": true
-                          }
-                        ],
-                        "width": 6,
-                        "offset": 0,
-                        "push": 0,
-                        "pull": 0,
-                        "size": "md",
-                        "currentWidth": 6
-                      }
-                    ],
-                    "key": "columns",
-                    "type": "columns",
-                    "input": false,
-                    "tableView": false
-                  },
-                  {
                     "label": "URL",
                     "labelPosition": "left-left",
                     "tableView": true,
                     "persistent": false,
                     "key": "wisa-url",
+                    "type": "textfield",
+                    "labelWidth": 20,
+                    "input": true
+                  },
+                  {
+                    "label": "Studenten query",
+                    "labelPosition": "left-left",
+                    "tableView": true,
+                    "persistent": false,
+                    "key": "wisa-student-query",
+                    "type": "textfield",
+                    "labelWidth": 20,
+                    "input": true
+                  },
+                  {
+                    "label": "Personeel query",
+                    "labelPosition": "left-left",
+                    "tableView": true,
+                    "persistent": false,
+                    "key": "wisa-staff-query",
                     "type": "textfield",
                     "labelWidth": 20,
                     "input": true
@@ -966,15 +998,57 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "Server password",
-                    "labelPosition": "left-left",
-                    "labelWidth": 20,
-                    "spellcheck": false,
-                    "tableView": true,
-                    "persistent": false,
-                    "key": "wisa-password",
-                    "type": "textfield",
-                    "input": true
+                    "label": "Columns",
+                    "columns": [
+                      {
+                        "components": [
+                          {
+                            "label": "Toon wachtwoord",
+                            "tableView": false,
+                            "key": "wisa-show-password",
+                            "type": "checkbox",
+                            "input": true,
+                            "defaultValue": false
+                          }
+                        ],
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 2,
+                        "width": 2
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "Server password",
+                            "labelPosition": "left-left",
+                            "spellcheck": false,
+                            "tableView": true,
+                            "persistent": false,
+                            "key": "wisa-password",
+                            "conditional": {
+                              "show": true,
+                              "when": "wisa.wisa-show-password",
+                              "eq": "true"
+                            },
+                            "type": "textfield",
+                            "labelWidth": 20,
+                            "input": true
+                          }
+                        ],
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      }
+                    ],
+                    "key": "columns",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
                   },
                   {
                     "label": "Huidig schooljaar",

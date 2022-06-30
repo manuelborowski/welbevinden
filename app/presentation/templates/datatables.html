@@ -137,5 +137,7 @@
         </script>
         <script type="text/javascript"> {% include "datatables.js" %}</script>
     {% endif %}
-    <script type="text/javascript" src="{{ url_for('static', filename='js/right_click.js') }}"></script>
+    {% if table_config.right_click %}
+        <script type="text/javascript" src="{{ url_for('static', filename='js/right_click.js') }}"></script>
+    {% endif %}
 {% endblock %}

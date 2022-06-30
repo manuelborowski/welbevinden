@@ -1,24 +1,24 @@
 from app import log, flask_app
-from app.data import student as mstudent, photo as mphoto, settings as msettings
+from app.data import student as mstudent, photo as mphoto, settings as msettings, staff as mstaff
 from app.data.utils import belgische_gemeenten
 from app.application import warning as mwarning
-from app.application.settings import subscribe_handle_button_clicked
 import datetime
-import json, requests
+import json, requests, sys
 
 
-def read_from_wisa_database(local_file=None, max=0):
+def get_students_from_wisa_database(local_file=None, max=0):
     try:
-        log.info('start import from wisa')
+        log.info('start student import from wisa')
         if local_file:
             log.info(f'Reading from local file {local_file}')
             response_text = open(local_file).read()
         else:
             login = msettings.get_configuration_setting('wisa-login')
             password = msettings.get_configuration_setting('wisa-password')
-            url = msettings.get_configuration_setting('wisa-url')
+            base_url = msettings.get_configuration_setting('wisa-url')
+            query = msettings.get_configuration_setting('wisa-student-query')
             werkdatum = str(datetime.date.today())
-            url = f'{url}&werkdatum={werkdatum}&&_username_={login}&_password_={password}'
+            url = f'{base_url}/{query}?werkdatum={werkdatum}&_username_={login}&_password_={password}&format=json'
             response_text = requests.get(url).text
         # The query returns with the keys in uppercase.  Convert to lowercase first
         keys = mstudent.get_columns()
@@ -120,36 +120,108 @@ def read_from_wisa_database(local_file=None, max=0):
         if changed_list:
             if 'schooljaar' in changed_list[0]['changed']:
                 msettings.set_changed_schoolyear(current_schoolyear, changed_list[0]['schooljaar'])
-        log.info(f'read_from_wisa_database: processed {nbr_processed}, new {len(new_list)}, updated {len(changed_list)}, deleted {nbr_deleted}')
+        log.info(f'{sys._getframe().f_code.co_name}, processed {nbr_processed}, new {len(new_list)}, updated {len(changed_list)}, deleted {nbr_deleted}')
     except Exception as e:
-        log.error(f'update from wisa error: {e}')
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def load_from_wisa(topic=None, opaque=None):
-    with flask_app.app_context():
-        wisa_files = msettings.get_list('test-wisa-json-list')
-        if wisa_files:  # test with wisa files
-            current_wisa_file = msettings.get_configuration_setting('test-wisa-current-json')
-            if current_wisa_file == '' or current_wisa_file not in wisa_files:
-                current_wisa_file = wisa_files[0]
-            else:
-                new_index = wisa_files.index(current_wisa_file) + 1
-                if new_index >= len(wisa_files):
-                    new_index = 0
-                current_wisa_file = wisa_files[new_index]
-            msettings.set_configuration_setting('test-wisa-current-json', current_wisa_file)
-            read_from_wisa_database(local_file=current_wisa_file)
-        else:
-            # read_from_wisa_database(max=10)
-            read_from_wisa_database()
-
-
-subscribe_handle_button_clicked('button-load-from-wisa', load_from_wisa, None)
-
-
-def wisa_cron_task(opaque):
+def wisa_get_student_cron_task(opaque=None):
     if msettings.get_configuration_setting('cron-enable-update-student-from-wisa'):
-        load_from_wisa()
+        with flask_app.app_context():
+            wisa_files = msettings.get_list('test-wisa-json-list')
+            if wisa_files:  # test with wisa files
+                current_wisa_file = msettings.get_configuration_setting('test-wisa-current-json')
+                if current_wisa_file == '' or current_wisa_file not in wisa_files:
+                    current_wisa_file = wisa_files[0]
+                else:
+                    new_index = wisa_files.index(current_wisa_file) + 1
+                    if new_index >= len(wisa_files):
+                        new_index = 0
+                    current_wisa_file = wisa_files[new_index]
+                msettings.set_configuration_setting('test-wisa-current-json', current_wisa_file)
+                get_students_from_wisa_database(local_file=current_wisa_file)
+            else:
+                # read_from_wisa_database(max=10)
+                get_students_from_wisa_database()
 
+
+def get_staff_from_wisa_database(local_file=None, max=0):
+    try:
+        log.info('start staff import from wisa')
+        login = msettings.get_configuration_setting('wisa-login')
+        password = msettings.get_configuration_setting('wisa-password')
+        base_url = msettings.get_configuration_setting('wisa-url')
+        query = msettings.get_configuration_setting('wisa-staff-query')
+        werkdatum = str(datetime.date.today())
+        url = f'{base_url}/{query}?werkdatum={werkdatum}&_username_={login}&_password_={password}&format=json'
+        response_text = requests.get(url).text
+        # The query returns with the keys in uppercase.  Convert to lowercase first
+        keys = mstaff.get_columns()
+        for key in keys:
+            response_text = response_text.replace(f'"{key.upper()}"', f'"{key}"')
+        wisa_data = json.loads(response_text)
+        saved_staff = {} # the staff in the database
+        staff = mstaff.get_staffs()
+        if staff:
+            saved_staff = {s.rijksregisternummer: s for s in staff}
+        new_list = []
+        changed_list = []
+        flag_list = []
+        already_processed = []
+        nbr_deleted = 0
+        nbr_processed = 0
+        # clean up, remove leading and trailing spaces
+        for wisa_item in wisa_data:
+            for k, v in wisa_item.items():
+                wisa_item[k] = v.strip()
+        # massage the imported data so that it fits the database.
+        # for each staff-member in the import, check if it's new or changed
+        for wisa_item in wisa_data:
+            #skip double items
+            if wisa_item['rijksregisternummer'] in already_processed:
+                continue
+            wisa_item['geboortedatum'] = datetime.datetime.strptime(wisa_item['geboortedatum'].split(' ')[0], '%Y-%m-%d').date()
+            if wisa_item['rijksregisternummer'] in saved_staff:
+                # staff-member already exists in database
+                # check if a staff-member has updated properties
+                changed_properties = []
+                staff = saved_staff[wisa_item['rijksregisternummer']]
+                for k, v in wisa_item.items():
+                    if v != getattr(staff, k):
+                        changed_properties.append(k)
+                if changed_properties:
+                    changed_properties.extend(['delete', 'new'])  # staff-member already present, but has changed properties
+                    wisa_item.update({'changed': changed_properties, 'staff': staff, 'delete': False, 'new': False})
+                    changed_list.append(wisa_item)
+                else:
+                    flag_list.append({'changed': '', 'delete': False, 'new': False, 'staff': staff}) # staff-mmeber already present, no change
+                del(saved_staff[wisa_item['rijksregisternummer']])
+            else:
+                # staff-member not present in database, i.e. a new staff-member
+                new_list.append(wisa_item)  # new staff-mmeber
+            already_processed.append(wisa_item['rijksregisternummer'])
+            nbr_processed += 1
+            if max > 0 and nbr_processed >= max:
+                break
+        # at this point, saved_staff contains the staff-memner not present in the wisa-import, i.e. the deleted staff-members
+        for k, v in saved_staff.items():
+            if not v.delete:
+                flag_list.append({'changed': '', 'delete': True, 'new': False, 'staff': v})
+                nbr_deleted += 1
+        # add the new staff-members to the database
+        mstaff.add_staffs(new_list)
+        # update the changed properties of the staff-members
+        mstaff.update_staffs(changed_list, overwrite=True) # previous changes are lost
+        # deleted staff-members and staff-members that are not changed, set the flags correctly
+        mstaff.flag_staffs(flag_list)
+        log.info(f'{sys._getframe().f_code.co_name}, processed {nbr_processed}, new {len(new_list)}, updated {len(changed_list)}, deleted {nbr_deleted}')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}, {e}')
+
+
+def wisa_get_staff_cron_task(opaque=None):
+    if msettings.get_configuration_setting('cron-enable-update-staff-from-wisa'):
+        with flask_app.app_context():
+            get_staff_from_wisa_database()
 
 

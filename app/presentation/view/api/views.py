@@ -1,6 +1,6 @@
 from flask import request
 from . import api
-from app.application import  student as mstudent, user as muser, photo as mphoto
+from app.application import  student as mstudent, user as muser, photo as mphoto, staff as mstaff
 from app.data import settings as msettings
 from app import flask_app, log
 import json, sys
@@ -70,6 +70,8 @@ def get_fields(table):
     ret = 'table not found'
     if table == 'student':
         ret = mstudent.get_fields()
+    if table == 'staff':
+        ret = mstaff.get_fields()
     return json.dumps(ret)
 
 
@@ -78,6 +80,13 @@ def get_fields(table):
 def get_students():
     options = request.args
     ret = mstudent.get_students(options)
+    return json.dumps(ret)
+
+@api.route('/api/staff/', methods=['GET'])
+@key_required
+def get_staff():
+    options = request.args
+    ret = mstaff.get_staffs(options)
     return json.dumps(ret)
 
 

@@ -99,11 +99,15 @@ default_configuration_settings = {
     'student-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
     'student-max-students-to-view-with-one-click': (5, Settings.SETTING_TYPE.E_INT),
 
+    'staff-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'staff-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+
     'cardpresso-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cardpresso-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
 
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cron-enable-update-student-from-wisa': (False, Settings.SETTING_TYPE.E_BOOL),
+    'cron-enable-update-staff-from-wisa': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-enable-update-student-photo': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-enable-update-vsk-numbers': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-enable-update-student-badge': (False, Settings.SETTING_TYPE.E_BOOL),
@@ -111,6 +115,7 @@ default_configuration_settings = {
     'cron-enable-update-student-ad': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-enable-update-student-smartschool': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-deactivate-deleted-students': (False, Settings.SETTING_TYPE.E_BOOL),
+    'cron-deactivate-deleted-staff': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-clear-changed-year-flag': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'smartschool-scheduler-cron': ('', Settings.SETTING_TYPE.E_STRING),
@@ -150,6 +155,8 @@ default_configuration_settings = {
     'wisa-url': ('', Settings.SETTING_TYPE.E_STRING),
     'wisa-login': ('', Settings.SETTING_TYPE.E_STRING),
     'wisa-password': ('', Settings.SETTING_TYPE.E_STRING),
+    'wisa-student-query': ('', Settings.SETTING_TYPE.E_STRING),
+    'wisa-staff-query': ('', Settings.SETTING_TYPE.E_STRING),
     'wisa-photo-dir': ('', Settings.SETTING_TYPE.E_STRING),
     'wisa-schoolyear': ('', Settings.SETTING_TYPE.E_STRING),
     'wisa-update-teachers': (False, Settings.SETTING_TYPE.E_BOOL),

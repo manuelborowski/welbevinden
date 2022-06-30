@@ -49,6 +49,7 @@ class Context:
         self.student_location_toplevel = 'OU=Leerlingen,OU=Accounts,DC=SU,DC=local'
         self.klas_location_toplevel = 'OU=Klassen,OU=Groepen,DC=SU,DC=local'
         self.leerlingen_group = 'CN=Leerlingen,OU=Groepen,DC=SU,DC=local'
+        self.veyon_group = 'CN=Veyon-Leerling-Groeperingen,OU=Speciaal,OU=Groepen,DC=SU,DC=local'
         self.email_domain = '@lln.campussintursula.be'
         self.student_location_current_year = ''
         self.ad_active_students_leerlingnummer = {}  # cache active students, use leerlingnummer as key
@@ -118,6 +119,17 @@ def update_klassen_apply_to_ad(ctx):
                     log.info(f'AD: added new klas {klas}')
                 else:
                     log.error(f'AD: could not add klas {klas}')
+                #add new klas to group leerlingen en veyon
+                res = ctx.ldap.modify(ctx.leerlingen_group, {'member': [(ldap3.MODIFY_ADD, klas_dn)]})
+                if res:
+                    log.info(f'AD: added klas {klas_dn} to group {ctx.leerlingen_group}')
+                else:
+                    log.error(f'AD: could not add {klas_dn} to group {ctx.leerlingen_group}')
+                res = ctx.ldap.modify(ctx.veyon_group, {'member': [(ldap3.MODIFY_ADD, klas_dn)]})
+                if res:
+                    log.info(f'AD: added klas {klas_dn} to group {ctx.veyon_group}')
+                else:
+                    log.error(f'AD: could not add {klas_dn} to group {ctx.veyon_group}')
             else:
                 res = ctx.ldap.modify(klas_dn, {'member': [(ldap3.MODIFY_ADD, members)]})
                 if res:

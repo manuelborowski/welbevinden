@@ -42,28 +42,31 @@ def table_action(action, ids=None):
     return redirect(url_for('student.show'))
 
 
-@student.route('/student/get_form', methods=['POST', 'GET'])
-@login_required
-def get_form():
-    try:
-        common = {
-            'post_data_endpoint': 'api.student_update',
-            'submit_endpoint': 'student.show',
-            'cancel_endpoint': 'student.show',
-            'api_key': flask_app.config['API_KEY']
-        }
-        if request.values['form'] == 'view':
-            data = app.application.student.prepare_view_form(request.values['extra'])
-            data.update(common)
-            data.update({'title': f"{data['defaults']['naam']} {data['defaults']['voornaam']}"})
-        else:
-            return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
-        return {"status": True, "data": data}
-    except Exception as e:
-        log.error(f"Error in get_form: {e}")
-        return {"status": False, "data": f"get_form: {e}"}
-
-
+item_common = {'post_data_endpoint': 'api.student_update', 'submit_endpoint': 'student.show', 'cancel_endpoint': 'student.show', 'api_key': flask_app.config['API_KEY']}
+#
+#
+# @student.route('/student/get_form', methods=['POST', 'GET'])
+# @login_required
+# def get_form():
+#     try:
+#         common = {
+#             'post_data_endpoint': 'api.student_update',
+#             'submit_endpoint': 'student.show',
+#             'cancel_endpoint': 'student.show',
+#             'api_key': flask_app.config['API_KEY']
+#         }
+#         if request.values['form'] == 'view':
+#             data = app.application.student.prepare_view_form(request.values['extra'])
+#             data.update(common)
+#             data.update({'title': f"{data['defaults']['naam']} {data['defaults']['voornaam']}"})
+#         else:
+#             return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
+#         return {"status": True, "data": data}
+#     except Exception as e:
+#         log.error(f"Error in get_form: {e}")
+#         return {"status": False, "data": f"get_form: {e}"}
+#
+#
 def item_view(ids=None):
     try:
         if ids == None:
@@ -74,10 +77,14 @@ def item_view(ids=None):
                 return redirect(url_for('student.show'))
         else:
             id = ids[0]
-        return render_template('formio.html', data={"form": "view",
-                                                           "get_form_endpoint": "student.get_form",
-                                                           "extra": id,
-                                                           "buttons": ["cancel"]})
+            data = app.application.student.prepare_view_form(id)
+            data.update(item_common)
+            data.update({'title': f"{data['defaults']['naam']} {data['defaults']['voornaam']}"})
+            return render_template('formio.html', data=data)
+        # return render_template('formio.html', data={"form": "view",
+        #                                                    "get_form_endpoint": "student.get_form",
+        #                                                    "extra": id,
+        #                                                    "buttons": ["cancel"]})
     except Exception as e:
         log.error(f'Could not view student {e}')
     return redirect(url_for('student.show'))

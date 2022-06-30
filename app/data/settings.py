@@ -45,6 +45,7 @@ def get_setting(name, id=-1):
         else:
             value = setting.value
     except:
+        db.session.rollback()
         return False, ''
     return True, value
 
@@ -58,7 +59,7 @@ def add_setting(name, value, type, id=-1):
         return True
     except Exception as e:
         db.session.rollback()
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        log.error(f'{sys._getframe().f_code.co_name}: {setting.log}, {e}')
         raise e
 
 

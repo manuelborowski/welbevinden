@@ -1,7 +1,7 @@
 from app import log
 from app.data import settings as msettings, staff as mstaff
 import app.data.settings
-from app.application import formio as mformio, email as memail
+from app.application import util as mutil
 import sys, base64
 
 
@@ -30,8 +30,8 @@ def get_fields():
 
 def get_staffs(options=None):
     try:
-        fields = options['fields'].split(',') if 'fields' in options else []
-        staffs = mstaff.get_staffs(fields=fields)
+        fields, filters = mutil.process_api_options(options)
+        staffs = mstaff.get_staffs(data=filters, fields=fields)
         if fields:
             out = [dict(zip(fields, s)) for s in staffs]
         else:

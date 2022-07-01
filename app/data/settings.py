@@ -160,6 +160,7 @@ default_configuration_settings = {
     'wisa-staff-query': ('', Settings.SETTING_TYPE.E_STRING),
     'wisa-photo-dir': ('', Settings.SETTING_TYPE.E_STRING),
     'wisa-schoolyear': ('', Settings.SETTING_TYPE.E_STRING),
+    'wisa-student-use-previous-schoolyear': (False, Settings.SETTING_TYPE.E_BOOL),
     'wisa-update-teachers': (False, Settings.SETTING_TYPE.E_BOOL),
     'wisa-update-students': (False, Settings.SETTING_TYPE.E_BOOL),
 

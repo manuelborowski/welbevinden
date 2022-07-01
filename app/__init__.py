@@ -35,11 +35,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.13: commit: add rollback in case of exception
 # 0.14: added import staff from wisa. AD, add new class to 'leerlingen'
 # 0.15: update in settings
+# 0.16: add school email to database.  API, add filters
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.15', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.16', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

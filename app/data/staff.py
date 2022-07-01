@@ -21,6 +21,7 @@ class Staff(db.Model, SerializerMixin):
     geboortedatum = db.Column(db.Date)
     geboorteplaats = db.Column(db.String(256), default='')
     instellingsnummer = db.Column(db.String(256), default='')
+    email = db.Column(db.String(256), default='')
 
     timestamp = db.Column(db.DateTime)
 

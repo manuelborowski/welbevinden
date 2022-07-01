@@ -1,7 +1,7 @@
 from app import log
 from app.data import student as mstudent, settings as msettings, photo as mphoto
 import app.data.settings
-from app.application import formio as mformio, email as memail
+from app.application import formio as mformio, email as memail, util as mutil
 import sys, base64
 
 
@@ -98,8 +98,8 @@ def get_fields():
 
 def get_students(options=None):
     try:
-        fields = options['fields'].split(',') if 'fields' in options else []
-        students = mstudent.get_students(fields=fields)
+        fields, filters = mutil.process_api_options(options)
+        students = mstudent.get_students(data=filters, fields=fields)
         if fields:
             out = [dict(zip(fields, s)) for s in students]
         else:

@@ -5,6 +5,17 @@ from app.application import warning as mwarning
 import datetime
 import json, requests, sys
 
+#used to translate diacretic letters into regular letters (username, emailaddress)
+normalMap = {'À': 'A', 'Á': 'A', 'Â': 'A', 'Ã': 'A', 'Ä': 'A','à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'ª': 'A',
+             'È': 'E', 'É': 'E', 'Ê': 'E', 'Ë': 'E', 'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
+             'Í': 'I', 'Ì': 'I', 'Î': 'I', 'Ï': 'I','í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
+             'Ò': 'O', 'Ó': 'O', 'Ô': 'O', 'Õ': 'O', 'Ö': 'O', 'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o', 'º': 'O', '°': 'O',
+             'Ù': 'U', 'Ú': 'U', 'Û': 'U', 'Ü': 'U','ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
+             'Ñ': 'N', 'ñ': 'n',
+             'Ç': 'C', 'ç': 'c',
+             '§': 'S', '³': '3', '²': '2', '¹': '1', ' ': ''}
+normalize_letters = str.maketrans(normalMap)
+
 
 def get_students_from_wisa_database(local_file=None, max=0):
     try:
@@ -17,7 +28,14 @@ def get_students_from_wisa_database(local_file=None, max=0):
             password = msettings.get_configuration_setting('wisa-password')
             base_url = msettings.get_configuration_setting('wisa-url')
             query = msettings.get_configuration_setting('wisa-student-query')
-            werkdatum = str(datetime.date.today())
+            today = datetime.date.today()
+            # it is not passible to get students from wisa when month is 7 or 8.  It is when month is 9
+            if today.month >= 7 and today.month <= 8:
+                if msettings.get_configuration_setting('wisa-student-use-previous-schoolyear'):
+                    today = datetime.date(today.year, 6, 30)
+                else:
+                    today = datetime.date(today.year, 9, 1)
+            werkdatum = str(today)
             url = f'{base_url}/{query}?werkdatum={werkdatum}&_username_={login}&_password_={password}&format=json'
             response_text = requests.get(url).text
         # The query returns with the keys in uppercase.  Convert to lowercase first
@@ -78,6 +96,7 @@ def get_students_from_wisa_database(local_file=None, max=0):
                 item['schooljaar'] = item['schooljaar'].split(' ')[1]
             except:
                 pass
+            item['email'] = f"{item['voornaam'].translate(normalize_letters).lower()}.{item['naam'].translate(normalize_letters).lower()}@lln.campussintursula.be"
             if item['rijksregisternummer'] in saved_students:
                 # student already exists in database
                 # check if a student has updated properties
@@ -181,6 +200,8 @@ def get_staff_from_wisa_database(local_file=None, max=0):
             if wisa_item['rijksregisternummer'] in already_processed:
                 continue
             wisa_item['geboortedatum'] = datetime.datetime.strptime(wisa_item['geboortedatum'].split(' ')[0], '%Y-%m-%d').date()
+            if not 'campussintursula.be' in wisa_item['email']:
+                wisa_item['email'] = f"{wisa_item['voornaam'].translate(normalize_letters).lower()}.{wisa_item['naam'].translate(normalize_letters).lower()}@campussintursula.be"
             if wisa_item['rijksregisternummer'] in saved_staff:
                 # staff-member already exists in database
                 # check if a staff-member has updated properties

@@ -1060,6 +1060,15 @@ settings_formio = \
                     "type": "textfield",
                     "labelWidth": 20,
                     "input": true
+                  },
+                  {
+                    "label": "Vorig schooljaar gebruiken?",
+                    "tooltip": "In juli en augustus kan je geen studenten uit wisa halen.  Als je dit aanvinkt, dan worden de studenten eind vorig schooljaar opgehaald.  Anders de nieuwe van volgend schooljaar",
+                    "tableView": false,
+                    "key": "wisa-student-use-previous-schoolyear",
+                    "type": "checkbox",
+                    "input": true,
+                    "defaultValue": false
                   }
                 ]
               }

@@ -164,6 +164,8 @@ default_configuration_settings = {
     'wisa-update-teachers': (False, Settings.SETTING_TYPE.E_BOOL),
     'wisa-update-students': (False, Settings.SETTING_TYPE.E_BOOL),
 
+    'api-keys': ('[]', Settings.SETTING_TYPE.E_STRING),
+
     'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
     'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),
     'email-send-max-retries': (2, Settings.SETTING_TYPE.E_INT),
@@ -215,16 +217,15 @@ def subscribe_setting_changed(setting, cb, opaque):
 
 # save settings which are not in the database yet
 # get_configuration_settings()
-
-def get_json_template(key):
-    template_string = get_configuration_setting(key)
-    if template_string == '':
-        template_string = '{}'
-        log.error(f'{sys._getframe().f_code.co_name}: Empty template: {key}')
+def get_json_coded_setting(key):
+    setting_string = get_configuration_setting(key)
+    if setting_string == '':
+        log.error(f'{sys._getframe().f_code.co_name}: Empty setting: {key}')
+        raise Exception(f'Setting is invallid: {key}')
     try:
-        settings = json.loads(template_string)
+        settings = json.loads(setting_string)
     except json.JSONDecodeError as e:
-        raise Exception(f'Template has invalid JSON syntax: {key} {e}')
+        raise Exception(f'Setting has invalid JSON syntax: {key} {e}')
     return settings
 
 
@@ -241,7 +242,7 @@ def set_json_template(key, data):
 # subscribe_setting_changed('generic-translations', lambda x, y: cache_settings(), None)
 
 def get_datatables_config(key):
-    return get_json_template(f'{key}-datatables-template')
+    return get_json_coded_setting(f'{key}-datatables-template')
 
 
 def get_and_increment_default_student_code():

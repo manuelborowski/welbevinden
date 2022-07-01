@@ -113,7 +113,7 @@ def get_students(options=None):
 def prepare_view_form(id, read_only=False):
     try:
         student = mstudent.get_first_student({"id": id})
-        template = app.data.settings.get_json_template('student-formio-template')
+        template = app.data.settings.get_json_coded_setting('student-formio-template')
         photo = mphoto.get_first_photo({'filename': student.foto})
         data = {"photo": base64.b64encode(photo.photo).decode('utf-8') if photo else ''}
         template = mformio.prepare_for_edit(template, data)

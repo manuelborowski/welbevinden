@@ -1158,6 +1158,46 @@ settings_formio = \
             ]
           },
           {
+            "label": "API",
+            "tableView": false,
+            "key": "api",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "API",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "api",
+                "type": "panel",
+                "label": "Cardpresso",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Opslaan ",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true
+                  },
+                  {
+                    "label": "API sleutels",
+                    "tooltip": "Een JSON lijst van sleutels",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "key": "api-keys",
+                    "type": "textarea",
+                    "input": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "label": "Emailserver",
             "tableView": false,
             "key": "emailserver",

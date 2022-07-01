@@ -11,7 +11,8 @@ def key_required(func):
     @wraps(func)
     def decorator(*args, **kwargs):
         try:
-            if request.headers.get('x-api-key') == flask_app.config['API_KEY']:
+            keys = msettings.get_json_coded_setting('api-keys')
+            if request.headers.get('x-api-key') in keys:
                 return func(*args, **kwargs)
         except Exception as e:
             log.error(f'{sys._getframe().f_code.co_name}: {e}')

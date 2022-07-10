@@ -37,11 +37,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.15: update in settings
 # 0.16: add school email to database.  API, add filters
 # 0.17: api keys are stored as a setting
+# 0.18: extend api, always return status and data.  sqlalchemy, bugfix when querying for field 'delete'
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.17', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.18', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

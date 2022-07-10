@@ -134,7 +134,7 @@ def delete_staffs(ids=[], staffs=[]):
 
 def get_staffs(data={}, fields=[], order_by=None, first=False, count=False, active=True):
     try:
-        entities = [text(f) for f in fields]
+        entities = [text(f'staff.{f}') for f in fields]
         if entities:
             q = Staff.query.with_entities(*entities)
         else:

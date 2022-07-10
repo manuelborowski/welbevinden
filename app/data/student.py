@@ -197,7 +197,7 @@ def delete_students(ids=[], students=[]):
 
 def get_students(data={}, fields=[], order_by=None, first=False, count=False, active=True):
     try:
-        entities = [text(f) for f in fields]
+        entities = [text(f'students.{f}') for f in fields]
         if entities:
             q = Student.query.with_entities(*entities)
         else:

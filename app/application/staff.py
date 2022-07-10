@@ -36,7 +36,7 @@ def get_staffs(options=None):
             out = [dict(zip(fields, s)) for s in staffs]
         else:
             out = [s.to_dict() for s in staffs]
-        return out
+        return {"status": True, "data": out}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 

@@ -39,11 +39,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.17: api keys are stored as a setting
 # 0.18: extend api, always return status and data.  sqlalchemy, bugfix when querying for field 'delete'
 # 0.19: bugfix api when fields of type datetime are requested.  Refactored model-api
+# 0.20: update api/fields
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.19', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.20', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

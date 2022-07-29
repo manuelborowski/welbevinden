@@ -66,15 +66,22 @@ def clear_vsk_numbers():
     return json.dumps(ret)
 
 
+@api.route('/api/fields/', methods=['GET'])
 @api.route('/api/fields/<string:table>', methods=['GET'])
 @key_required
-def get_fields(table):
-    ret = 'table not found'
-    if table == 'student':
-        ret = mstudent.get_fields()
-    if table == 'staff':
-        ret = mstaff.get_fields()
-    return json.dumps(ret)
+def get_fields(table=''):
+    try:
+        ret = {"status": True, "data": "Command not understood"}
+        if table == '':
+            ret = {"status": True, "data": ['students', 'staffs']}
+        elif table == 'students':
+            ret = {"status": True, "data": mstudent.get_fields()}
+        elif table == 'staffs':
+            ret = {"status": True, "data": mstaff.get_fields()}
+        return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return json.dumps({"status": False, "data": str(e)})
 
 
 @api.route('/api/students/', methods=['GET'])
@@ -88,9 +95,9 @@ def get_students():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return json.dumps({"status": False, "data": str(e)})
 
-@api.route('/api/staff/', methods=['GET'])
+@api.route('/api/staffs/', methods=['GET'])
 @key_required
-def get_staff():
+def get_staffs():
     try:
         options = request.args
         ret = mstaff.api_get_staffs(options)

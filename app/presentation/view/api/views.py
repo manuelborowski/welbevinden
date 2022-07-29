@@ -16,6 +16,7 @@ def key_required(func):
                 return func(*args, **kwargs)
         except Exception as e:
             log.error(f'{sys._getframe().f_code.co_name}: {e}')
+            return json.dumps({"status": False, "data": e})
         return json.dumps({"status": False, "data": f'Key not valid'})
     return decorator
 
@@ -79,17 +80,24 @@ def get_fields(table):
 @api.route('/api/students/', methods=['GET'])
 @key_required
 def get_students():
-    options = request.args
-    ret = mstudent.get_students(options)
-    return json.dumps(ret)
+    try:
+        options = request.args
+        ret = mstudent.api_get_students(options)
+        return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return json.dumps({"status": False, "data": str(e)})
 
 @api.route('/api/staff/', methods=['GET'])
 @key_required
 def get_staff():
-    options = request.args
-    ret = mstaff.get_staffs(options)
-    return json.dumps(ret)
-
+    try:
+        options = request.args
+        ret = mstaff.api_get_staffs(options)
+        return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return json.dumps({"status": False, "data": str(e)})
 
 # ?fields=klasgroep,schooljaar
 # sort=-gemeente

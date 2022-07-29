@@ -96,15 +96,9 @@ def get_fields():
     return False
 
 
-def get_students(options=None):
+def api_get_students(options=None):
     try:
-        fields, filters = mutil.process_api_options(options)
-        students = mstudent.get_students(data=filters, fields=fields)
-        if fields:
-            out = [dict(zip(fields, s)) for s in students]
-        else:
-            out = [s.to_dict() for s in students]
-        return {"status": True, "data": out}
+        return mutil.api_get_model_data(mstudent.Student, options)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 

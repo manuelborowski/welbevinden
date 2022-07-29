@@ -1,8 +1,7 @@
 from app import log
 from app.data import settings as msettings, staff as mstaff
-import app.data.settings
 from app.application import util as mutil
-import sys, base64
+import sys
 
 
 def delete_staffs(ids):
@@ -28,15 +27,9 @@ def get_fields():
     return False
 
 
-def get_staffs(options=None):
+def api_get_staffs(options=None):
     try:
-        fields, filters = mutil.process_api_options(options)
-        staffs = mstaff.get_staffs(data=filters, fields=fields)
-        if fields:
-            out = [dict(zip(fields, s)) for s in staffs]
-        else:
-            out = [s.to_dict() for s in staffs]
-        return {"status": True, "data": out}
+        return mutil.api_get_model_data(mstaff.Staff, options)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 

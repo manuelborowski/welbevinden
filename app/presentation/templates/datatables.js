@@ -38,6 +38,10 @@ function get_id_of_checked_boxes() {
     return ids;
 }
 
+function clear_checked_boxes() {
+    $(".chbx_all").prop('checked', false);
+}
+
 function button_pushed(action) {
     switch (action) {
         case 'delete':

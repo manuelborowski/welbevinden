@@ -58,7 +58,7 @@ def get_students_from_wisa_database(local_file=None, max=0):
             msettings.set_changed_schoolyear(prev_schoolyear, current_schoolyear)
         students = mstudent.get_students()
         if students:
-            saved_students = {s.rijksregisternummer: s for s in students}
+            saved_students = {s.leerlingnummer: s for s in students}
             current_schoolyear = students[0].schooljaar
         new_list = []
         changed_list = []
@@ -97,11 +97,11 @@ def get_students_from_wisa_database(local_file=None, max=0):
             except:
                 pass
             item['email'] = f"{item['voornaam'].translate(normalize_letters).lower()}.{item['naam'].translate(normalize_letters).lower()}@lln.campussintursula.be"
-            if item['rijksregisternummer'] in saved_students:
+            if item['leerlingnummer'] in saved_students:
                 # student already exists in database
                 # check if a student has updated properties
                 changed_properties = []
-                student = saved_students[item['rijksregisternummer']]
+                student = saved_students[item['leerlingnummer']]
                 for k, v in item.items():
                     if v != getattr(student, k):
                         changed_properties.append(k)
@@ -111,7 +111,7 @@ def get_students_from_wisa_database(local_file=None, max=0):
                     changed_list.append(item)
                 else:
                     flag_list.append({'changed': '', 'delete': False, 'new': False, 'student': student}) # student already present, no change
-                del(saved_students[item['rijksregisternummer']])
+                del(saved_students[item['leerlingnummer']])
             else:
                 # student not present in database, i.e. a new student
                 if orig_geboorteplaats:

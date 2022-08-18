@@ -237,8 +237,8 @@ def new_students(ctx):
                 update_klassen_prepare(ctx, student)
             else:
                 ctx.new_students_to_add.append(student)
-        log.info('AD: add (create) new students to current year OU')
 
+        log.info('AD: add (create) new students to current year OU')
         # add new students to current OU
         # new students are created with empty password and are required to set a password at first login
         object_class = ['top', 'person', 'organizationalPerson', 'user']

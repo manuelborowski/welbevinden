@@ -22,7 +22,7 @@ datatable.addEventListener("contextmenu", e => {
     x = x > win_width - menu_width ? win_width - menu_width - 5 : x;
     // y = y > win_height - menu_height ? win_height - menu_height - 5 : e.pageY;
     y = y > win_height - menu_height ? e.pageY - menu_height - 5 : e.pageY;
-    console.log(`e.y ${e.y}, y ${y}, win_height ${win_height}, menu_height ${menu_height}, pageY ${e.pageY}`)
+    // console.log(`e.y ${e.y}, y ${y}, win_height ${win_height}, menu_height ${menu_height}, pageY ${e.pageY}`)
     item_ids = get_id_of_checked_boxes();
     if (item_ids.length === 0) {
         item_ids = [e.target.parentElement.id];
@@ -34,6 +34,7 @@ datatable.addEventListener("contextmenu", e => {
 
 function item_clicked(item) {
     busy_indication_on();
+    clear_checked_boxes();
     if (item in right_click_cbs) {
         right_click_cbs[item](item);
         busy_indication_off();

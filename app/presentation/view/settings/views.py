@@ -844,15 +844,75 @@ settings_formio = \
                     "labelWidth": 20
                   },
                   {
-                    "label": "Server password",
-                    "labelPosition": "left-left",
-                    "spellcheck": false,
-                    "tableView": true,
-                    "persistent": false,
-                    "key": "ad-password",
-                    "type": "textfield",
+                    "label": "Columns",
+                    "columns": [
+                      {
+                        "components": [
+                          {
+                            "label": "Toon wachtwoord",
+                            "tableView": false,
+                            "key": "ad-show-password",
+                            "type": "checkbox",
+                            "input": true,
+                            "defaultValue": false
+                          }
+                        ],
+                        "width": 2,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 2
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "Server password",
+                            "labelPosition": "left-left",
+                            "spellcheck": false,
+                            "tableView": true,
+                            "persistent": false,
+                            "key": "ad-password",
+                            "conditional": {
+                              "show": true,
+                              "when": "active-directory.ad-show-password",
+                              "eq": "true"
+                            },
+                            "type": "textfield",
+                            "labelWidth": 20,
+                            "input": true
+                          }
+                        ],
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      }
+                    ],
+                    "key": "columns",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
+                  },
+                  {
+                    "label": "Reset paswoord",
+                    "tooltip": "Als de student nieuw is, maar toch al in AD zit, dan wordt het paswoord gereset (Student moet direct een nieuw paswoord ingeven).\nTijdens opstart (begin schooljaar) UNCHECK deze box",
+                    "tableView": false,
+                    "defaultValue": false,
+                    "key": "ad-reset-student-password",
+                    "type": "checkbox",
+                    "input": true
+                  },
+                  {
+                    "label": "Verbose logging",
+                    "tooltip": "Logging is gedetailleerd.\nNIET opzetten tijdens normaal gebruik, alleen voor testen",
+                    "tableView": false,
+                    "key": "ad-verbose-logging",
+                    "type": "checkbox",
                     "input": true,
-                    "labelWidth": 20
+                    "defaultValue": false
                   },
                   {
                     "label": "Nieuw schooljaar?",

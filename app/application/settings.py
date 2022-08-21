@@ -26,7 +26,6 @@ def set_setting_topic(settings):
             for k, v in button_clicked_cbs.items():
                 if k in container and container[k]:
                     v['cb'](k, v['opaque'])
-
     except Exception as e:
         mutils.raise_error('Could not set settings topic', e)
 

@@ -140,6 +140,8 @@ default_configuration_settings = {
     'ad-password': ('', Settings.SETTING_TYPE.E_STRING),
     'ad-update-accounts': (False, Settings.SETTING_TYPE.E_BOOL),
     'ad-schoolyear-changed': (False, Settings.SETTING_TYPE.E_BOOL),
+    'ad-reset-student-password': (False, Settings.SETTING_TYPE.E_BOOL),
+    'ad-verbose-logging': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'papercut-url': ('', Settings.SETTING_TYPE.E_STRING),
     'papercut-login': ('', Settings.SETTING_TYPE.E_STRING),

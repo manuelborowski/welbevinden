@@ -90,7 +90,7 @@ def get_students():
     try:
         options = request.args
         ret = mstudent.api_get_students(options)
-        return json.dumps(ret)
+        return json.dumps(ret, ensure_ascii=False)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return json.dumps({"status": False, "data": str(e)})
@@ -101,7 +101,7 @@ def get_staffs():
     try:
         options = request.args
         ret = mstaff.api_get_staffs(options)
-        return json.dumps(ret)
+        return json.dumps(ret, ensure_ascii=False)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return json.dumps({"status": False, "data": str(e)})

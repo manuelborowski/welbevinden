@@ -42,10 +42,11 @@ flask_app.config.from_pyfile('config.py')
 # 0.20: update api/fields
 # 0.21: clear selectionboxes after action.  Students from WISA, use leerlingnummer as unique id
 # 0.22: put new studens in the ad-group leerlingen, ad: add switch to reset password of respawned students, add verbose logging, api get students/staff: pass non-ascii as is
+# 0.23: bugfix in ad, added a default password, deleted students can be deactivated or not in AD,
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.22', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.23', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

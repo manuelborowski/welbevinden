@@ -71,8 +71,8 @@ def vsk_numbers_cron_task(opaque):
             memail.compose_message('sdh-inform-emails', "SDH: Vsk nummers", "Waarschuwing, er zijn geen Vsk nummers toegekend (niet beschikbaar?)")
 
 
-# do not deactivate, but delete
-def deactivate_deleted_students_cron_task(opaque):
+# students that are marked as deleted are deleted from the database
+def delete_marked_students_cron_task(opaque):
     if msettings.get_configuration_setting('cron-deactivate-deleted-students'):
         try:
             deleted_students = mstudent.get_students({"delete": True})

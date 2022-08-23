@@ -87,6 +87,7 @@ def get_test_server():
 
 default_configuration_settings = {
     'generic-default-student-code': ('t1', Settings.SETTING_TYPE.E_STRING),
+    'generic-standard-password': ('', Settings.SETTING_TYPE.E_STRING),
 
     'sdh-inform-emails': ('t1', Settings.SETTING_TYPE.E_STRING),
     'sdh-prev-schoolyear': ('', Settings.SETTING_TYPE.E_STRING),
@@ -142,6 +143,7 @@ default_configuration_settings = {
     'ad-schoolyear-changed': (False, Settings.SETTING_TYPE.E_BOOL),
     'ad-reset-student-password': (False, Settings.SETTING_TYPE.E_BOOL),
     'ad-verbose-logging': (False, Settings.SETTING_TYPE.E_BOOL),
+    'ad-deactivate-deleled-student': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'papercut-url': ('', Settings.SETTING_TYPE.E_STRING),
     'papercut-login': ('', Settings.SETTING_TYPE.E_STRING),

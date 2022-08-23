@@ -155,11 +155,12 @@ def do_update_klassen(ctx):
 # do the update of the students to the group leerlingen in the AD
 def do_students_to_group_leerlingen(ctx):
     try:
-        res = ctx.ldap.modify(ctx.leerlingen_group, {'member': [(ldap3.MODIFY_ADD, ctx.students_to_leerlingen_group)]})
-        if res:
-            log.info(f'AD: added students {ctx.students_to_leerlingen_group} to group {ctx.leerlingen_group}')
-        else:
-            log.error(f'AD: could not add students {ctx.students_to_leerlingen_group} to group {ctx.leerlingen_group}')
+        for student in ctx.students_to_leerlingen_group:
+            res = ctx.ldap.modify(ctx.leerlingen_group, {'member': [(ldap3.MODIFY_ADD, student)]})
+            if res:
+                log.info(f'AD: added student {student} to group {ctx.leerlingen_group}')
+            else:
+                log.error(f'AD: could not add student {student} to group {ctx.leerlingen_group}')
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
@@ -229,6 +230,7 @@ def new_students(ctx):
         # if so, activate and put in current OU
         new_students = mstudent.get_students({"new": True})
         reset_student_password = msettings.get_configuration_setting('ad-reset-student-password')
+        default_password = msettings.get_configuration_setting('generic-standard-password')
         verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
         log.info('AD: new students: if student is already in AD: activate and put in current year OU')
         for student in new_students:
@@ -254,9 +256,9 @@ def new_students(ctx):
                 if not res:
                     log.error(f'AD error, could not activate {dn}, with changes {changes}')
                 if reset_student_password:
-                    res = ldap3.extend.microsoft.modifyPassword.ad_modify_password(ctx.ldap, dn, '', None)  # reset the password to empty
+                    res = ldap3.extend.microsoft.modifyPassword.ad_modify_password(ctx.ldap, dn, default_password, None)  # reset the password to default
                     if not res:
-                        log.error(f'AD error, could clear password of {dn}')
+                        log.error(f'AD error, could not set default password of {dn}')
                 if verbose_logging:
                     log.info(f'add-new-student-already-in-ad, {student.naam} {student.voornaam}, {student.leerlingnummer}, reset paswoord: {reset_student_password}')
                 # add student to cache
@@ -289,11 +291,16 @@ def new_students(ctx):
             res = ctx.ldap.add(dn, object_class, attributes)
             if not res:
                 log.error(f'AD: could not add new student with attributes: {attributes}')
+            res = ldap3.extend.microsoft.modifyPassword.ad_modify_password(ctx.ldap, dn, default_password, None)  # reset the password to empty
+            if not res:
+                log.error(f'AD error, could not set standard password of {dn}')
             if verbose_logging:
                 log.info(f'add-new-student-not-yet-in-ad, {student.naam} {student.voornaam}, {student.leerlingnummer}')
-            ctx.ad_active_students_leerlingnummer[student.leerlingnummer] = {'dn': dn, 'attributes': {'cn': cn}}
+            ad_student = {'dn': dn, 'attributes': {'cn': cn}}
+            ctx.ad_active_students_leerlingnummer[student.leerlingnummer] = ad_student
             prepare_update_klassen(ctx, student)
             prepare_students_to_group_leerlingen(ctx, student)
+            ctx.students_must_update_password.append(ad_student)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
@@ -346,21 +353,22 @@ def deleted_students(ctx):
         log.info('AD: check for deleted students')
         deleted_students = mstudent.get_students({"delete": True})
         verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
+        deactivate_student = msettings.get_configuration_setting('ad-deactivate-deleled-student')
         if deleted_students:
             for student in deleted_students:
-                ad_student = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]
-                dn = ad_student['dn']
-                account_control = ad_student['attributes']['userAccountControl']  # to activate
-                account_control |= 2  # set bit 2 to deactivate
-                changes = {'userAccountControl': [(ldap3.MODIFY_REPLACE, [account_control])]}
-                res = ctx.ldap.modify(dn, changes)
-                if not res:
-                    log.error(f'AD error, could not deactivate {dn}')
+                if deactivate_student:
+                    ad_student = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]
+                    dn = ad_student['dn']
+                    account_control = ad_student['attributes']['userAccountControl']  # to activate
+                    account_control |= 2  # set bit 2 to deactivate
+                    changes = {'userAccountControl': [(ldap3.MODIFY_REPLACE, [account_control])]}
+                    res = ctx.ldap.modify(dn, changes)
+                    if not res:
+                        log.error(f'AD error, could not deactivate {dn}')
                 prepare_update_klassen(ctx, student)
                 if verbose_logging:
-                    log.info(f'deleted student, {student.naam} {student.voornaam}, {student.leerlingnummer}')
+                    log.info(f'deleted student, {student.naam} {student.voornaam}, {student.leerlingnummer}, deactivated {deactivate_student}')
         log.info(f'AD, deleted {len(deleted_students)} students')
-
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 

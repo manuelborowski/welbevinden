@@ -333,6 +333,15 @@ settings_formio = \
                     "input": true
                   },
                   {
+                    "label": "Standaard paswoord",
+                    "labelPosition": "left-left",
+                    "tooltip": "Nieuwe studenten krijgen dit als standaard paswoord (computer en Smartschool)",
+                    "tableView": true,
+                    "key": "generic-standard-password",
+                    "type": "textfield",
+                    "input": true
+                  },
+                  {
                     "label": "Columns",
                     "columns": [
                       {
@@ -556,7 +565,8 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "(9) NAAR centrale database, deactiveer verwijderde studenten",
+                    "label": "(9) NAAR centrale database, verwijder gemarkeerde studenten",
+                    "tooltip": "studenten die gemarkeerd zijn als 'delete' worden uit de database verwijderd\nCHECK om de goede werking te verzekeren",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-deactivate-deleted-students",
@@ -564,7 +574,8 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "(10) NAAR centrale database, deactiveer verwijderde personeelsleden",
+                    "label": "(10) NAAR centrale database, verwijder gemarkeerde personeelsleden",
+                    "tooltip": "personeelsleden die gemarkeerd zijn als 'delete' worden uit de database verwijderd\nCHECK om de goede werking te verzekeren",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "cron-deactivate-deleted-staff",
@@ -849,12 +860,12 @@ settings_formio = \
                       {
                         "components": [
                           {
-                            "label": "Toon wachtwoord",
+                            "label": "Toon server wachtwoord",
                             "tableView": false,
+                            "defaultValue": false,
                             "key": "ad-show-password",
                             "type": "checkbox",
-                            "input": true,
-                            "defaultValue": false
+                            "input": true
                           }
                         ],
                         "width": 2,
@@ -897,13 +908,22 @@ settings_formio = \
                     "tableView": false
                   },
                   {
-                    "label": "Reset paswoord",
+                    "label": "Reset studentenwachtwoord",
                     "tooltip": "Als de student nieuw is, maar toch al in AD zit, dan wordt het paswoord gereset (Student moet direct een nieuw paswoord ingeven).\nTijdens opstart (begin schooljaar) UNCHECK deze box",
                     "tableView": false,
                     "defaultValue": false,
                     "key": "ad-reset-student-password",
                     "type": "checkbox",
                     "input": true
+                  },
+                  {
+                    "label": "Deactiveer verwijderde student",
+                    "tooltip": "Studenten die niet meer aanwezig zijn in de database worden gedeactiveerd",
+                    "tableView": false,
+                    "key": "ad-deactivate-deleled-student",
+                    "type": "checkbox",
+                    "input": true,
+                    "defaultValue": false
                   },
                   {
                     "label": "Verbose logging",

@@ -405,6 +405,47 @@ def students_must_update_password(ctx):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
+# check if a student is in 2 or more classes,  If so, remove from all but in 'kantoor' (i.e. l-property)
+def remove_multiple_klas(ctx):
+    try:
+        remove_students_from_klas = {}
+        verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
+        # re-create student cache.  Students may have an updated klas
+        res = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))', ldap3.SUBTREE, attributes=['cn', 'wwwhomepage', 'l'])
+        if res:
+            ad_active_students_cn = {s['dn']: s for s in ctx.ldap.response if s['attributes']['wwwhomepage'] != []}
+            # re-create klas cache, students may have an update klas
+            res = ctx.ldap.search(ctx.klas_location_toplevel, '(objectclass=group)', ldap3.SUBTREE, attributes=['member', 'cn'])
+            if res:
+                for klas in ctx.ldap.response:
+                    for member in klas['attributes']['member']:
+                        if member in ad_active_students_cn:
+                            student_klas = ad_active_students_cn[member]['attributes']['l']
+                            if student_klas != klas['attributes']['cn']:
+                                # student should not be in this klas
+                                if klas["dn"] in remove_students_from_klas:
+                                    remove_students_from_klas[klas["dn"]].append(ad_active_students_cn[member]["dn"])
+                                else:
+                                    remove_students_from_klas[klas["dn"]] = [ad_active_students_cn[member]["dn"]]
+                                if verbose_logging:
+                                    log.info(f'remove student {ad_active_students_cn[member]["dn"]}, klas {ad_active_students_cn[member]["attributes"]["l"]}, from klas, {klas["dn"]}')
+                log.info(f'AD: students-in-double-klas, nbr of students in multiple klassen {len(remove_students_from_klas)} ')
+                for klas_dn, members in remove_students_from_klas.items():
+                    res = ctx.ldap.modify(klas_dn, {'member': [(ldap3.MODIFY_DELETE, members)]})
+                    if res:
+                        log.info(f'AD: removed from klas {klas_dn} members {members}')
+                    else:
+                        log.error(f'AD: could not remove from klas {klas_dn} members {members}')
+            else:
+                log.error('AD: could not create single/multiple-klas cache')
+        else:
+            log.error('AD: could not create student cache')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+
+
 def ad_cron_task(opaque):
     try:
         if msettings.get_configuration_setting('cron-enable-update-student-ad'):
@@ -421,6 +462,7 @@ def ad_cron_task(opaque):
             move_students_to_current_year_ou(ctx) # then move the students to the current schoolyear OU
             # for some reason, it is only possible to change the setting to update the password AFTER the student is moved to the new OU
             students_must_update_password(ctx) # then change a setting so that the student must update the password
+            remove_multiple_klas(ctx)
             deinit(ctx)
             msettings.set_configuration_setting('ad-schoolyear-changed', False)
             log.info(f'update_ad: processed ')

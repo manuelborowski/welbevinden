@@ -45,7 +45,7 @@ import ldap3, json, sys
 
 class Context:
     def __init__(self):
-        self.check_properties_changed = ['naam', 'voornaam', 'klascode', 'schooljaar', 'rifd', 'computer']
+        self.check_properties_changed = ['naam', 'voornaam', 'klascode', 'schooljaar', 'rfid', 'computer']
         self.student_location_toplevel = 'OU=Leerlingen,OU=Accounts,DC=SU,DC=local'
         self.klas_location_toplevel = 'OU=Klassen,OU=Groepen,DC=SU,DC=local'
         self.leerlingen_group = 'CN=Leerlingen,OU=Groepen,DC=SU,DC=local'

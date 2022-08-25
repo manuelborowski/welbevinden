@@ -45,11 +45,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.23: bugfix in ad, added a default password, deleted students can be deactivated or not in AD,
 # 0.24: logger, more and longer logfiles.  Added functionality to remove students from a klas they do not belong to
 # 0.25: bugfixed typo
+# 0.26: enable smartschool-login.  rfid-fro-cardpresso: replace q with a
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.25', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.26', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

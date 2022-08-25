@@ -119,7 +119,7 @@ def check_for_new_rfid():
             for badge in badges:
                 if badge.rfid != '':
                     changed_students.append({'changed': ['rfid'],
-                                             'rfid': badge.rfid,
+                                             'rfid': badge.rfid.upper().replace('Q', 'A'),
                                              'student': saved_students[badge.leerlingnummer]})
                     deleted_badges.append({'id': badge.id})
             if changed_students:

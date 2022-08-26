@@ -284,6 +284,8 @@ def new_students(ctx):
                 email_split = student.email.split('@')
                 email = f'{email_split[0]}{leerlingnummer_suffix}@{email_split[1]}'
                 mstudent.update_student(student, {'email': email})
+                if verbose_logging:
+                    log.info(f'student with same name already in ad, {student.naam} {student.voornaam}, {student.leerlingnummer}, email is {email}')
             attributes = {'samaccountname': f's{student.leerlingnummer}', 'wwwhomepage': f'{student.leerlingnummer}',
                           'userprincipalname': f's{student.leerlingnummer}{ctx.email_domain}',
                           'mail': email,

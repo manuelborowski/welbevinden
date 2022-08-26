@@ -96,7 +96,6 @@ def get_students_from_wisa_database(local_file=None, max=0):
                 item['schooljaar'] = item['schooljaar'].split(' ')[1]
             except:
                 pass
-            item['email'] = f"{item['voornaam'].translate(normalize_letters).lower()}.{item['naam'].translate(normalize_letters).lower()}@lln.campussintursula.be"
             if item['leerlingnummer'] in saved_students:
                 # student already exists in database
                 # check if a student has updated properties
@@ -117,6 +116,7 @@ def get_students_from_wisa_database(local_file=None, max=0):
                 if orig_geboorteplaats:
                     mwarning.new_warning(f'Leerling met leerlingnummer {item["leerlingnummer"]} heeft mogelijk een verkeerde geboorteplaats/-land: {orig_geboorteplaats}')
                     log.info(f'Leerling met leerlingnummer {item["leerlingnummer"]} heeft mogelijk een verkeerde geboorteplaats/-land: {orig_geboorteplaats}')
+                item['email'] = f"{item['voornaam'].translate(normalize_letters).lower()}.{item['naam'].translate(normalize_letters).lower()}@lln.campussintursula.be"
                 new_list.append(item)  # new student
             nbr_processed += 1
             if max > 0 and nbr_processed >= max:

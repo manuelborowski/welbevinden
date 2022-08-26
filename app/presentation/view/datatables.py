@@ -1,3 +1,4 @@
+from app import flask_app
 from app.data import settings as msettings
 from app.presentation.layout.utils import flash_plus
 from app.application.datatables import prepare_data_for_ajax
@@ -31,6 +32,8 @@ def show(table_configuration, template=None):
         if 'get_filters' in table_configuration:
             filters = table_configuration['get_filters']()
         config = tables.prepare_config_table_for_view(table_configuration)
+        if 'get_right_click' in table_configuration and callable(table_configuration['get_right_click']):
+            config['right_click'] = table_configuration['get_right_click']()
     except Exception as e:
         flash_plus(f'Tabel kan niet getoond worden (show)', e)
     if template:

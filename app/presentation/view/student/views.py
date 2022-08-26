@@ -3,7 +3,6 @@ from app import log, supervisor_required, flask_app
 from flask import redirect, url_for, request, render_template
 from flask_login import login_required, current_user
 from app.presentation.view import datatables
-from app.presentation.layout.utils import flash_plus
 from app.application import socketio as msocketio, settings as msettings, cardpresso as mcardpresso
 import sys, json
 import app.data
@@ -43,30 +42,8 @@ def table_action(action, ids=None):
 
 
 item_common = {'post_data_endpoint': 'api.student_update', 'submit_endpoint': 'student.show', 'cancel_endpoint': 'student.show', 'api_key': flask_app.config['API_KEY']}
-#
-#
-# @student.route('/student/get_form', methods=['POST', 'GET'])
-# @login_required
-# def get_form():
-#     try:
-#         common = {
-#             'post_data_endpoint': 'api.student_update',
-#             'submit_endpoint': 'student.show',
-#             'cancel_endpoint': 'student.show',
-#             'api_key': flask_app.config['API_KEY']
-#         }
-#         if request.values['form'] == 'view':
-#             data = app.application.student.prepare_view_form(request.values['extra'])
-#             data.update(common)
-#             data.update({'title': f"{data['defaults']['naam']} {data['defaults']['voornaam']}"})
-#         else:
-#             return {"status": False, "data": f"get_form: niet gekende form: {request.values['form']}"}
-#         return {"status": True, "data": data}
-#     except Exception as e:
-#         log.error(f"Error in get_form: {e}")
-#         return {"status": False, "data": f"get_form: {e}"}
-#
-#
+
+
 def item_view(ids=None):
     try:
         if ids == None:
@@ -81,10 +58,6 @@ def item_view(ids=None):
             data.update(item_common)
             data.update({'title': f"{data['defaults']['naam']} {data['defaults']['voornaam']}"})
             return render_template('formio.html', data=data)
-        # return render_template('formio.html', data={"form": "view",
-        #                                                    "get_form_endpoint": "student.get_form",
-        #                                                    "extra": id,
-        #                                                    "buttons": ["cancel"]})
     except Exception as e:
         log.error(f'Could not view student {e}')
     return redirect(url_for('student.show'))
@@ -138,6 +111,22 @@ def get_info():
         f'Niet gevonden foto\'s: {app.application.student.get_nbr_photo_not_found()}'
     ]
 
+
+def get_right_click_settings():
+    settings = {
+        'endpoint': 'student.right_click',
+        'menu': [
+            {'label': 'Details', 'item': 'view', 'iconscout': 'eye'},
+        ]
+    }
+    if current_user.is_at_least_supervisor:
+        settings['menu'].extend([
+            {'label': 'Nieuwe badge', 'item': 'new-badge', 'iconscout': 'credit-card'},
+            {'label': 'Vsk nummers', 'item': 'new-vsk-numbers', 'iconscout': 'abacus'},
+        ])
+    return settings
+
+
 table_configuration = {
     'view': 'student',
     'title': 'Studenten',
@@ -151,13 +140,6 @@ table_configuration = {
     'search_data': app.data.student.search_data,
     'default_order': (1, 'asc'),
     'socketio_endpoint': 'celledit-student',
-    'right_click': {
-        'endpoint': 'student.right_click',
-        'menu': [
-            {'label': 'Nieuwe badge', 'item': 'new-badge', 'iconscout': 'credit-card'},
-            {'label': 'Details', 'item': 'view', 'iconscout': 'eye'},
-            {'label': 'Vsk nummers', 'item': 'new-vsk-numbers', 'iconscout': 'abacus'},
-        ]
-    }
+    'get_right_click': get_right_click_settings,
 }
 

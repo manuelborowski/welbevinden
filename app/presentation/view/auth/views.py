@@ -66,7 +66,7 @@ def login_ss():
                 profile['first_name'] = profile['name']
                 profile['last_name'] = profile['surname']
                 profile['user_type'] = muser.User.USER_TYPE.OAUTH
-                profile['level'] = muser.User.LEVEL.SUPERVISOR
+                profile['level'] = muser.User.LEVEL.USER
                 user = muser.add_user(profile)
             login_user(user)
             log.info(u'OAUTH user {} logged in'.format(user.username))

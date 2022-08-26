@@ -123,7 +123,7 @@ def check_for_new_rfid():
                                              'student': saved_students[badge.leerlingnummer]})
                     deleted_badges.append({'id': badge.id})
             if changed_students:
-                mstudent.update_students(changed_students)
+                mstudent.change_students(changed_students)
             if deleted_badges:
                 mcardpresso.delete_badges(deleted_badges)
         log.info(f'check_for_new_rfid: updated {len(changed_students)} rfids of students')

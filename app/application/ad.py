@@ -53,7 +53,8 @@ class Context:
         self.email_domain = '@lln.campussintursula.be'
         self.student_location_current_year = ''
         self.ad_active_students_leerlingnummer = {}  # cache active students, use leerlingnummer as key
-        self.ad_active_students_cn = {}  # cache active students, use cn as key
+        self.ad_active_students_dn = {}  # cache active students, use dn as key
+        self.ad_active_students_mail = []   # a list of existing emails, needed to check for doubles
         self.leerlingnummer_to_klas = {} # find a klas a student belongs to, use leerlingnummer as key
         self.ad_klassen = []
         self.add_student_to_klas = {}  # dict of klassen with list-of-students-to-add-to-the-klas
@@ -178,10 +179,11 @@ def init():
         ldap_server = ldap3.Server(ad_host, use_ssl=True)
         ctx.ldap = ldap3.Connection(ldap_server, ad_login, ad_password, auto_bind=True, authentication=ldap3.NTLM)
         # Create student caches
-        res = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))', ldap3.SUBTREE, attributes=['cn', 'wwwhomepage', 'userAccountControl'])
+        res = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))', ldap3.SUBTREE, attributes=['cn', 'wwwhomepage', 'userAccountControl', 'mail'])
         if res:
             ctx.ad_active_students_leerlingnummer = {s['attributes']['wwwhomepage']: s for s in ctx.ldap.response if s['attributes']['wwwhomepage'] != []}
-            ctx.ad_active_students_cn = {s['dn']: s for s in ctx.ldap.response if s['attributes']['wwwhomepage'] != []}
+            ctx.ad_active_students_dn = {s['dn']: s for s in ctx.ldap.response if s['attributes']['wwwhomepage'] != []}
+            ctx.ad_active_students_mail = [s['attributes']['mail'].lower() for s in ctx.ldap.response if s['attributes']['wwwhomepage'] != []]
             log.info(f'AD: create active-students-caches, {len(ctx.ad_active_students_leerlingnummer)} entries')
         else:
             log.error('AD: could not create active-students-caches')
@@ -191,7 +193,7 @@ def init():
         if res:
             for klas in ctx.ldap.response:
                 ctx.ad_klassen.append(klas['attributes']['cn'])
-                ctx.leerlingnummer_to_klas.update({ctx.ad_active_students_cn[m]['attributes']['wwwhomepage']: klas['attributes']['cn'] for m in klas['attributes']['member'] if m in ctx.ad_active_students_cn})
+                ctx.leerlingnummer_to_klas.update({ctx.ad_active_students_dn[m]['attributes']['wwwhomepage']: klas['attributes']['cn'] for m in klas['attributes']['member'] if m in ctx.ad_active_students_dn})
             log.info(f'AD: create student-to-leerlingnummer-cache, with {len(ctx.leerlingnummer_to_klas)} entries')
         else:
             log.error('AD: could not create student-to-leerlingnummer-cache')
@@ -273,12 +275,21 @@ def new_students(ctx):
         # new students are created with empty password and are required to set a password at first login
         object_class = ['top', 'person', 'organizationalPerson', 'user']
         for student in ctx.new_students_to_add:
+            cn = f'{student.naam} {student.voornaam}'
+            dn = f'CN={cn},{ctx.student_location_current_year}'
+            if student.email in ctx.ad_active_students_mail or dn in ctx.ad_active_students_dn:
+                leerlingnummer_suffix = str(student.leerlingnummer)[-2:]
+                cn = f'{cn} {leerlingnummer_suffix}'
+                dn = f'CN={cn},{ctx.student_location_current_year}'
+                email_split = student.email.split('@')
+                email = f'{email_split[0]}{leerlingnummer_suffix}@{email_split[1]}'
+                mstudent.update_student(student, {'email': email})
             attributes = {'samaccountname': f's{student.leerlingnummer}', 'wwwhomepage': f'{student.leerlingnummer}',
                           'userprincipalname': f's{student.leerlingnummer}{ctx.email_domain}',
-                          'mail': student.email,
+                          'mail': email,
                           'name': f'{student.naam} {student.voornaam}',
                           'useraccountcontrol': 0X220,     #password not required, normal account, account active
-                          'cn': f'{student.naam} {student.voornaam}',
+                          'cn': cn,
                           'sn': student.naam,
                           'l': student.klascode,
                           'description': f'{student.schooljaar} {student.klascode}', 'postalcode': student.schooljaar,
@@ -286,8 +297,6 @@ def new_students(ctx):
                           'displayname': f'{student.naam} {student.voornaam}'}
             if student.rfid and student.rfid != '':
                 attributes['pager'] = student.rfid
-            cn = f'{student.naam} {student.voornaam}'
-            dn = f'CN={cn},{ctx.student_location_current_year}'
             res = ctx.ldap.add(dn, object_class, attributes)
             if not res:
                 log.error(f'AD: could not add new student with attributes: {attributes}')

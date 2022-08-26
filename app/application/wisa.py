@@ -129,7 +129,7 @@ def get_students_from_wisa_database(local_file=None, max=0):
         # add the new students to the database
         mstudent.add_students(new_list)
         # update the changed properties of the students
-        mstudent.update_students(changed_list, overwrite=True) # previous changes are lost
+        mstudent.change_students(changed_list, overwrite=True) # previous changes are lost
         # deleted students and students that are not changed, set the flags correctly
         mstudent.flag_students(flag_list)
         # if required, update the current and previous schoolyear (normally at the beginning of a new schoolyear)

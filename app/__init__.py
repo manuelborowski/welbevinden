@@ -47,10 +47,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.25: bugfixed typo
 # 0.26: enable smartschool-login.  rfid-fro-cardpresso: replace q with a
 # 0.27: extended student search
+# 0.28: students with name that is already present: add sufix (last 2 digits of leerlingnummer)
+
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.27', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.28', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

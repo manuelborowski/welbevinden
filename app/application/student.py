@@ -35,7 +35,7 @@ def update_vsk_numbers(vsknumber):
             changed_students.append({'vsknummer': str(vsknumber), 'student': student, 'changed': ['vsknummer']})
             vsknumber += 1
             nbr_updated += 1
-        mstudent.update_students(changed_students)
+        mstudent.change_students(changed_students)
         return {"status": True, "data": nbr_updated}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

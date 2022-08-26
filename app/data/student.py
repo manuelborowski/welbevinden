@@ -135,12 +135,27 @@ def add_students(data = []):
     return None
 
 
+def update_student(student, data={}):
+    try:
+        for k, v in data.items():
+            if hasattr(student, k):
+                if getattr(Student, k).expression.type.python_type == type(v):
+                    setattr(student, k, v.strip() if isinstance(v, str) else v)
+        db.session.commit()
+        return student
+    except Exception as e:
+        db.session.rollback()
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
+
 # data is a list, with:
 # student: the ORM-student-object
 # changed: a list of properties that are changed
 # property#1: the first property changed
 # property#2: ....
-def update_students(data = [], overwrite=False):
+# overwrite: if True, overwrite the changed field, else extend the changed field
+def change_students(data = [], overwrite=False):
     try:
         for d in data:
             student = d['student']

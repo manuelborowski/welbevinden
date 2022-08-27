@@ -271,5 +271,6 @@ def search_data(search_string):
     search_constraints.append(Student.voornaam.like(search_string))
     search_constraints.append(Student.leerlingnummer.like(search_string))
     search_constraints.append(Student.klascode.like(search_string))
+    search_constraints.append(Student.email.like(search_string))
     return search_constraints
 

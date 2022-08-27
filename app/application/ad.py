@@ -277,6 +277,7 @@ def new_students(ctx):
         for student in ctx.new_students_to_add:
             cn = f'{student.naam} {student.voornaam}'
             dn = f'CN={cn},{ctx.student_location_current_year}'
+            email = student.email
             if student.email in ctx.ad_active_students_mail or dn in ctx.ad_active_students_dn:
                 leerlingnummer_suffix = str(student.leerlingnummer)[-2:]
                 cn = f'{cn} {leerlingnummer_suffix}'

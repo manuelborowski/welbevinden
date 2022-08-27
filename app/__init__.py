@@ -50,11 +50,11 @@ flask_app.config.from_pyfile('config.py')
 # 0.28: students with name that is already present: add sufix (last 2 digits of leerlingnummer)
 # 0.29: add logging.  From wisa, email is added for new students only (can change when address already exists in AD)
 # 0.30: bugfixed user-levels.
-
+# 0.31: bugfix and make email searchable
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.30', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.31', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

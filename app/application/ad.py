@@ -236,7 +236,7 @@ def new_students(ctx):
         verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
         log.info('AD: new students: if student is already in AD: activate and put in current year OU')
         for student in new_students:
-            res = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=user)(wwwhomepage={student.leerlingnummer}))', ldap3.SUBTREE, attributes=['cn', 'userAccountControl'])
+            res = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=user)(wwwhomepage={student.leerlingnummer}))', ldap3.SUBTREE, attributes=['cn', 'userAccountControl', 'mail'])
             if res:  # student already in AD, but inactive and probably in wrong OU and wrong klas
                 ad_student = ctx.ldap.response[0]
                 dn = ad_student['dn']  # old OU
@@ -261,6 +261,10 @@ def new_students(ctx):
                     res = ldap3.extend.microsoft.modifyPassword.ad_modify_password(ctx.ldap, dn, default_password, None)  # reset the password to default
                     if not res:
                         log.error(f'AD error, could not set default password of {dn}')
+                if student.email != ad_student['attributes']['mail']:
+                    mstudent.update_student(student, {'email': ad_student['attributes']['mail']})
+                    if verbose_logging:
+                        log.info(f'add-new-student-already-in-ad, {student.naam} {student.voornaam}, {student.leerlingnummer}, update email in SDH {ad_student["attributes"]["mail"]}')
                 if verbose_logging:
                     log.info(f'add-new-student-already-in-ad, {student.naam} {student.voornaam}, {student.leerlingnummer}, reset paswoord: {reset_student_password}')
                 # add student to cache

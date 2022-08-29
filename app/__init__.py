@@ -52,11 +52,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.30: bugfixed user-levels.
 # 0.31: bugfix and make email searchable
 # 0.32: AD: existing student in AD, new in SDH -> get e-mailaddress from AD in case it is different from template-address
+# 0.33: cardpresso table: search in additional fields
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.32', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.33', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

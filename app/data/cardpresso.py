@@ -129,7 +129,6 @@ def search_data(search_string):
     search_constraints.append(Cardpresso.voornaam.like(search_string))
     search_constraints.append(Cardpresso.leerlingnummer.like(search_string))
     search_constraints.append(Cardpresso.klascode.like(search_string))
-    search_constraints.append(Cardpresso.email.like(search_string))
     search_constraints.append(Cardpresso.middag.like(search_string))
     return search_constraints
 

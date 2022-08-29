@@ -2,7 +2,7 @@ import sys, json
 from app import log, db
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.dialects.mysql import MEDIUMBLOB
-
+from sqlalchemy import delete
 
 class Cardpresso(db.Model, SerializerMixin):
     __tablename__ = 'cardpresso'
@@ -71,12 +71,10 @@ def add_badges(data = []):
     return None
 
 
-def delete_badges(data):
+def delete_badges(ids):
     try:
-        for d in data:
-            item = get_first_badge(d)
-            if item:
-                db.session.delete(item)
+        statement = delete(Cardpresso).where(Cardpresso.id.in_(ids))
+        db.session.execute(statement)
         db.session.commit()
     except Exception as e:
         db.session.rollback()

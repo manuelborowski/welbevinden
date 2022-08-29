@@ -262,6 +262,9 @@ def filter_data(query, filter):
         if f['name'] == 'photo-not-found':
             if f['value'] == 'not-found':
                 query = query.filter(Student.foto_id == -1)
+        if f['name'] == 'filter-klas':
+            if f['value'] != 'default':
+                query = query.filter(Student.klascode == f['value'])
     return query
 
 

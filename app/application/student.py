@@ -87,6 +87,13 @@ def clear_schoolyear_changed_flag_cron_task(opaque):
         msettings.reset_changed_schoolyear()
 
 
+def get_unique_klassen():
+    klassen = mstudent.get_students(fields=['klascode'])
+    klassen = list(set([k[0] for k in klassen]))
+    klassen.sort()
+    return klassen
+
+
 ############## api ####################
 def get_fields():
     try:

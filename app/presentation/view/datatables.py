@@ -34,11 +34,12 @@ def show(table_configuration, template=None):
         config = tables.prepare_config_table_for_view(table_configuration)
         if 'get_right_click' in table_configuration and callable(table_configuration['get_right_click']):
             config['right_click'] = table_configuration['get_right_click']()
+        api_key = flask_app.config['API_KEY']
     except Exception as e:
         flash_plus(f'Tabel kan niet getoond worden (show)', e)
     if template:
-        return render_template(template, table_config=config, filters=filters)
-    return render_template('datatables.html', table_config=config, filters=filters)
+        return render_template(template, table_config=config, filters=filters, api_key=api_key)
+    return render_template('datatables.html', table_config=config, filters=filters, api_key=api_key)
 
 
 def format_datatable(table_configuration, data_list, total_count, filtered_count):

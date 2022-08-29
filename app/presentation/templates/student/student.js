@@ -1,5 +1,6 @@
 async function update_vsk_numbers(start) {
     const ret = await fetch(Flask.url_for('api.update_vsk_number'), {
+        headers: {'x-api-key':  api_key,},
         method: 'POST',
         body: JSON.stringify({start}),
     });
@@ -13,6 +14,7 @@ async function update_vsk_numbers(start) {
 
 async function clear_vsk_numbers() {
     const ret = await fetch(Flask.url_for('api.clear_vsk_numbers'), {
+        headers: {'x-api-key':  api_key,},
         method: 'POST'
     });
     const status = await ret.json();
@@ -24,7 +26,7 @@ async function clear_vsk_numbers() {
 }
 
 async function new_vsk_numbers(item) {
-    const ret = await fetch(Flask.url_for('api.get_last_vsk_number'))
+    const ret = await fetch(Flask.url_for('api.get_last_vsk_number'), {headers: {'x-api-key':  api_key,}})
     const data = await ret.json();
     if (data.status) {
         if (data.data === -1) { // no numbers yet

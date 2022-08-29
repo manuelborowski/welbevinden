@@ -92,6 +92,9 @@ def get_misc_fields(extra_fields, form):
 
 
 def get_filters():
+    klassen = app.application.student.get_unique_klassen()
+    klassen = [[k, k] for k in klassen]
+    klas_choices = [['default', 'Alles']] + klassen
     return [
         {
             'type': 'select',
@@ -101,6 +104,13 @@ def get_filters():
                 ['default', 'Alles'],
                 ['not-found', 'Geen foto'],
             ],
+            'default': 'default',
+        },
+        {
+            'type': 'select',
+            'name': 'filter-klas',
+            'label': 'Klassen',
+            'choices': klas_choices,
             'default': 'default',
         },
     ]

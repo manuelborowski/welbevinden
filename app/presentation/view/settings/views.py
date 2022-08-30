@@ -63,6 +63,15 @@ settings_formio = \
                 "type": "button",
                 "input": true,
                 "saveOnEnter": false
+              },
+              {
+                "label": "Nieuwe gebruikers via Smartschool",
+                "tooltip": "Nieuwe gebruikers kunnen inloggen via Smartschool en krijgen automatisch het laagste profiel",
+                "tableView": false,
+                "key": "generic-new-via-smartschool",
+                "type": "checkbox",
+                "input": true,
+                "defaultValue": false
               }
             ]
           }

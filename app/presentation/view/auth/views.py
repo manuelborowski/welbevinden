@@ -7,6 +7,7 @@ from . import auth
 from .forms import LoginForm
 from app.data import user as muser
 from app.presentation.layout import utils
+from app.application import settings as msettings
 import datetime, json
 
 @auth.route('/', methods=['POST', 'GET'])
@@ -63,11 +64,15 @@ def login_ss():
                 user.email = profile['email']
                 user = muser.update_user(user, profile)
             else:
-                profile['first_name'] = profile['name']
-                profile['last_name'] = profile['surname']
-                profile['user_type'] = muser.User.USER_TYPE.OAUTH
-                profile['level'] = muser.User.LEVEL.USER
-                user = muser.add_user(profile)
+                if msettings.get_configuration_setting('generic-new-via-smartschool'):
+                    profile['first_name'] = profile['name']
+                    profile['last_name'] = profile['surname']
+                    profile['user_type'] = muser.User.USER_TYPE.OAUTH
+                    profile['level'] = muser.User.LEVEL.USER
+                    user = muser.add_user(profile)
+                else:
+                    log.info('New users not allowed via smartschool')
+                    return redirect(url_for('auth.login'))
             login_user(user)
             log.info(u'OAUTH user {} logged in'.format(user.username))
             if not user:

@@ -88,6 +88,7 @@ def get_test_server():
 default_configuration_settings = {
     'generic-default-student-code': ('t1', Settings.SETTING_TYPE.E_STRING),
     'generic-standard-password': ('', Settings.SETTING_TYPE.E_STRING),
+    'generic-new-via-smartschool': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'sdh-inform-emails': ('t1', Settings.SETTING_TYPE.E_STRING),
     'sdh-prev-schoolyear': ('', Settings.SETTING_TYPE.E_STRING),

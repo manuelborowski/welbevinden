@@ -56,7 +56,7 @@ def login_ss():
 
         if profile['basisrol'] in SMARTSCHOOL_ALLOWED_BASE_ROLES:
             # Students are NOT allowed to log in
-            user = muser.get_first_user({'username': func.binary(profile['username']), 'user_type': muser.User.USER_TYPE.OAUTH})
+            user = muser.get_first_user({'username': profile['username'], 'user_type': muser.User.USER_TYPE.OAUTH})
             profile['last_login'] = datetime.datetime.now()
             if user:
                 profile['first_name'] = profile['name']

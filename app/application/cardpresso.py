@@ -40,7 +40,7 @@ def add_badges(student_ids):
             if student:
                 badge = mcardpresso.get_first_badge({'leerlingnummer': student.leerlingnummer})
                 if badge:
-                    delete_badges.append({"id":badge.id})
+                    delete_badges.append(badge.id)
                 photo = saved_photos[student.foto_id] if student.foto_id in saved_photos else None
                 if photo:
                     data = {'photo': photo}
@@ -86,24 +86,29 @@ check_properties_changed = ['middag', 'vsknummer', 'photo', 'schooljaar', 'klasc
 
 
 def process_new_badges(topic=None, opaque=None):
-    with flask_app.app_context():
-        new_students = mstudent.get_students({'new': True})
-        if new_students:
-            ids = [student.id for student in new_students]
-            add_badges(ids)
-        updated_students = mstudent.get_students({'-changed': '', 'new': False})  # find students with changed property not equal to '' and not new
-        if updated_students:
-            ids = []
-            for student in updated_students:
-                changed = json.loads(student.changed)
-                if list(set(check_properties_changed).intersection(changed)):
-                    ids.append(student.id)
-            if ids:
+    try:
+        with flask_app.app_context():
+            new_students = mstudent.get_students({'new': True})
+            if new_students:
+                ids = [student.id for student in new_students]
                 add_badges(ids)
-        deleted_students = mstudent.get_students({'delete': True})
-        if deleted_students:
-            data = [{"leerlingnummer": s.leerlingnummer } for s in deleted_students]
-            mcardpresso.delete_badges(data)
+            updated_students = mstudent.get_students({'-changed': '', 'new': False})  # find students with changed property not equal to '' and not new
+            if updated_students:
+                ids = []
+                for student in updated_students:
+                    changed = json.loads(student.changed)
+                    if list(set(check_properties_changed).intersection(changed)):
+                        ids.append(student.id)
+                if ids:
+                    add_badges(ids)
+            deleted_students = mstudent.get_students({'delete': True})
+            if deleted_students:
+                data = [{"leerlingnummer": s.leerlingnummer } for s in deleted_students]
+                old_badges = mcardpresso.get_badges(data)
+                ids = [b.id for b in old_badges]
+                mcardpresso.delete_badges(ids)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 msettings.subscribe_handle_button_clicked('button-new-badges', process_new_badges, None)
@@ -121,7 +126,7 @@ def check_for_new_rfid():
                     changed_students.append({'changed': ['rfid'],
                                              'rfid': badge.rfid.upper().replace('Q', 'A'),
                                              'student': saved_students[badge.leerlingnummer]})
-                    deleted_badges.append({'id': badge.id})
+                    deleted_badges.append(badge.id)
             if changed_students:
                 mstudent.change_students(changed_students)
             if deleted_badges:

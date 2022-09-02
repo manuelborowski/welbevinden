@@ -57,11 +57,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.35: speed up deleting of badges.  Use API key.  Added filter (klassen)
 # 0.36: switch to allow new users via smartschool or not
 # 0.37: smartschool login: ignore case
+# 0.38: bugfix delete badges
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.37', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.38', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

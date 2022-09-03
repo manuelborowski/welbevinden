@@ -95,6 +95,18 @@ def get_students():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return json.dumps({"status": False, "data": str(e)})
 
+@api.route('/api/student/update', methods=['POST'])
+@key_required
+def update_student():
+    try:
+        data = json.loads(request.data)
+        mstudent.update_student(data)
+        return json.dumps({"status": True, "data": 'ok'})
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return json.dumps({"status": False, "data": str(e)})
+
+
 @api.route('/api/staffs/', methods=['GET'])
 @key_required
 def get_staffs():
@@ -105,6 +117,8 @@ def get_staffs():
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return json.dumps({"status": False, "data": str(e)})
+
+
 
 # ?fields=klasgroep,schooljaar
 # sort=-gemeente

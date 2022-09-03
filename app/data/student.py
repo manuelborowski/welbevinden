@@ -155,7 +155,7 @@ def update_student(student, data={}):
 # property#1: the first property changed
 # property#2: ....
 # overwrite: if True, overwrite the changed field, else extend the changed field
-def change_students(data = [], overwrite=False):
+def change_students(data=[], overwrite=False):
     try:
         for d in data:
             student = d['student']

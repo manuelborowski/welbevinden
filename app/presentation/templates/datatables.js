@@ -6,6 +6,9 @@ let table;
 let filter_settings = [];
 window.jsPDF = window.jspdf.jsPDF;
 window.html2canvas = html2canvas;
+//column-name to column-index
+let column_name_to_index = {};
+
 
 //If not exactly one checkbox is selected, display warning and return false, else return true
 function is_exactly_one_checkbox_selected() {
@@ -41,6 +44,18 @@ function get_id_of_checked_boxes() {
 function clear_checked_boxes() {
     $(".chbx_all").prop('checked', false);
 }
+
+function get_data_of_row(id) {
+    return table.row(`#${id}`).data();
+}
+
+
+function update_cell(row_id, column_name, value) {
+    let row_idx = table.row(`#${row_id}`).index();
+    let column_idx = column_name_to_index[column_name];
+    table.cell(row_idx, column_idx).data(value);
+}
+
 
 function button_pushed(action) {
     switch (action) {
@@ -174,9 +189,6 @@ $(document).ready(function () {
     $("#datatable").append(
         $('<tfoot/>').append($("#datatable thead tr").clone())
     );
-
-    //column-name to column-index
-    column_name_to_index = {};
 
     config_columns_cache = {}; //'data' is key, add sequence-number
     $.each(config_columns, function (i, v) {

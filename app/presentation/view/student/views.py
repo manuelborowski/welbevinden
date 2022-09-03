@@ -132,6 +132,7 @@ def get_right_click_settings():
     if current_user.is_at_least_supervisor:
         settings['menu'].extend([
             {'label': 'Nieuwe badge', 'item': 'new-badge', 'iconscout': 'credit-card'},
+            {'label': 'RFID code', 'item': 'check-rfid', 'iconscout': 'wifi'},
             {'label': 'Vsk nummers', 'item': 'new-vsk-numbers', 'iconscout': 'abacus'},
         ])
     return settings

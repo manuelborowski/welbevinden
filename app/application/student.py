@@ -1,7 +1,7 @@
 from app import log
 from app.data import student as mstudent, settings as msettings, photo as mphoto
 import app.data.settings
-from app.application import formio as mformio, email as memail, util as mutil
+from app.application import formio as mformio, email as memail, util as mutil, ad as mad
 import sys, base64
 
 
@@ -106,6 +106,16 @@ def get_fields():
 def api_get_students(options=None):
     try:
         return mutil.api_get_model_data(mstudent.Student, options)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def update_student(data):
+    try:
+        student = mstudent.get_first_student({'id': data['id']})
+        mstudent.update_student(student, data)
+        if 'rfid' in data:
+            mad.update_student(student, {'rfid', data['rfid']})
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 

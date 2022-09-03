@@ -60,11 +60,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.38: bugfix delete badges
 # 0.39: reworked photo
 # 0.40: when trying to find a photo, use the leerlingnummer as well
+# 0.41: add functionality to change the RFID code with a badgereader and forward the new code to AD
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.40', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.41', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

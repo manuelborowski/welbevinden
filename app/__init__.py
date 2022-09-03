@@ -59,11 +59,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.37: smartschool login: ignore case
 # 0.38: bugfix delete badges
 # 0.39: reworked photo
+# 0.40: when trying to find a photo, use the leerlingnummer as well
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.39', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.40', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

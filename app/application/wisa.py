@@ -43,6 +43,7 @@ def get_students_from_wisa_database(local_file=None, max=0):
         for key in keys:
             response_text = response_text.replace(f'"{key.upper()}"', f'"{key}"')
         data = json.loads(response_text)
+        # (Photo.id, Photo.filename, Photo.new, Photo.changed, Photo.delete, func.octet_length(Photo.photo))
         saved_photos = {p[1]: p[0] for p in mphoto.get_photos_size()}
         saved_students = {} # the current, active students in the database
         # default previous and current schoolyear
@@ -87,7 +88,12 @@ def get_students_from_wisa_database(local_file=None, max=0):
                 item['foto'] = item['foto'].split('\\')[1]
             except:
                 pass
-            item['foto_id'] = saved_photos[item['foto']] if item['foto'] in saved_photos else -1
+            item['foto_id'] = -1
+            if f"{item['leerlingnummer']}.jpg" in saved_photos:
+                item['foto_id'] = saved_photos[f"{item['leerlingnummer']}.jpg"]
+                item['foto'] = f"{item['leerlingnummer']}.jpg"
+            if item['foto'] in saved_photos:
+                item['foto_id'] = saved_photos[item['foto']]
             try:
                 item['klasnummer'] = int(item['klasnummer'])
             except:

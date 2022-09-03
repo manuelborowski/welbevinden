@@ -169,6 +169,8 @@ default_configuration_settings = {
     'wisa-update-teachers': (False, Settings.SETTING_TYPE.E_BOOL),
     'wisa-update-students': (False, Settings.SETTING_TYPE.E_BOOL),
 
+    'photo-verbose-logging': (False, Settings.SETTING_TYPE.E_BOOL),
+
     'api-keys': ('[]', Settings.SETTING_TYPE.E_STRING),
 
     'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),

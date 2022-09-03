@@ -1191,56 +1191,13 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "Columns",
-                    "columns": [
-                      {
-                        "components": [
-                          {
-                            "label": "Laad foto's",
-                            "tableView": false,
-                            "defaultValue": false,
-                            "key": "check-load-photos",
-                            "type": "checkbox",
-                            "input": true
-                          }
-                        ],
-                        "width": 3,
-                        "offset": 0,
-                        "push": 0,
-                        "pull": 0,
-                        "size": "md",
-                        "currentWidth": 3
-                      },
-                      {
-                        "components": [
-                          {
-                            "label": "Laad foto's",
-                            "showValidations": false,
-                            "theme": "danger",
-                            "tableView": false,
-                            "key": "button-load-photos",
-                            "conditional": {
-                              "show": true,
-                              "when": "photo.check-load-photos",
-                              "eq": "true"
-                            },
-                            "type": "button",
-                            "saveOnEnter": false,
-                            "input": true
-                          }
-                        ],
-                        "width": 6,
-                        "offset": 0,
-                        "push": 0,
-                        "pull": 0,
-                        "size": "md",
-                        "currentWidth": 6
-                      }
-                    ],
-                    "key": "columns1",
-                    "type": "columns",
-                    "input": false,
-                    "tableView": false
+                    "label": "Verbose logging",
+                    "tooltip": "Logging is gedetailleerd.\nNIET opzetten tijdens normaal gebruik, alleen voor testen",
+                    "tableView": false,
+                    "defaultValue": false,
+                    "key": "photo-verbose-logging",
+                    "type": "checkbox",
+                    "input": true
                   }
                 ]
               }

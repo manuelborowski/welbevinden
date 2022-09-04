@@ -145,13 +145,13 @@ const badge_raw2hex = code => {
 }
 
 async function check_rfid(item) {
+    let student = get_data_of_row(item_ids[0]);
     bootbox.prompt({
-        title: "Scan de badge",
+        title: `Scan de badge van student ${student.voornaam} ${student.naam}`,
         callback: result => {
             if (result) {
                 res = badge_raw2hex(result);
                 if (res.valid) {
-                    let student = get_data_of_row(item_ids[0]);
                     bootbox.dialog({
                         title: 'Nieuwe RFID code?',
                         message: `De gescande code is ${res.code}<br> De huidige code is ${student.rfid}`,

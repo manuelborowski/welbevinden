@@ -123,6 +123,7 @@ def get_students_from_wisa_database(local_file=None, max=0):
                     mwarning.new_warning(f'Leerling met leerlingnummer {item["leerlingnummer"]} heeft mogelijk een verkeerde geboorteplaats/-land: {orig_geboorteplaats}')
                     log.info(f'Leerling met leerlingnummer {item["leerlingnummer"]} heeft mogelijk een verkeerde geboorteplaats/-land: {orig_geboorteplaats}')
                 item['email'] = f"{item['voornaam'].translate(normalize_letters).lower()}.{item['naam'].translate(normalize_letters).lower()}@lln.campussintursula.be"
+                item['username'] = f's{item["leerlingnummer"]}'
                 new_list.append(item)  # new student
             nbr_processed += 1
             if max > 0 and nbr_processed >= max:

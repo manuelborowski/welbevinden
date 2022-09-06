@@ -62,11 +62,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.40: when trying to find a photo, use the leerlingnummer as well
 # 0.41: add functionality to change the RFID code with a badgereader and forward the new code to AD
 # 0.42: when updating RFID code, show name of student
+# 0.43: students: get all usernames from ad (once) and store in SDH.  Added functionality to store new RFID directly to papercut
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.42', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.43', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

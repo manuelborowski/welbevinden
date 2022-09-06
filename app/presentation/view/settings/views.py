@@ -1004,15 +1004,57 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "Server authentication token",
-                    "labelPosition": "left-left",
-                    "spellcheck": false,
-                    "tableView": true,
-                    "persistent": false,
-                    "key": "papercut-auth-token",
-                    "type": "textfield",
-                    "labelWidth": 20,
-                    "input": true
+                    "label": "Columns",
+                    "columns": [
+                      {
+                        "components": [
+                          {
+                            "label": "Toon server token",
+                            "tableView": false,
+                            "defaultValue": false,
+                            "key": "papercut-show-password",
+                            "type": "checkbox",
+                            "input": true
+                          }
+                        ],
+                        "width": 2,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 2
+                      },
+                      {
+                        "components": [
+                          {
+                            "label": "Server authentication token",
+                            "labelPosition": "left-left",
+                            "spellcheck": false,
+                            "tableView": true,
+                            "persistent": false,
+                            "key": "papercut-auth-token",
+                            "conditional": {
+                              "show": true,
+                              "when": "papercut.papercut-show-password",
+                              "eq": "true"
+                            },
+                            "type": "textfield",
+                            "labelWidth": 20,
+                            "input": true
+                          }
+                        ],
+                        "width": 6,
+                        "offset": 0,
+                        "push": 0,
+                        "pull": 0,
+                        "size": "md",
+                        "currentWidth": 6
+                      }
+                    ],
+                    "key": "columns",
+                    "type": "columns",
+                    "input": false,
+                    "tableView": false
                   }
                 ],
                 "collapsed": true

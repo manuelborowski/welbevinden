@@ -49,6 +49,8 @@ class Student(db.Model, SerializerMixin):
     klastitularis = db.Column(db.String(256), default='')
     klasnummer = db.Column(db.Integer(), default=0)
     computer = db.Column(db.String(256), default='')
+    username = db.Column(db.String(256), default='')
+
 
     naamcorrespondentieadres = db.Column(db.String(256), default='')
     aansprekingcorrespondentieadres = db.Column(db.String(256), default='')

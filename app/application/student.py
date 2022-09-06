@@ -1,7 +1,7 @@
 from app import log
 from app.data import student as mstudent, settings as msettings, photo as mphoto
 import app.data.settings
-from app.application import formio as mformio, email as memail, util as mutil, ad as mad
+from app.application import formio as mformio, email as memail, util as mutil, ad as mad, papercut as mpapercut
 import sys, base64
 
 
@@ -116,6 +116,7 @@ def update_student(data):
         mstudent.update_student(student, data)
         if 'rfid' in data:
             mad.update_student(student, {'rfid', data['rfid']})
+            mpapercut.update_student(student, {'rfid', data['rfid']})
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 

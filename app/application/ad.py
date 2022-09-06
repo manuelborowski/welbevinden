@@ -294,8 +294,8 @@ def new_students(ctx):
                 mstudent.update_student(student, {'email': email})
                 if verbose_logging:
                     log.info(f'student with same name already in ad, {student.naam} {student.voornaam}, {student.leerlingnummer}, email is {email}')
-            attributes = {'samaccountname': f's{student.leerlingnummer}', 'wwwhomepage': f'{student.leerlingnummer}',
-                          'userprincipalname': f's{student.leerlingnummer}{ctx.email_domain}',
+            attributes = {'samaccountname': student.username, 'wwwhomepage': f'{student.leerlingnummer}',
+                          'userprincipalname': f'{student.username}{ctx.email_domain}',
                           'mail': email,
                           'name': f'{student.naam} {student.voornaam}',
                           'useraccountcontrol': 0X220,     #password not required, normal account, account active
@@ -463,6 +463,39 @@ def remove_multiple_klas(ctx):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
+# should be executed once to update the usernames in SDH from AD
+def get_usernames_from_ad():
+    try:
+        log.info(('Read usernames from AD'))
+        verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
+        ad_host = msettings.get_configuration_setting('ad-url')
+        ad_login = msettings.get_configuration_setting('ad-login')
+        ad_password = msettings.get_configuration_setting('ad-password')
+        ldap_server = ldap3.Server(ad_host, use_ssl=True)
+        ldap = ldap3.Connection(ldap_server, ad_login, ad_password, auto_bind=True, authentication=ldap3.NTLM)
+        # Create student caches
+        res = ldap.search(STUDENT_LOCATION_TOPLEVEL, f'(&(objectclass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))', ldap3.SUBTREE, attributes=['wwwhomepage', 'samaccountname'])
+        if res:
+            ad_leerlingnummer_to_username = {s['attributes']['wwwhomepage']: s['attributes']['samaccountname'] for s in ldap.response if s['attributes']['wwwhomepage'] != []}
+            log.info(f'AD: create ad_leerlingnummer_to_username cache, {len(ad_leerlingnummer_to_username)} entries')
+        else:
+            log.error('AD: could not ad_leerlingnummer_to_username cache')
+            return
+        ldap.unbind()
+        students = mstudent.get_students()
+        nbr_students = 0
+        for student in students:
+            if not student.username and student.leerlingnummer in ad_leerlingnummer_to_username:
+                student.username = ad_leerlingnummer_to_username[student.leerlingnummer]
+                nbr_students += 1
+                if verbose_logging:
+                    log.info(f'{sys._getframe().f_code.co_name}, {student.naam} {student.voornaam}, {student.leerlingnummer}, update username in SDH {student.username}')
+        mstudent.commit()
+        log.info(f'{sys._getframe().f_code.co_name}, Update usernames from AD, updated {nbr_students} students')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
 def ad_cron_task(opaque):
     try:
         if msettings.get_configuration_setting('cron-enable-update-student-ad'):
@@ -481,6 +514,8 @@ def ad_cron_task(opaque):
             students_must_update_password(ctx) # then change a setting so that the student must update the password
             remove_multiple_klas(ctx)
             deinit(ctx)
+            # only once and then comment out
+            # get_usernames_from_ad()
             msettings.set_configuration_setting('ad-schoolyear-changed', False)
             log.info(f'update_ad: processed ')
     except Exception as e:

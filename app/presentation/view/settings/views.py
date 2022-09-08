@@ -1055,6 +1055,16 @@ settings_formio = \
                     "type": "columns",
                     "input": false,
                     "tableView": false
+                  },
+                  {
+                    "label": "Laad RFID van Personeel",
+                    "theme": "danger",
+                    "tooltip": "Haal uit Papercut de RFID code's van het personeel en bewaar in SDH",
+                    "tableView": false,
+                    "key": "papercut-load-rfid-event",
+                    "type": "button",
+                    "input": true,
+                    "saveOnEnter": false
                   }
                 ],
                 "collapsed": true

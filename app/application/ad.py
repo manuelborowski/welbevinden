@@ -44,6 +44,8 @@ import ldap3, json, sys
 
 KLAS_LOCATION_TOPLEVEL = 'OU=Klassen,OU=Groepen,DC=SU,DC=local'
 STUDENT_LOCATION_TOPLEVEL = 'OU=Leerlingen,OU=Accounts,DC=SU,DC=local'
+TEACHER_LOCATION_TOPLEVEL = 'OU=Leerkrachten,OU=Accounts,DC=SU,DC=local'
+STAFF_LOCATION_TOPLEVEL = 'OU=Secretariaat,DC=SU,DC=local'
 
 
 class Context:
@@ -524,22 +526,48 @@ def ad_cron_task(opaque):
 
 def update_student(student, data):
     try:
+        update_property([STUDENT_LOCATION_TOPLEVEL], student.username, data)
+    except Exception as e:
+        raise e
+
+
+def update_staff(staff, data):
+    try:
+        update_property([STAFF_LOCATION_TOPLEVEL, TEACHER_LOCATION_TOPLEVEL], staff.code, data)
+    except Exception as e:
+        raise e
+
+
+def update_property(ous, username, data):
+    try:
         changes = {}
         ad_host = msettings.get_configuration_setting('ad-url')
         ad_login = msettings.get_configuration_setting('ad-login')
         ad_password = msettings.get_configuration_setting('ad-password')
         ldap_server = ldap3.Server(ad_host, use_ssl=True)
         ldap = ldap3.Connection(ldap_server, ad_login, ad_password, auto_bind=True, authentication=ldap3.NTLM)
-        res = ldap.search(STUDENT_LOCATION_TOPLEVEL, f'(&(objectclass=user)(wwwhomepage={student.leerlingnummer}))', ldap3.SUBTREE, attributes=['cn', 'userAccountControl', 'mail', 'pager'])
-        if res:
-            ad_student = ldap.response[0]
-            if 'rfid' in data:
-                changes.update({'pager': [ldap3.MODIFY_REPLACE, (student.rfid)]})
-            res = ldap.modify(ad_student['dn'], changes)
-            if not res:
-                log.error(f'{sys._getframe().f_code.co_name}: could not update changes of {student.leerlingnummer}: {changes}')
-        else:
-            log.error(f'{sys._getframe().f_code.co_name}: could not find {student.leerlingnummer} in AD')
+        found = False
+        for ou in ous:
+            res = ldap.search(ou, f'(&(objectclass=user)(samaccountname={username}))', ldap3.SUBTREE, attributes=['cn', 'userAccountControl', 'mail', 'pager'])
+            if res:
+                found = True
+                ad_student = ldap.response[0]
+                if 'rfid' in data:
+                    if data['rfid'] == '':
+                        changes.update({'pager': [ldap3.MODIFY_DELETE, ([])]})
+                    else:
+                        changes.update({'pager': [ldap3.MODIFY_REPLACE, (data['rfid'])]})
+                res = ldap.modify(ad_student['dn'], changes)
+                if res:
+                    log.info(f'Update to AD, {username} RFID {data}')
+                else:
+                    log.error(f'{sys._getframe().f_code.co_name}: could not update changes of {username}: {changes}')
+                    raise Exception('Kan AD niet updaten')
+                break
+        if not found:
+            log.error(f'{sys._getframe().f_code.co_name}: could not find {username} in AD')
+            raise Exception(f'Kan {username} niet vinden in AD')
         ldap.unbind()
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e

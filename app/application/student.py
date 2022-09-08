@@ -113,12 +113,19 @@ def api_get_students(options=None):
 def update_student(data):
     try:
         student = mstudent.get_first_student({'id': data['id']})
-        mstudent.update_student(student, data)
         if 'rfid' in data:
-            mad.update_student(student, {'rfid', data['rfid']})
-            mpapercut.update_student(student, {'rfid', data['rfid']})
+            rfid = data['rfid']
+            if rfid != '':
+                rfids = [r[0] for r in mstudent.get_students(fields=['rfid'])]
+                if rfid in set(rfids):
+                    student = mstudent.get_first_student({'rfid': rfid})
+                    raise Exception(f'rfid {rfid} bestaat al voor {student.voornaam} {student.naam}')
+            mad.update_student(student, {'rfid': rfid})
+            mpapercut.update_student(student, {'rfid': rfid})
+        mstudent.update_student(student, data)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
 
 
 ############## formio #########################

@@ -1,6 +1,6 @@
 from app import log
 from app.data import settings as msettings, staff as mstaff
-from app.application import util as mutil
+from app.application import util as mutil, ad as mad, papercut as mpapercut
 import sys
 
 
@@ -32,6 +32,24 @@ def api_get_staffs(options=None):
         return mutil.api_get_model_data(mstaff.Staff, options)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def update_staff(data):
+    try:
+        staff = mstaff.get_first_staff({'id': data['id']})
+        if 'rfid' in data:
+            rfid = data['rfid']
+            if rfid != '':
+                rfids = [r[0] for r in mstaff.get_staffs(fields=['rfid'])]
+                if rfid in set(rfids):
+                    staff = mstaff.get_first_staff({'rfid': rfid})
+                    raise Exception(f'rfid {rfid} bestaat al voor {staff.voornaam} {staff.naam}')
+            mad.update_staff(staff, {'rfid': rfid})
+            mpapercut.update_staff(staff, {'rfid': rfid})
+        mstaff.update_staff(staff, data)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
 
 
 ############## formio #########################

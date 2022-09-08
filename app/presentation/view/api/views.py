@@ -3,7 +3,7 @@ from . import api
 from app.application import  student as mstudent, user as muser, photo as mphoto, staff as mstaff
 from app.data import settings as msettings
 from app import flask_app, log
-import json, sys
+import json, sys, html
 from functools import wraps
 
 
@@ -93,7 +93,7 @@ def get_students():
         return json.dumps(ret, ensure_ascii=False)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return json.dumps({"status": False, "data": str(e)})
+        return json.dumps({"status": False, "data": html.escape(str(e))})
 
 @api.route('/api/student/update', methods=['POST'])
 @key_required
@@ -104,7 +104,7 @@ def update_student():
         return json.dumps({"status": True, "data": 'ok'})
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return json.dumps({"status": False, "data": str(e)})
+        return json.dumps({"status": False, "data": html.escape(str(e))})
 
 
 @api.route('/api/staffs/', methods=['GET'])
@@ -116,7 +116,19 @@ def get_staffs():
         return json.dumps(ret, ensure_ascii=False)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return json.dumps({"status": False, "data": str(e)})
+        return json.dumps({"status": False, "data": html.escape(str(e))})
+
+
+@api.route('/api/staff/update', methods=['POST'])
+@key_required
+def update_staff():
+    try:
+        data = json.loads(request.data)
+        mstaff.update_staff(data)
+        return json.dumps({"status": True, "data": 'ok'})
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return json.dumps({"status": False, "data": html.escape(str(e))})
 
 
 

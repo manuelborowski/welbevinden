@@ -2,6 +2,6 @@
 
 {% block scripts %}
     {{ super() }}
-    <script type="text/javascript"> {% include "student/student.js" %}</script>
+    <script type="text/javascript"> {% include "staff/staff.js" %}</script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/rfid.js') }}"></script>
 {% endblock %}

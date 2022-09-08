@@ -22,6 +22,7 @@ class Staff(db.Model, SerializerMixin):
     geboorteplaats = db.Column(db.String(256), default='')
     instellingsnummer = db.Column(db.String(256), default='')
     email = db.Column(db.String(256), default='')
+    rfid = db.Column(db.String(256))
 
     timestamp = db.Column(db.DateTime)
 
@@ -171,6 +172,21 @@ def get_first_staff(data={}):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
+
+
+def update_staff(staff, data={}):
+    try:
+        for k, v in data.items():
+            if hasattr(staff, k):
+                if getattr(Staff, k).expression.type.python_type == type(v):
+                    setattr(staff, k, v.strip() if isinstance(v, str) else v)
+        db.session.commit()
+        return staff
+    except Exception as e:
+        db.session.rollback()
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+    return None
+
 
 
 

@@ -15,7 +15,7 @@ import app.application.staff
 def show():
     # start = datetime.datetime.now()
     datatables.update(table_configuration)
-    ret = datatables.show(table_configuration)
+    ret = datatables.show(table_configuration, template='staff/staff.html')
     # print('staff.show', datetime.datetime.now() - start)
     return ret
 
@@ -40,12 +40,36 @@ def table_action(action, ids=None):
     return redirect(url_for('staff.show'))
 
 
+@staff.route('/staff/right_click/', methods=['POST', 'GET'])
+@login_required
+def right_click():
+    try:
+        if 'jds' in request.values:
+            data = json.loads(request.values['jds'])
+    except Exception as e:
+        log.error(f"Error in get_form: {e}")
+        return {"message": f"get_form: {e}"}
+    return {"message": "iets is fout gelopen"}
+
+
 def get_filters():
     return []
 
 
 def get_info():
     return []
+
+def get_right_click_settings():
+    settings = {
+        'endpoint': 'staff.right_click',
+        'menu': []
+    }
+    if current_user.is_at_least_supervisor:
+        settings['menu'].extend([
+            {'label': 'RFID code', 'item': 'check-rfid', 'iconscout': 'wifi'},
+        ])
+    return settings
+
 
 table_configuration = {
     'view': 'staff',
@@ -59,5 +83,6 @@ table_configuration = {
     'filter_data': app.data.staff.filter_data,
     'search_data': app.data.staff.search_data,
     'default_order': (1, 'asc'),
+    'get_right_click': get_right_click_settings,
 }
 

@@ -4,6 +4,7 @@ from flask import redirect, url_for, request, render_template
 from flask_login import login_required, current_user
 from app.presentation.view import datatables
 from app.application import socketio as msocketio, settings as msettings, cardpresso as mcardpresso
+from app.presentation.view.formio_popups import update_password
 import sys, json
 import app.data
 import app.application.student
@@ -14,7 +15,7 @@ import app.application.student
 def show():
     # start = datetime.datetime.now()
     datatables.update(table_configuration)
-    ret = datatables.show(table_configuration, template='student/student.html')
+    ret = datatables.show(table_configuration, template='student/student.html', popups=update_password)
     # print('student.show', datetime.datetime.now() - start)
     return ret
 

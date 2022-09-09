@@ -89,3 +89,36 @@ const create_p_element = (text) => {
     p_element.innerHTML = text;
     return p_element
 }
+
+const create_formio_popup = async (template, defaults = null, cb, opaque) => {
+        const form_options = {sanitizeConfig: {addTags: ['iframe'], addAttr: ['allow'], ALLOWED_TAGS: ['iframe'], ALLOWED_ATTR: ['allow']},/* noAlerts: true,*/}
+    //Render and display form
+    $('#formio-popup').modal("show");
+    formio = await Formio.createForm(document.getElementById('formio-popup-content'), template, form_options)
+        if (defaults != null) {
+            Object.entries(defaults).forEach(([k, v]) => {
+                try {
+                    formio.getComponent(k).setValue(v);
+                } catch (error) {
+                    console.log("skipped ", k, v);
+                }
+        });
+    }
+    formio.on('submit', async submitted => {
+        $('#formio-popup').modal("hide");
+        cb('submit', opaque, submitted.data);
+
+    });
+    // On cancel (button) go to new page
+    formio.on('cancel', () => {
+        $('#formio-popup').modal("hide");
+        cb('cancel', opaque)
+    });
+    formio.on('clear', () => {
+        $('#formio-popup').modal("hide");
+        cb('clear', opaque)
+    });
+
+
+
+}

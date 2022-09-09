@@ -10,3 +10,7 @@
 .popup-div label {
     padding-right: 10px;
 }
+
+.card-body {
+    padding: 0.2rem;
+}

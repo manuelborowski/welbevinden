@@ -122,8 +122,8 @@ def update_student(data):
                     raise Exception(f'rfid {rfid} bestaat al voor {student.voornaam} {student.naam}')
             mad.update_student(student, {'rfid': rfid})
             mpapercut.update_student(student, {'rfid': rfid})
-        if 'password' in data:
-            mad.update_student(student, {'password': data['password']})
+        if 'password_data' in data:
+            mad.update_student(student, {'password': data['password_data']['password'], 'must_update_password': data['password_data']['must_update']})
         mstudent.update_student(student, data)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

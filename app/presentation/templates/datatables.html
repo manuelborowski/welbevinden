@@ -133,6 +133,14 @@
         </div>
     </div>
 
+    <div class="modal fade" id="formio-popup" tabindex="-1" aria-labelledby="popup-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div id="formio-popup-content"></div>
+            </div>
+        </div>
+    </div>
+
         <div id="formio-form"></div>
 {% endblock %}
 
@@ -143,6 +151,7 @@
             var filters = {{ (filters or []) | tojson }}
             var pdf_template = {{ (pdf_template or []) | tojson }}
             var table_config = {{ (table_config or []) | tojson }}
+            var popups = {{ (popups or {}) | tojson }}
             var config_columns ={{ table_config.template | tojson }}
             var api_key = {{ (api_key or '') | tojson }}
              {% if 'cell_color' in table_config %}

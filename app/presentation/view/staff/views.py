@@ -1,12 +1,11 @@
 from . import staff
-from app import log, supervisor_required, flask_app
-from flask import redirect, url_for, request, render_template
+from app import log
+from flask import redirect, url_for, request
 from flask_login import login_required, current_user
 from app.presentation.view import datatables
-from app.presentation.layout.utils import flash_plus
-from app.application import socketio as msocketio, settings as msettings, cardpresso as mcardpresso
-import sys, json
-import app.data
+from app.application import socketio as msocketio
+from app.presentation.view.formio_popups import update_password
+import json
 import app.application.staff
 
 
@@ -15,7 +14,7 @@ import app.application.staff
 def show():
     # start = datetime.datetime.now()
     datatables.update(table_configuration)
-    ret = datatables.show(table_configuration, template='staff/staff.html')
+    ret = datatables.show(table_configuration, template='staff/staff.html', popups=update_password)
     # print('staff.show', datetime.datetime.now() - start)
     return ret
 
@@ -66,7 +65,10 @@ def get_right_click_settings():
     }
     if current_user.is_at_least_supervisor:
         settings['menu'].extend([
-            {'label': 'RFID code', 'item': 'check-rfid', 'iconscout': 'wifi'},
+            {'label': 'RFID code aanpassen', 'item': 'check-rfid', 'iconscout': 'wifi'},
+        ])
+    if current_user.is_at_least_admin:
+        settings['menu'].extend([
             {'label': 'Paswoord aanpassen', 'item': 'update-password', 'iconscout': 'key-skeleton'},
         ])
     return settings

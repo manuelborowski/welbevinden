@@ -24,8 +24,9 @@ def update(table_configuration, fields=[]):
         table_configuration['template'].append(extra_field)
 
 
-def show(table_configuration, template=None):
+def show(table_configuration, template=None, popups={}):
     filters = []
+    api_key = None
     config = None
     try:
         table_configuration['template'] = msettings.get_datatables_config(table_configuration['view'])
@@ -38,8 +39,8 @@ def show(table_configuration, template=None):
     except Exception as e:
         flash_plus(f'Tabel kan niet getoond worden (show)', e)
     if template:
-        return render_template(template, table_config=config, filters=filters, api_key=api_key)
-    return render_template('datatables.html', table_config=config, filters=filters, api_key=api_key)
+        return render_template(template, table_config=config, filters=filters, api_key=api_key, popups=popups)
+    return render_template('datatables.html', table_config=config, filters=filters, api_key=api_key, popups=popups)
 
 
 def format_datatable(table_configuration, data_list, total_count, filtered_count):

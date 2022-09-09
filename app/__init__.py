@@ -65,10 +65,11 @@ flask_app.config.from_pyfile('config.py')
 # 0.43: students: get all usernames from ad (once) and store in SDH.  Added functionality to store new RFID directly to papercut
 # 0.44: set the RFID of staff as well
 # 0.45: added feature to udpate password.  Use formio in popup
+#0.46: add file to git
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.45', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.46', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

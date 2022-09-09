@@ -551,19 +551,27 @@ def update_property(ous, username, data):
             res = ldap.search(ou, f'(&(objectclass=user)(samaccountname={username}))', ldap3.SUBTREE, attributes=['cn', 'userAccountControl', 'mail', 'pager'])
             if res:
                 found = True
-                ad_student = ldap.response[0]
+                ad_user = ldap.response[0]
                 if 'rfid' in data:
                     if data['rfid'] == '':
                         changes.update({'pager': [ldap3.MODIFY_DELETE, ([])]})
                     else:
                         changes.update({'pager': [ldap3.MODIFY_REPLACE, (data['rfid'])]})
-                res = ldap.modify(ad_student['dn'], changes)
-                if res:
-                    log.info(f'Update to AD, {username} RFID {data}')
-                else:
-                    log.error(f'{sys._getframe().f_code.co_name}: could not update changes of {username}: {changes}')
-                    raise Exception('Kan AD niet updaten')
-                break
+                    res = ldap.modify(ad_user['dn'], changes)
+                    if res:
+                        log.info(f'Update to AD, {username} RFID {data}')
+                    else:
+                        log.error(f'{sys._getframe().f_code.co_name}: could not update changes of {username}: {changes}')
+                        raise Exception('Kan AD niet updaten')
+                    break
+                elif 'password' in data:
+                    res = ldap3.extend.microsoft.modifyPassword.ad_modify_password(ldap, ad_user['dn'], data['password'], None)
+                    if res:
+                        log.info(f'Updated password of {username}')
+                    else:
+                        log.error(f'{sys._getframe().f_code.co_name}: could not update password of {username}')
+                        raise Exception('Paswoord voldoet niet aan de eisen')
+                    break
         if not found:
             log.error(f'{sys._getframe().f_code.co_name}: could not find {username} in AD')
             raise Exception(f'Kan {username} niet vinden in AD')

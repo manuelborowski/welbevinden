@@ -46,6 +46,8 @@ def update_staff(data):
                     raise Exception(f'rfid {rfid} bestaat al voor {staff.voornaam} {staff.naam}')
             mad.update_staff(staff, {'rfid': rfid})
             mpapercut.update_staff(staff, {'rfid': rfid})
+        if 'password' in data:
+            mad.update_staff(staff, {'password': data['password']})
         mstaff.update_staff(staff, data)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

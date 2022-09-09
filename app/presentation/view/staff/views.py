@@ -67,6 +67,7 @@ def get_right_click_settings():
     if current_user.is_at_least_supervisor:
         settings['menu'].extend([
             {'label': 'RFID code', 'item': 'check-rfid', 'iconscout': 'wifi'},
+            {'label': 'Paswoord aanpassen', 'item': 'update-password', 'iconscout': 'key-skeleton'},
         ])
     return settings
 

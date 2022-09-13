@@ -66,10 +66,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.44: set the RFID of staff as well
 # 0.45: added feature to udpate password.  Use formio in popup
 #0.46: add file to git
+#0.47: bugfix: update of RFID to sdh takes into account that the student is not present anymore
+
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.46', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.47', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

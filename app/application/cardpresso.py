@@ -123,9 +123,12 @@ def check_for_new_rfid():
             saved_students = {s.leerlingnummer: s for s in mstudent.get_students({'delete': False})}
             for badge in badges:
                 if badge.rfid != '':
-                    changed_students.append({'changed': ['rfid'],
-                                             'rfid': badge.rfid.upper().replace('Q', 'A'),
-                                             'student': saved_students[badge.leerlingnummer]})
+                    if badge.leerlingnummer in saved_students:
+                        new_rfid = badge.rfid.upper().replace('Q', 'A')
+                        changed_students.append({'changed': ['rfid'], 'rfid': new_rfid, 'student': saved_students[badge.leerlingnummer]})
+                        log.info(f'{sys._getframe().f_code.co_name}: new rfid {new_rfid} for {badge.leerlingnummer}')
+                    else:
+                        log.info(f'{sys._getframe().f_code.co_name}: {badge.leerlingnummer} not found')
                     deleted_badges.append(badge.id)
             if changed_students:
                 mstudent.change_students(changed_students)

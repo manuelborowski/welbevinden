@@ -69,7 +69,10 @@ def get_students_from_wisa_database(local_file=None, max=0):
         # clean up, remove leading and trailing spaces
         for item in data:
             for k, v in item.items():
-                item[k] = v.strip()
+                if k == 'middag':  # this field may contain leading spaces
+                    item[k] = v.replace(' ', '-')
+                else:
+                    item[k] = v.strip()
         # massage the imported data so that it fits the database.
         # for each student in the import, check if it's new or changed
         for item in data:

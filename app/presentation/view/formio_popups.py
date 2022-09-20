@@ -1,8 +1,7 @@
 from app.presentation.view import false, true, null
 
-update_password = {
-    "update-password":
-        {
+update_password = \
+    {
             "display": "form",
             "components": [
                 {
@@ -98,4 +97,76 @@ update_password = {
                 }
             ]
         }
+
+database_integrity_check = \
+    {
+  "display": "form",
+  "components": [
+    {
+      "title": "Database integriteitscontrole",
+      "theme": "primary",
+      "collapsible": false,
+      "key": "nieuwPaswoordGeven",
+      "type": "panel",
+      "label": "Panel",
+      "input": false,
+      "tableView": false,
+      "components": [
+        {
+          "label": "Start controle",
+          "action": "event",
+          "theme": "warning",
+          "tooltip": "Start de database integriteitscontrole",
+          "tableView": false,
+          "key": "startControle",
+          "type": "button",
+          "input": true,
+          "showValidations": false,
+          "event": "event-start-integrity-check"
+        },
+        {
+          "label": "Active Directory",
+          "tooltip": "Controleer de Active Directory",
+          "tableView": false,
+          "key": "check-ad",
+          "type": "checkbox",
+          "input": true,
+          "defaultValue": false
+        },
+        {
+          "label": "Log",
+          "autoExpand": false,
+          "tableView": true,
+          "key": "log-check-integrity",
+          "type": "textarea",
+          "rows": 10,
+          "input": true
+        },
+        {
+          "label": "Database bijwerken",
+          "action": "event",
+          "showValidations": false,
+          "theme": "warning",
+          "tooltip": "Werk de database(s) bij",
+          "tableView": false,
+          "key": "databaseBijwerken",
+          "type": "button",
+          "input": true,
+          "event": "event-update-database"
+        },
+        {
+          "label": "Sluit venster",
+          "action": "event",
+          "showValidations": false,
+          "theme": "warning",
+          "tableView": false,
+          "key": "annuleren",
+          "type": "button",
+          "event": "cancel",
+          "input": true
+        }
+      ]
+    }
+  ]
 }
+

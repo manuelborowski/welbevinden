@@ -104,12 +104,18 @@
         <div class="content">
             <ul class="menu">
                 {%  for item in table_config.right_click.menu %}
-                    <li class="item" onclick=item_clicked("{{ item.item }}")>
-                        {% if 'iconscout' in item %}
-                            <i class="uil uil-{{ item.iconscout }}"></i>
-                        {%  endif %}
-                        <span>{{ item.label }}</span>
-                    </li>
+                    {% if item.item == "horizontal-line" %}
+                        <li class="item">
+                            <span>---------------------</span>
+                        </li>
+                    {%  else %}
+                        <li class="item" onclick=item_clicked("{{ item.item }}")>
+                            {% if 'iconscout' in item %}
+                                <i class="uil uil-{{ item.iconscout }}"></i>
+                            {%  endif %}
+                            <span>{{ item.label }}</span>
+                        </li>
+                    {% endif %}
             {% endfor %}
             </ul>
         </div>
@@ -134,7 +140,7 @@
     </div>
 
     <div class="modal fade" id="formio-popup" tabindex="-1" aria-labelledby="popup-label" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog" id="formio-popup-dialog">
             <div class="modal-content">
                 <div id="formio-popup-content"></div>
             </div>

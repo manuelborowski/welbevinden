@@ -55,20 +55,18 @@ hr.nice-green-line {
   border: 16px solid #f3f3f3;
   border-radius: 50%;
   border-top: 16px solid #3498db;
-  width: 120px;
-  height: 120px;
   -webkit-animation: spin 2s linear infinite; /* Safari */
   animation: spin 2s linear infinite;
   position: fixed; /* Sit on top of the page content */
   display: none; /* Hidden by default */
-  width: 100px;
-  height: 100px;
-  top: 50%;
-  left: 50%;
+  width: 500px;
+  height: 500px;
+  top: calc(50% - 250px);
+  left: calc(50% - 250px);
   right: 0;
   bottom: 0;
   background-color: rgba(0,0,0,0); /* Black background with opacity */
-  z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+  z-index: 20; /* Specify a stack order in case you're using a different order for other elements */
   cursor: pointer; /* Add a pointer on hover */
 }
 

@@ -110,6 +110,22 @@ def api_get_students(options=None):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
+
+def database_integrity_check(data):
+    try:
+        ret = ''
+        if 'ad' in data['databases']:
+            ret += mad.database_integrity_check(return_log=True)
+        else:
+            return 'Gelieve minstens één database te selecteren!'
+        return ret
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
+
+
+
+
 def update_student(data):
     try:
         student = mstudent.get_first_student({'id': data['id']})

@@ -90,35 +90,47 @@ const create_p_element = (text) => {
     return p_element
 }
 
-const create_formio_popup = async (template, defaults = null, cb, opaque) => {
+var formio_popup_form = null;
+const formio_popup_create = async (template, defaults = null, cb = null, opaque = null, width = null) => {
         const form_options = {sanitizeConfig: {addTags: ['iframe'], addAttr: ['allow'], ALLOWED_TAGS: ['iframe'], ALLOWED_ATTR: ['allow']},/* noAlerts: true,*/}
     //Render and display form
     $('#formio-popup').modal("show");
-    formio = await Formio.createForm(document.getElementById('formio-popup-content'), template, form_options)
+    if (width)
+        document.querySelector('#formio-popup-dialog').style.maxWidth = width;
+    formio_popup_form = await Formio.createForm(document.getElementById('formio-popup-content'), template, form_options)
         if (defaults != null) {
             Object.entries(defaults).forEach(([k, v]) => {
                 try {
-                    formio.getComponent(k).setValue(v);
+                    formio_popup_form.getComponent(k).setValue(v);
                 } catch (error) {
                     console.log("skipped ", k, v);
                 }
         });
     }
-    formio.on('submit', async submitted => {
+    formio_popup_form.on('submit', async submitted => {
         $('#formio-popup').modal("hide");
         cb('submit', opaque, submitted.data);
-
     });
-    // On cancel (button) go to new page
-    formio.on('cancel', () => {
+    formio_popup_form.on('cancel', () => {
         $('#formio-popup').modal("hide");
         cb('cancel', opaque)
     });
-    formio.on('clear', () => {
+    formio_popup_form.on('clear', () => {
         $('#formio-popup').modal("hide");
         cb('clear', opaque)
     });
+}
 
+const formio_popup_subscribe_event = (event, cb, opaque) => {
+    formio_popup_form.on(event, async submitted => {
+        cb(event, opaque, submitted);
+    });
+}
 
-
+const formio_popup_set_value = (key, value) => {
+    try {
+        formio_popup_form.getComponent(key).setValue(value);
+    } catch (error) {
+        console.log("skipped ", k, v);
+    }
 }

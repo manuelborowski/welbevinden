@@ -14,7 +14,10 @@ import app.application.staff
 def show():
     # start = datetime.datetime.now()
     datatables.update(table_configuration)
-    ret = datatables.show(table_configuration, template='staff/staff.html', popups=update_password)
+    popups = {
+        'update-password': update_password
+    }
+    ret = datatables.show(table_configuration, template='staff/staff.html', popups=popups)
     # print('staff.show', datetime.datetime.now() - start)
     return ret
 

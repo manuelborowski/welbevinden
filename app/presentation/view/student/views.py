@@ -4,7 +4,7 @@ from flask import redirect, url_for, request, render_template
 from flask_login import login_required, current_user
 from app.presentation.view import datatables
 from app.application import socketio as msocketio, settings as msettings, cardpresso as mcardpresso
-from app.presentation.view.formio_popups import update_password
+from app.presentation.view.formio_popups import update_password, database_integrity_check
 import sys, json
 import app.data
 import app.application.student
@@ -15,7 +15,11 @@ import app.application.student
 def show():
     # start = datetime.datetime.now()
     datatables.update(table_configuration)
-    ret = datatables.show(table_configuration, template='student/student.html', popups=update_password)
+    popups = {
+        'update-password': update_password,
+        'database-integrity-check': database_integrity_check
+    }
+    ret = datatables.show(table_configuration, template='student/student.html', popups=popups)
     # print('student.show', datetime.datetime.now() - start)
     return ret
 
@@ -135,7 +139,12 @@ def get_right_click_settings():
             {'label': 'Nieuwe badge', 'item': 'new-badge', 'iconscout': 'credit-card'},
             {'label': 'RFID code aanpassen', 'item': 'check-rfid', 'iconscout': 'wifi'},
             {'label': 'Paswoord aanpassen', 'item': 'update-password', 'iconscout': 'key-skeleton'},
+            {'label': '', 'item': 'horizontal-line', 'iconscout': ''},
             {'label': 'Vsk nummers', 'item': 'new-vsk-numbers', 'iconscout': 'abacus'},
+        ])
+    if current_user.is_at_least_admin:
+        settings['menu'].extend([
+            {'label': 'Database Integriteitscontrole', 'item': 'database-integrity-check', 'iconscout': 'database'},
         ])
     return settings
 

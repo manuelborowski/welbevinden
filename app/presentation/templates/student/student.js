@@ -76,4 +76,5 @@ subscribe_right_click('new-vsk-numbers', new_vsk_numbers);
 
 
 subscribe_right_click('check-rfid', item => check_rfid(item, 'api.update_student'));
-subscribe_right_click('update-password', item => update_password2(item, 'api.update_student', popups['update-password']));
+subscribe_right_click('update-password', item => update_password(item, 'api.update_student', popups['update-password']));
+subscribe_right_click('database-integrity-check', item => database_integrity_check(item, 'api.database_integrity_check', popups['database-integrity-check']));

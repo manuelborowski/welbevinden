@@ -41,6 +41,7 @@ from app import log
 from app.data import student as mstudent
 from app.data import settings as msettings
 import ldap3, json, sys
+from app.application.util import get_student_voornaam
 
 KLAS_LOCATION_TOPLEVEL = 'OU=Klassen,OU=Groepen,DC=SU,DC=local'
 STUDENT_LOCATION_TOPLEVEL = 'OU=Leerlingen,OU=Accounts,DC=SU,DC=local'
@@ -200,7 +201,7 @@ def klas_put_students_in_correct_klas(ctx):
 
 
 # do the update of the students to the group leerlingen in the AD
-def do_students_to_group_leerlingen(ctx):
+def students_do_to_group_leerlingen(ctx):
     try:
         for student in ctx.students_to_leerlingen_group:
             res = ctx.ldap.modify(ctx.leerlingen_group, {'member': [(ldap3.MODIFY_ADD, student)]})
@@ -223,7 +224,7 @@ def ldap_init(ctx):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def cache_students_init(ctx):
+def students_cache_init(ctx):
     try:
         # Create student caches
         res = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))', ldap3.SUBTREE,
@@ -240,7 +241,7 @@ def cache_students_init(ctx):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def cache_klas_init(ctx):
+def klas_cache_init(ctx):
     try:
         # Create klas caches
         res = ctx.ldap.search(ctx.klas_location_toplevel, '(objectclass=group)', ldap3.SUBTREE, attributes=['member', 'cn'])
@@ -553,16 +554,16 @@ def ad_cron_task(opaque):
             log.info(('Start update to AD'))
             ctx = Context()
             ldap_init(ctx)
-            cache_students_init(ctx)
+            students_cache_init(ctx)
             if not create_current_year_ou(ctx):
                 ldap_deinit(ctx)
                 return
             students_new(ctx)
             students_changed(ctx)
             students_deleted(ctx)
-            cache_klas_init(ctx)
+            klas_cache_init(ctx)
             klas_put_students_in_correct_klas(ctx)  # put all students in the correct klas in AD
-            do_students_to_group_leerlingen(ctx) # then put the new students in the group leerlingen
+            students_do_to_group_leerlingen(ctx) # then put the new students in the group leerlingen
             students_move_to_current_year_ou(ctx) # then move the students to the current schoolyear OU
             # for some reason, it is only possible to change the setting to update the password AFTER the student is moved to the new OU
             students_must_update_password(ctx) # then change a setting so that the student must update the password
@@ -656,7 +657,7 @@ def database_integrity_check(return_log=False):
         if sdh_property != ad_property:
             if verbose_logging:
                 log.info(f'{sys._getframe().f_code.co_name}: student {student.leerlingnummer} {label}, SDH: {sdh_property}, AD: {ad_property}')
-            dl.add(f'AD, student {student.leerlingnummer} {label}, SDH: {sdh_property}, AD: {ad_property}')
+            dl.add(f'AD, student {student.naam} {student.voornaam}, {student.leerlingnummer}, {label}, SDH: {sdh_property}, AD: {ad_property}')
 
     try:
         verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
@@ -665,14 +666,16 @@ def database_integrity_check(return_log=False):
         ctx = Context()
         ldap_init(ctx)
         sdh_students = mstudent.get_students()
-        cache_students_init(ctx)
+        students_cache_init(ctx)
         for student in sdh_students:
             if student.leerlingnummer in ctx.ad_active_students_leerlingnummer:
                 ad_student = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']
 
                 check_property(student, student.naam, ad_student['sn'], 'NAAM')
+                check_property(student, get_student_voornaam(student), ad_student['givenname'], 'ROEPNAAM')
                 check_property(student, student.voornaam, ad_student['givenname'], 'VOORNAAM')
                 check_property(student, student.klascode, ad_student['l'], 'KLAS')
+                check_property(student, student.email, ad_student['mail'].lower(), 'EMAIL')
                 if not ad_student['pager']:
                     ad_student['pager'] = None
                 check_property(student, student.rfid, ad_student['pager'], 'RFID')

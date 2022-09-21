@@ -63,3 +63,10 @@ def api_get_model_data(model, options=None):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": True, "data": e}
+
+
+# If the roepnaam is filled in and it is different from the voornaam, then the roepnaam is used
+def get_student_voornaam(student):
+    if student.roepnaam != '' and student.roepnaam != student.voornaam:
+        return student.roepnaam
+    return student.voornaam

@@ -11,7 +11,7 @@ def delete_badges(ids):
     log.info(f"done deleting badges: {ids}")
 
 
-# indicates which badge property is reaquired
+# indicates which badge property is required
 badge_properties = {
     'naam': True,
     'voornaam': True,

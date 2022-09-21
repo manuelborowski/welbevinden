@@ -14,6 +14,7 @@ class Student(db.Model, SerializerMixin):
 
     voornaam = db.Column(db.String(256), default='')
     naam = db.Column(db.String(256), default='')
+    roepnaam = db.Column(db.String(256), default='')
     rijksregisternummer = db.Column(db.String(256), default='')
     stamboeknummer = db.Column(db.String(256), default='')
     leerlingnummer = db.Column(db.String(256), default='')

@@ -70,11 +70,12 @@ flask_app.config.from_pyfile('config.py')
 #0.48: bugfix, change spaces in field 'middag' to hashes to prevent stripping
 #0.49: refactored ad.py.  Added functionality to test database integrity
 #0.50: update database integrity check.  Introduced column roepnaam
+#0.51: AD, displayname should be first-name last-name.  Added code to update already existing entries in AD
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.50', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.51', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

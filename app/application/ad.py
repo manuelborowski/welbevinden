@@ -122,22 +122,16 @@ def klas_put_students_in_correct_klas(ctx):
                 sdh_klas_cache[student.klascode] = [student.leerlingnummer]
         # Create AD klas cache
         ad_klas_cache = {}
-        ad_klassen = {}
         res = ctx.ldap.search(ctx.klas_location_toplevel, '(objectclass=group)', ldap3.SUBTREE, attributes=['member', 'cn'])
         if res:
             for klas in ctx.ldap.response:
                 klascode = klas['attributes']['cn']
-                ad_klassen[klascode] = klas
+                ad_klas_cache[klascode] = []
                 for member in klas['attributes']['member']:
                     if member in ctx.ad_active_students_dn:
-                        if klascode in ad_klas_cache:
-                            ad_klas_cache[klascode].append(ctx.ad_active_students_dn[member]['attributes']['wwwhomepage'])
-                        else:
-                            ad_klas_cache[klascode] = [ctx.ad_active_students_dn[member]['attributes']['wwwhomepage']]
+                        ad_klas_cache[klascode].append(ctx.ad_active_students_dn[member]['attributes']['wwwhomepage'])
                     else:
                         log.info(f'{sys._getframe().f_code.co_name}, student {member}, klas {klascode} not found in cache')
-
-
             for klascode, sdh_leerlingnummers in sdh_klas_cache.items():
                 klas_dn = f'CN={klascode},{ctx.klas_location_toplevel}'
                 if klascode not in ad_klas_cache:
@@ -331,7 +325,7 @@ def students_new(ctx):
 
         log.info('AD: add (create) new students to current year OU')
         # add new students to current OU
-        # new students are created with empty password and are required to set a password at first login
+        # new students are created with default password and are required to set a password at first login
         object_class = ['top', 'person', 'organizationalPerson', 'user']
         for student in ctx.new_students_to_add:
             cn = f'{student.naam} {student.voornaam}'
@@ -356,7 +350,7 @@ def students_new(ctx):
                           'l': student.klascode,
                           'description': f'{student.schooljaar} {student.klascode}', 'postalcode': student.schooljaar,
                           'physicaldeliveryofficename': student.klascode, 'givenname': student.voornaam,
-                          'displayname': f'{student.naam} {student.voornaam}'}
+                          'displayname': f'{student.voornaam} {student.naam} '}
             if student.rfid and student.rfid != '':
                 attributes['pager'] = student.rfid
             res = ctx.ldap.add(dn, object_class, attributes)
@@ -548,10 +542,54 @@ def get_usernames_from_ad():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
+# should be executed once to set the displayname in ad correct (first-name last name) and the cn (last-name first-name)
+def update_ad_cn_and_displayname():
+    try:
+        ctx = Context()
+        ldap_init(ctx)
+        students_cache_init(ctx)
+        if not create_current_year_ou(ctx):
+            ldap_deinit(ctx)
+            return
+
+        log.info('update CN and displayname')
+        studenten = mstudent.get_students()
+        naam_cache = []
+        for student in studenten:
+            if student.leerlingnummer in ctx.ad_active_students_leerlingnummer:
+                dn = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['dn']
+                if student.naam + student.voornaam in naam_cache:
+                    leerlingnummer_suffix = str(student.leerlingnummer)[-2:]
+                    new_cn = f'CN={student.naam} {student.voornaam} {leerlingnummer_suffix}'
+                    log.info(f'Student already exists, cn is {new_cn}')
+                else:
+                    new_cn = f'CN={student.naam} {student.voornaam}'
+                    naam_cache.append(student.naam + student.voornaam)
+                # update displayname
+                res = ctx.ldap.modify(dn, {'displayname': [ldap3.MODIFY_REPLACE, (f'{student.voornaam} {student.naam}')]})
+                if res:
+                    log.info(f'Student {student.naam} {student.voornaam}, {student.leerlingnummer}, updated displayname')
+                else:
+                    log.error(f'Student {student.naam} {student.voornaam}, {student.leerlingnummer}, could not update displayname, {ctx.ldap.result}')
+                # update cn
+                res = ctx.ldap.modify_dn(dn, new_cn, new_superior=ctx.student_location_current_year)
+                if res:
+                    log.info(f'Student {student.naam} {student.voornaam}, {student.leerlingnummer}, changed dn {dn} to cn {new_cn}')
+                else:
+                    log.error(f'Student {student.naam} {student.voornaam}, {student.leerlingnummer}, could not update, {ctx.ldap.result}')
+
+            else:
+                log.error(f'Student {student.naam} {student.voornaam}, {student.leerlingnummer} not found in AD')
+        ldap_deinit(ctx)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
 def ad_cron_task(opaque):
     try:
         if msettings.get_configuration_setting('cron-enable-update-student-ad'):
             log.info(('Start update to AD'))
+
             ctx = Context()
             ldap_init(ctx)
             students_cache_init(ctx)
@@ -569,8 +607,12 @@ def ad_cron_task(opaque):
             students_must_update_password(ctx) # then change a setting so that the student must update the password
             klas_check_if_student_is_in_one_klas(ctx)
             ldap_deinit(ctx)
+
             # only once and then comment out
             # get_usernames_from_ad()
+            # only once and then comment out
+            # update_ad_cn_and_displayname()
+
             msettings.set_configuration_setting('ad-schoolyear-changed', False)
             log.info(f'update_ad: processed ')
     except Exception as e:
@@ -651,7 +693,7 @@ def database_integrity_check(return_log=False):
                 self.log += text
                 self.log += '\n'
         def get(self):
-            return self.log
+            return self.log if self.log != '' else 'Check ok'
 
     def check_property(student, sdh_property, ad_property, label):
         if sdh_property != ad_property:
@@ -670,7 +712,6 @@ def database_integrity_check(return_log=False):
         for student in sdh_students:
             if student.leerlingnummer in ctx.ad_active_students_leerlingnummer:
                 ad_student = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']
-
                 check_property(student, student.naam, ad_student['sn'], 'NAAM')
                 check_property(student, get_student_voornaam(student), ad_student['givenname'], 'ROEPNAAM')
                 check_property(student, student.voornaam, ad_student['givenname'], 'VOORNAAM')

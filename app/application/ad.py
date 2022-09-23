@@ -36,7 +36,7 @@
 # conn.modify_dn('CN=Rik Fabri,OU=2018-2019,OU=Leerlingen,OU=Accounts,DC=SU,DC=local', 'CN=Rik Fabri', new_superior='OU=manuel-test,OU=Leerlingen,OU=Accounts,DC=SU,DC=local')
 #  attributes = {'samaccountname': 's66666', 'wwwhomepage': '66666', 'name': 'manuel test', 'useraccountcontrol': 544, 'cn': 'manuel test', 'sn': 'test', 'l': 'manuel-6IT', 'description': 'manuel-test manuel-6IT', 'postalcode': '26-27', 'physicalDeliveryOfficeName': 'manuel-6IT', 'givenname': 'manuel', 'displayname': 'manuel test'}
 # ldap_s.add(f'CN=manuel-test,{klas_location_toplevel}', 'group', {'cn': 'manuel-test', 'member': 'CN=Michiel Smans,OU=2021-2022,OU=Leerlingen,OU=Accounts,DC=SU,DC=local'})
-
+import app
 from app import log
 from app.data import student as mstudent
 from app.data import settings as msettings
@@ -57,7 +57,7 @@ class Context:
         self.leerlingen_group = 'CN=Leerlingen,OU=Groepen,DC=SU,DC=local'
         self.veyon_group = 'CN=Veyon-Leerling-Groeperingen,OU=Speciaal,OU=Groepen,DC=SU,DC=local'
         self.email_domain = '@lln.campussintursula.be'
-        self.student_location_current_year = ''
+        self.student_ou_current_year = ''
         self.ad_active_students_leerlingnummer = {}  # cache active students, use leerlingnummer as key
         self.ad_active_students_dn = {}  # cache active students, use dn as key
         self.ad_active_students_mail = []   # a list of existing emails, needed to check for doubles
@@ -68,20 +68,13 @@ class Context:
         self.new_students_to_add = []  # these students do not exist yet in AD, must be added
         self.students_to_leerlingen_group = []  # these students need to be placed in the group leerlingen
         self.students_move_to_current_year_ou = []
+        self.students_change_cn = []
         self.students_must_update_password = []
         self.ldap = None
         self.changed_schoolyear, self.prev_year, self.current_year = msettings.get_changed_schoolyear()
         if self.changed_schoolyear:  # keep a local copy of changed-schoolyear
             msettings.set_configuration_setting('ad-schoolyear-changed', True)
         self.changed_schoolyear = msettings.get_configuration_setting('ad-schoolyear-changed')
-
-
-# put students in the group leerlingen
-def students_prepare_to_move_to_group_leerlingen(ctx, student):
-    try:
-        ctx.students_to_leerlingen_group.append(ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['dn'])
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 # translate a list of leerlingnummers to AD-DN's   If a leerlingnummer is not found in the local cache (not active) try to find in AD
@@ -99,6 +92,17 @@ def __leerlingnummers_to_ad_dn(ctx, leerlingnummers):
                 e = ctx.ldap.result
                 log.error(f'{sys._getframe().f_code.co_name} could not find student {leerlingnummer} in AD, {e}')
     return student_dns
+
+
+def __handle_student_ldap_response(ctx, student, res, info, verbose_logging=True):
+    try:
+        if res:
+            if verbose_logging:
+                log.info(f'student {student.naam} {student.voornaam}, {student.leerlingnummer}, {info}')
+        else:
+            log.error(f'student {student.naam} {student.voornaam}, {student.leerlingnummer}, COULD NOT {info}, {ctx.ldap.result}')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 # do the update of the klassen in the AD
@@ -198,11 +202,9 @@ def klas_put_students_in_correct_klas(ctx):
 def students_do_to_group_leerlingen(ctx):
     try:
         for student in ctx.students_to_leerlingen_group:
-            res = ctx.ldap.modify(ctx.leerlingen_group, {'member': [(ldap3.MODIFY_ADD, student)]})
-            if res:
-                log.info(f'AD: added student {student} to group {ctx.leerlingen_group}')
-            else:
-                log.error(f'AD: could not add student {student} to group {ctx.leerlingen_group}')
+            dn = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['dn']
+            res = ctx.ldap.modify(ctx.leerlingen_group, {'member': [(ldap3.MODIFY_ADD, dn)]})
+            __handle_student_ldap_response(ctx, student, res, f'already-present-in-AD, add to group {ctx.leerlingen_group}')
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
@@ -261,6 +263,7 @@ def ldap_deinit(ctx):
 def create_current_year_ou(ctx):
     try:
         # check if OU current year exists.  If not, create
+        log.info(f"{sys._getframe().f_code.co_name}, START")
         find_current_year_ou = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=organizationalunit)(name={ctx.current_year}))', ldap3.SUBTREE)
         if not find_current_year_ou:
             res = ctx.ldap.add(f'OU={ctx.current_year},{ctx.student_location_toplevel}', 'organizationalunit')
@@ -269,7 +272,9 @@ def create_current_year_ou(ctx):
             else:
                 log.error(f'AD error: could not add OU {ctx.current_year}, aborting...')
                 return False
-        ctx.student_location_current_year = f'OU={ctx.current_year},{ctx.student_location_toplevel}'
+        ctx.student_ou_current_year = f'OU={ctx.current_year},{ctx.student_location_toplevel}'
+        log.info(f"{sys._getframe().f_code.co_name}, STOP")
+
         return True
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -279,6 +284,8 @@ def students_new(ctx):
     try:
         # check if new student already exists in AD (student left school and came back)
         # if so, activate and put in current OU
+        log.info(f"{sys._getframe().f_code.co_name}, START")
+        log.info(f"{sys._getframe().f_code.co_name}, check for students, already present in AD")
         new_students = mstudent.get_students({"new": True})
         reset_student_password = msettings.get_configuration_setting('ad-reset-student-password')
         default_password = msettings.get_configuration_setting('generic-standard-password')
@@ -290,9 +297,9 @@ def students_new(ctx):
                 ad_student = ctx.ldap.response[0]
                 dn = ad_student['dn']  # old OU
                 account_control = ad_student['attributes']['userAccountControl']  # to activate
-                ctx.students_move_to_current_year_ou.append(ad_student)
+                ctx.students_move_to_current_year_ou.append(student)
                 if reset_student_password:
-                    ctx.students_must_update_password.append(ad_student)
+                    ctx.students_must_update_password.append(student)
                 account_control &= ~2  # clear bit 2 to activate
                 changes = {
                     'userAccountControl': [(ldap3.MODIFY_REPLACE, [account_control])],
@@ -304,37 +311,32 @@ def students_new(ctx):
                 if student.rfid and student.rfid != '':
                     changes.update({'pager': [ldap3.MODIFY_REPLACE, (student.rfid)]})
                 res = ctx.ldap.modify(dn, changes)
-                if not res:
-                    log.error(f'AD error, could not activate {dn}, with changes {changes}')
+                __handle_student_ldap_response(ctx, student, res, f'already-present-in-AD, changed {changes}', verbose_logging=verbose_logging)
                 if reset_student_password:
                     res = ldap3.extend.microsoft.modifyPassword.ad_modify_password(ctx.ldap, dn, default_password, None)  # reset the password to default
-                    if not res:
-                        log.error(f'AD error, could not set default password of {dn}')
+                    __handle_student_ldap_response(ctx, student, res, f'set default password', verbose_logging=verbose_logging)
                 if student.email != ad_student['attributes']['mail']:
                     mstudent.update_student(student, {'email': ad_student['attributes']['mail']})
                     if verbose_logging:
                         log.info(f'add-new-student-already-in-ad, {student.naam} {student.voornaam}, {student.leerlingnummer}, update email in SDH {ad_student["attributes"]["mail"]}')
-                if verbose_logging:
-                    log.info(f'add-new-student-already-in-ad, {student.naam} {student.voornaam}, {student.leerlingnummer}, reset paswoord: {reset_student_password}')
                 # add student to cache
                 ctx.ad_active_students_leerlingnummer[student.leerlingnummer] = ad_student
-                # prepare_update_klassen(ctx, student)
-                students_prepare_to_move_to_group_leerlingen(ctx, student)
+                ctx.students_to_leerlingen_group.append(student)
             else:
                 ctx.new_students_to_add.append(student)
 
-        log.info('AD: add (create) new students to current year OU')
+        log.info(f"{sys._getframe().f_code.co_name}, new students, not in AD yet")
         # add new students to current OU
         # new students are created with default password and are required to set a password at first login
         object_class = ['top', 'person', 'organizationalPerson', 'user']
         for student in ctx.new_students_to_add:
             cn = f'{student.naam} {student.voornaam}'
-            dn = f'CN={cn},{ctx.student_location_current_year}'
+            dn = f'CN={cn},{ctx.student_ou_current_year}'
             email = student.email
             if student.email in ctx.ad_active_students_mail or dn in ctx.ad_active_students_dn:
                 leerlingnummer_suffix = str(student.leerlingnummer)[-2:]
                 cn = f'{cn} {leerlingnummer_suffix}'
-                dn = f'CN={cn},{ctx.student_location_current_year}'
+                dn = f'CN={cn},{ctx.student_ou_current_year}'
                 email_split = student.email.split('@')
                 email = f'{email_split[0]}{leerlingnummer_suffix}@{email_split[1]}'
                 mstudent.update_student(student, {'email': email})
@@ -350,22 +352,18 @@ def students_new(ctx):
                           'l': student.klascode,
                           'description': f'{student.schooljaar} {student.klascode}', 'postalcode': student.schooljaar,
                           'physicaldeliveryofficename': student.klascode, 'givenname': student.voornaam,
-                          'displayname': f'{student.voornaam} {student.naam} '}
+                          'displayname': f'{app.application.util.get_student_voornaam(student)} {student.naam} '}
             if student.rfid and student.rfid != '':
                 attributes['pager'] = student.rfid
             res = ctx.ldap.add(dn, object_class, attributes)
-            if not res:
-                log.error(f'AD: could not add new student with attributes: {attributes}')
+            __handle_student_ldap_response(ctx, student, res, f'new-in-AD, changed {attributes}', verbose_logging=verbose_logging)
             res = ldap3.extend.microsoft.modifyPassword.ad_modify_password(ctx.ldap, dn, default_password, None)  # reset the password to empty
-            if not res:
-                log.error(f'AD error, could not set standard password of {dn}')
-            if verbose_logging:
-                log.info(f'add-new-student-not-yet-in-ad, {student.naam} {student.voornaam}, {student.leerlingnummer}')
+            __handle_student_ldap_response(ctx, student, res, 'set standard password', verbose_logging=verbose_logging)
             ad_student = {'dn': dn, 'attributes': {'cn': cn}}
             ctx.ad_active_students_leerlingnummer[student.leerlingnummer] = ad_student
-            # prepare_update_klassen(ctx, student)
-            students_prepare_to_move_to_group_leerlingen(ctx, student)
-            ctx.students_must_update_password.append(ad_student)
+            ctx.students_to_leerlingen_group.append(student)
+            ctx.students_must_update_password.append(student)
+        log.info(f"{sys._getframe().f_code.co_name}, STOP")
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
@@ -374,7 +372,7 @@ def students_changed(ctx):
     try:
         # check if there are students with valid, changed attributes.  If so, update the attributes
         # if required, move the students to the current OU
-        log.info('AD: check for changed students')
+        log.info(f"{sys._getframe().f_code.co_name}, START")
         changed_students = mstudent.get_students({"-changed": "", "new": False})
         verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
         if changed_students:
@@ -384,11 +382,13 @@ def students_changed(ctx):
                     if student.leerlingnummer in ctx.ad_active_students_leerlingnummer:
                         changes = {}
                         if 'naam' in changed or 'voornaam' in changed:
-                            changes.update({'name': [ldap3.MODIFY_REPLACE, (f'{student.naam} {student.voornaam}')],
-                                            'cn': [ldap3.MODIFY_REPLACE, (f'{student.naam} {student.voornaam}')],
+                            changes.update({
                                             'sn': [ldap3.MODIFY_REPLACE, (student.naam)],
                                             'givenname': [ldap3.MODIFY_REPLACE, (student.voornaam)],
-                                            'displayname': [ldap3.MODIFY_REPLACE, (f'{student.naam} {student.voornaam}')]})
+                                            'displayname': [ldap3.MODIFY_REPLACE, (f'{app.application.util.get_student_voornaam(student)} {student.naam}')]})
+                            ctx.students_change_cn.append(student)
+                        if 'roepnaam' in changed and student.roepnaam != '':
+                            changes.update({'displayname': [ldap3.MODIFY_REPLACE, (f'{app.application.util.get_student_voornaam(student)} {student.naam}')]})
                         if 'rfid' in changed:
                             changes.update({'pager': [ldap3.MODIFY_REPLACE, (student.rfid)]})
                         if 'schooljaar' in changed or 'klascode' in changed:
@@ -398,24 +398,19 @@ def students_changed(ctx):
                                  'l': [ldap3.MODIFY_REPLACE, (student.klascode)],
                                  'physicalDeliveryOfficeName': [ldap3.MODIFY_REPLACE, (student.klascode)]})
                         res = ctx.ldap.modify(ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['dn'], changes)
-                        if not res:
-                            log.error(f'AD error: could not update changes of {student.leerlingnummer}: {changes}')
+                        __handle_student_ldap_response(ctx, student, res, f'already-present-in-AD, changed {changes}', verbose_logging=verbose_logging)
                         if 'schooljaar' in changed:  # move to new OU
-                            ctx.students_move_to_current_year_ou.append(ctx.ad_active_students_leerlingnummer[student.leerlingnummer])
-                        # if 'klascode' in changed:
-                        #     prepare_update_klassen(ctx, student)
-                        if verbose_logging:
-                            log.info(f'changed student, {student.naam} {student.voornaam}, {student.leerlingnummer}')
+                            ctx.students_move_to_current_year_ou.append(student)
                     else:
-                        log.error(f'AD error: student {student.leerlingnummer} is not active in AD')
-        log.info(f'AD, updated {len(changed_students)} students')
+                        log.error(f'{sys._getframe().f_code.co_name}, student {student.naam} {student.voornaam}, {student.leerlingnummer}, NOT PRESENT in AD')
+        log.info(f"{sys._getframe().f_code.co_name}, STOP")
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 def students_deleted(ctx):
     try:
-        log.info('AD: check for deleted students')
+        log.info(f"{sys._getframe().f_code.co_name}, START")
         deleted_students = mstudent.get_students({"delete": True})
         verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
         deactivate_student = msettings.get_configuration_setting('ad-deactivate-deleled-student')
@@ -428,44 +423,57 @@ def students_deleted(ctx):
                     account_control |= 2  # set bit 2 to deactivate
                     changes = {'userAccountControl': [(ldap3.MODIFY_REPLACE, [account_control])]}
                     res = ctx.ldap.modify(dn, changes)
-                    if not res:
-                        log.error(f'AD error, could not deactivate {dn}')
-                # prepare_update_klassen(ctx, student)
-                if verbose_logging:
-                    log.info(f'deleted student, {student.naam} {student.voornaam}, {student.leerlingnummer}, deactivated {deactivate_student}')
-        log.info(f'AD, deleted {len(deleted_students)} students')
+                    __handle_student_ldap_response(ctx, student, res, 'deactive', verbose_logging=verbose_logging)
+        log.info(f"{sys._getframe().f_code.co_name}, STOP")
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def students_move_to_current_year_ou(ctx):
+# These tasks are done last because they alter the DN, which is used to identify the students in the AD.
+def students_process_postponed_tasks(ctx):
     try:
-        log.info('AD, move students to the current schoolyear OU')
+        log.info(f"{sys._getframe().f_code.co_name}, START move students to current-year-OU")
+
         verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
         for student in ctx.students_move_to_current_year_ou:
-            res = ctx.ldap.modify_dn(student['dn'], f"CN={student['attributes']['cn']}", new_superior=ctx.student_location_current_year)
-            if not res:
-                log.info(f'AD error, could not move {student["attributes"]["cn"]} to {ctx.student_location_current_year}')
-            if verbose_logging:
-                log.info(f'student moved to current-year-ou, {student["attributes"]["cn"]}')
-        log.info(f'AD, moved {len(ctx.students_move_to_current_year_ou)} to the current schoolyear OU')
+            dn = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['dn']
+            cn = f"CN={ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']['cn']}"
+            res = ctx.ldap.modify_dn(dn, cn, new_superior=ctx.student_ou_current_year)
+            __handle_student_ldap_response(ctx, student, res, f'moved to OU {ctx.student_ou_current_year}', verbose_logging=verbose_logging)
+        log.info(f"{sys._getframe().f_code.co_name}, START update CN (student has name changed)")
+        for student in ctx.students_change_cn:
+            old_cn = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']['cn']
+            old_dn = f'CN={old_cn},{ctx.student_ou_current_year}'
+            new_cn = f'CN={student.naam} {student.voornaam}'
+            new_dn = f'{new_cn},{ctx.student_ou_current_year}'
+            if new_dn in ctx.ad_active_students_dn:  # check if CN alreaddy exists.  If so, append part of leerlingnummer
+                leerlingnummer_suffix = str(student.leerlingnummer)[-2:]
+                new_cn = f'{new_cn} {leerlingnummer_suffix}'
+            res = ctx.ldap.modify_dn(old_dn, new_cn, new_superior=ctx.student_ou_current_year)
+            __handle_student_ldap_response(ctx, student, res, f'updated CN {new_cn}', verbose_logging=verbose_logging)
+        log.info(f"{sys._getframe().f_code.co_name}, START update password")
+        for student in ctx.students_must_update_password:
+            cn = f"CN={ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']['cn']}"
+            dn = f'{cn},{ctx.student_ou_current_year}'
+            changes = {"pwdLastSet": [(ldap3.MODIFY_REPLACE, [0])]}  # student must update password at first login
+            res = ctx.ldap.modify(dn, changes)
+            __handle_student_ldap_response(ctx, student, res, f'changed {changes}', verbose_logging=verbose_logging)
+        log.info(f"{sys._getframe().f_code.co_name}, STOP")
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 def students_must_update_password(ctx):
     try:
-        log.info('AD, students must update password')
+        log.info(f"{sys._getframe().f_code.co_name}, START")
         verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
         for student in ctx.students_must_update_password:
-            dn = f'CN={student["attributes"]["cn"]},{ctx.student_location_current_year}'
+            cn = f"CN={ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']['cn']}"
+            dn = f'{cn},{ctx.student_ou_current_year}'
             changes = {"pwdLastSet": [(ldap3.MODIFY_REPLACE, [0])]}  # student must update password at first login
             res = ctx.ldap.modify(dn, changes)
-            if not res:
-                log.error(f'AD error, update setting of {dn}, with changes {changes}')
-            if verbose_logging:
-                log.info(f'student-must-update-password, {student["attributes"]["cn"]}')
-        log.info(f'AD, {len(ctx.students_must_update_password)} students must update their password')
+            __handle_student_ldap_response(ctx, student, res, f'changed {changes}', verbose_logging=verbose_logging)
+        log.info(f"{sys._getframe().f_code.co_name}, STOP")
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
@@ -473,6 +481,7 @@ def students_must_update_password(ctx):
 # check if a student is in 2 or more classes,  If so, remove from all but in 'kantoor' (i.e. l-property)
 def klas_check_if_student_is_in_one_klas(ctx):
     try:
+        log.info(f"{sys._getframe().f_code.co_name}, START")
         remove_students_from_klas = {}
         verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
         # re-create student cache.  Students may have an updated klas
@@ -505,6 +514,7 @@ def klas_check_if_student_is_in_one_klas(ctx):
                 log.error('AD: could not create single/multiple-klas cache')
         else:
             log.error('AD: could not create student cache')
+        log.info(f"{sys._getframe().f_code.co_name}, STOP")
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
@@ -572,7 +582,7 @@ def update_ad_cn_and_displayname():
                 else:
                     log.error(f'Student {student.naam} {student.voornaam}, {student.leerlingnummer}, could not update displayname, {ctx.ldap.result}')
                 # update cn
-                res = ctx.ldap.modify_dn(dn, new_cn, new_superior=ctx.student_location_current_year)
+                res = ctx.ldap.modify_dn(dn, new_cn, new_superior=ctx.student_ou_current_year)
                 if res:
                     log.info(f'Student {student.naam} {student.voornaam}, {student.leerlingnummer}, changed dn {dn} to cn {new_cn}')
                 else:
@@ -585,7 +595,7 @@ def update_ad_cn_and_displayname():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def ad_cron_task(opaque):
+def cron_ad_task(opaque):
     try:
         if msettings.get_configuration_setting('cron-enable-update-student-ad'):
             log.info(('Start update to AD'))
@@ -602,9 +612,7 @@ def ad_cron_task(opaque):
             klas_cache_init(ctx)
             klas_put_students_in_correct_klas(ctx)  # put all students in the correct klas in AD
             students_do_to_group_leerlingen(ctx) # then put the new students in the group leerlingen
-            students_move_to_current_year_ou(ctx) # then move the students to the current schoolyear OU
-            # for some reason, it is only possible to change the setting to update the password AFTER the student is moved to the new OU
-            students_must_update_password(ctx) # then change a setting so that the student must update the password
+            students_process_postponed_tasks(ctx) # then move the students to the current schoolyear OU
             klas_check_if_student_is_in_one_klas(ctx)
             ldap_deinit(ctx)
 

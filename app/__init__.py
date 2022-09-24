@@ -73,10 +73,11 @@ flask_app.config.from_pyfile('config.py')
 # 0.51: AD, displayname should be first-name last-name.  Added code to update already existing entries in AD
 # 0.52: reworked ad.py.  Take roepnaam into account when adding/changing student names
 # 0.53: reworked cron module
+# 0.54: small bugfix and added ' to not allowed characters in email
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.53', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.54', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

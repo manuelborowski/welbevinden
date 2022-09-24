@@ -2,7 +2,7 @@ from app import log
 from app.data import settings as msettings, student as mstudent
 
 
-def test_cron_task(opaque):
+def test_cron_task(opaque=None):
     if msettings.get_configuration_setting('test-prepare'):
         log.info('TEST: prepare for testing...')
         msettings.set_configuration_setting('test-prepare', False)

@@ -75,11 +75,11 @@ flask_app.config.from_pyfile('config.py')
 # 0.53: reworked cron module
 # 0.54: small bugfix and added ' to not allowed characters in email
 # 0.55: database integerity check: bugfix roepnaam check
-
+# 0.56: small bugifx
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.55', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.56', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

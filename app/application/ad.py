@@ -224,7 +224,7 @@ def students_cache_init(ctx):
     try:
         # Create student caches
         res = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))', ldap3.SUBTREE,
-                              attributes=['cn', 'wwwhomepage', 'userAccountControl', 'mail', 'l', 'sn', 'givenname', 'pager'])
+                              attributes=['cn', 'wwwhomepage', 'userAccountControl', 'mail', 'l', 'sn', 'givenname', 'pager', 'displayname'])
         if res:
             ctx.ad_active_students_leerlingnummer = {s['attributes']['wwwhomepage']: s for s in ctx.ldap.response if s['attributes']['wwwhomepage'] != []}
             ctx.ad_active_students_dn = {s['dn']: s for s in ctx.ldap.response if s['attributes']['wwwhomepage'] != []}
@@ -719,7 +719,7 @@ def database_integrity_check(return_log=False):
             if student.leerlingnummer in ctx.ad_active_students_leerlingnummer:
                 ad_student = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']
                 __check_property(student, student.naam, ad_student['sn'], 'NAAM')
-                __check_property(student, f"{get_student_voornaam(student)} {student.naam}", ad_student['displaynaam'], 'ROEPNAAM')
+                __check_property(student, f"{get_student_voornaam(student)} {student.naam}", ad_student['displayname'], 'ROEPNAAM')
                 __check_property(student, student.voornaam, ad_student['givenname'], 'VOORNAAM')
                 __check_property(student, student.klascode, ad_student['l'], 'KLAS')
                 __check_property(student, student.email, ad_student['mail'].lower(), 'EMAIL')

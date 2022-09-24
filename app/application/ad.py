@@ -598,7 +598,6 @@ def update_ad_cn_and_displayname():
 def cron_ad_task(opaque=None):
     try:
         log.info(('Start update to AD'))
-
         ctx = Context()
         ldap_init(ctx)
         students_cache_init(ctx)
@@ -702,7 +701,7 @@ def database_integrity_check(return_log=False):
         def get(self):
             return self.log if self.log != '' else 'Check ok'
 
-    def check_property(student, sdh_property, ad_property, label):
+    def __check_property(student, sdh_property, ad_property, label):
         if sdh_property != ad_property:
             if verbose_logging:
                 log.info(f'{sys._getframe().f_code.co_name}: student {student.leerlingnummer} {label}, SDH: {sdh_property}, AD: {ad_property}')
@@ -719,14 +718,14 @@ def database_integrity_check(return_log=False):
         for student in sdh_students:
             if student.leerlingnummer in ctx.ad_active_students_leerlingnummer:
                 ad_student = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']
-                check_property(student, student.naam, ad_student['sn'], 'NAAM')
-                check_property(student, get_student_voornaam(student), ad_student['givenname'], 'ROEPNAAM')
-                check_property(student, student.voornaam, ad_student['givenname'], 'VOORNAAM')
-                check_property(student, student.klascode, ad_student['l'], 'KLAS')
-                check_property(student, student.email, ad_student['mail'].lower(), 'EMAIL')
+                __check_property(student, student.naam, ad_student['sn'], 'NAAM')
+                __check_property(student, f"{get_student_voornaam(student)} {student.naam}", ad_student['displaynaam'], 'ROEPNAAM')
+                __check_property(student, student.voornaam, ad_student['givenname'], 'VOORNAAM')
+                __check_property(student, student.klascode, ad_student['l'], 'KLAS')
+                __check_property(student, student.email, ad_student['mail'].lower(), 'EMAIL')
                 if not ad_student['pager']:
                     ad_student['pager'] = None
-                check_property(student, student.rfid, ad_student['pager'], 'RFID')
+                __check_property(student, student.rfid, ad_student['pager'], 'RFID')
             else:
                 log.info(f'{sys._getframe().f_code.co_name}: student {student.leerlingnummer} not found in AD')
                 dl.add(f'AD, student {student.leerlingnummer} niet gevonden in AD')

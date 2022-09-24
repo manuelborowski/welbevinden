@@ -65,18 +65,18 @@ flask_app.config.from_pyfile('config.py')
 # 0.43: students: get all usernames from ad (once) and store in SDH.  Added functionality to store new RFID directly to papercut
 # 0.44: set the RFID of staff as well
 # 0.45: added feature to udpate password.  Use formio in popup
-#0.46: add file to git
-#0.47: bugfix: update of RFID to sdh takes into account that the student is not present anymore
-#0.48: bugfix, change spaces in field 'middag' to hashes to prevent stripping
-#0.49: refactored ad.py.  Added functionality to test database integrity
-#0.50: update database integrity check.  Introduced column roepnaam
-#0.51: AD, displayname should be first-name last-name.  Added code to update already existing entries in AD
-#0.52: reworked ad.py.  Take roepnaam into account when adding/changing student names
-
+# 0.46: add file to git
+# 0.47: bugfix: update of RFID to sdh takes into account that the student is not present anymore
+# 0.48: bugfix, change spaces in field 'middag' to hashes to prevent stripping
+# 0.49: refactored ad.py.  Added functionality to test database integrity
+# 0.50: update database integrity check.  Introduced column roepnaam
+# 0.51: AD, displayname should be first-name last-name.  Added code to update already existing entries in AD
+# 0.52: reworked ad.py.  Take roepnaam into account when adding/changing student names
+# 0.53: reworked cron module
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.52', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.53', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

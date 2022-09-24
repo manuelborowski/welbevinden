@@ -9,14 +9,13 @@ def delete_staffs(ids):
 
 
 # do not deactivate, but delete
-def deactivate_deleted_staff_cron_task(opaque):
-    if msettings.get_configuration_setting('cron-deactivate-deleted-staff'):
-        try:
-            deleted_staffs = mstaff.get_staffs({"delete": True})
-            mstaff.delete_staffs(staffs=deleted_staffs)
-            log.info(f"deleted {len(deleted_staffs)} staffs")
-        except Exception as e:
-            log.error(f'{sys._getframe().f_code.co_name}: {e}')
+def deactivate_deleted_staff_cron_task(opaque=None):
+    try:
+        deleted_staffs = mstaff.get_staffs({"delete": True})
+        mstaff.delete_staffs(staffs=deleted_staffs)
+        log.info(f"deleted {len(deleted_staffs)} staffs")
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 ############## api ####################
 def get_fields():

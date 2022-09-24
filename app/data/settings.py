@@ -16,6 +16,7 @@ class Settings(db.Model):
         E_STRING = 'STRING'
         E_FLOAT = 'FLOAT'
         E_BOOL = 'BOOL'
+        E_JSON = 'JSON'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256))
@@ -42,16 +43,21 @@ def get_setting(name, id=-1):
             value = float(setting.value)
         elif setting.type == Settings.SETTING_TYPE.E_BOOL:
             value = True if setting.value == 'True' else False
+        elif setting.type == Settings.SETTING_TYPE.E_JSON:
+            value = json.loads(setting.value)
         else:
             value = setting.value
-    except:
+    except Exception as e:
         db.session.rollback()
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return False, ''
     return True, value
 
 
 def add_setting(name, value, type, id=-1):
     try:
+        if type == Settings.SETTING_TYPE.E_JSON:
+            value = json.dumps(value)
         setting = Settings(name=name, value=str(value), type=type, user_id=id if id > -1 else current_user.id)
         db.session.add(setting)
         db.session.commit()
@@ -59,7 +65,7 @@ def add_setting(name, value, type, id=-1):
         return True
     except Exception as e:
         db.session.rollback()
-        log.error(f'{sys._getframe().f_code.co_name}: {setting.log}, {e}')
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
         raise e
 
 
@@ -69,20 +75,15 @@ def set_setting(name, value, id=-1):
         if setting:
             if setting.type == Settings.SETTING_TYPE.E_BOOL:
                 value = 'True' if value else 'False'
+            elif setting.type == Settings.SETTING_TYPE.E_JSON:
+                value = json.dumps(value)
             setting.value = value
             db.session.commit()
     except Exception as e:
         db.session.rollback()
-        log.error(f'{sys._getframe().f_code.co_name}: could not set setting {name}: {e}')
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return False
     return True
-
-
-def get_test_server():
-    found, value = get_setting('test_server', 1)
-    if found: return value
-    add_setting('test_server', False, Settings.SETTING_TYPE.E_BOOL, 1)
-    return False
 
 
 default_configuration_settings = {
@@ -95,18 +96,18 @@ default_configuration_settings = {
     'sdh-current-schoolyear': ('', Settings.SETTING_TYPE.E_STRING),
     'sdh-schoolyear-changed': (False, Settings.SETTING_TYPE.E_BOOL),
 
-    'user-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'user-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'user-formio-template': ('', Settings.SETTING_TYPE.E_JSON),
+    'user-datatables-template': ('{}', Settings.SETTING_TYPE.E_JSON),
 
-    'student-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'student-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'student-formio-template': ('', Settings.SETTING_TYPE.E_JSON),
+    'student-datatables-template': ('{}', Settings.SETTING_TYPE.E_JSON),
     'student-max-students-to-view-with-one-click': (5, Settings.SETTING_TYPE.E_INT),
 
-    'staff-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'staff-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'staff-formio-template': ('', Settings.SETTING_TYPE.E_JSON),
+    'staff-datatables-template': ('{}', Settings.SETTING_TYPE.E_JSON),
 
-    'cardpresso-formio-template': ('', Settings.SETTING_TYPE.E_STRING),
-    'cardpresso-datatables-template': ('{}', Settings.SETTING_TYPE.E_STRING),
+    'cardpresso-formio-template': ('', Settings.SETTING_TYPE.E_JSON),
+    'cardpresso-datatables-template': ('{}', Settings.SETTING_TYPE.E_JSON),
 
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cron-enable-update-student-from-wisa': (False, Settings.SETTING_TYPE.E_BOOL),
@@ -120,6 +121,7 @@ default_configuration_settings = {
     'cron-deactivate-deleted-students': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-deactivate-deleted-staff': (False, Settings.SETTING_TYPE.E_BOOL),
     'cron-clear-changed-year-flag': (False, Settings.SETTING_TYPE.E_BOOL),
+    'cron-enable-modules': ({}, Settings.SETTING_TYPE.E_JSON),
 
     'smartschool-scheduler-cron': ('', Settings.SETTING_TYPE.E_STRING),
     'smartschool-teacher-group': ('', Settings.SETTING_TYPE.E_STRING),
@@ -171,7 +173,7 @@ default_configuration_settings = {
 
     'photo-verbose-logging': (False, Settings.SETTING_TYPE.E_BOOL),
 
-    'api-keys': ('[]', Settings.SETTING_TYPE.E_STRING),
+    'api-keys': ('[]', Settings.SETTING_TYPE.E_JSON),
 
     'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
     'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),
@@ -222,20 +224,6 @@ def subscribe_setting_changed(setting, cb, opaque):
     return True
 
 
-# save settings which are not in the database yet
-# get_configuration_settings()
-def get_json_coded_setting(key):
-    setting_string = get_configuration_setting(key)
-    if setting_string == '':
-        log.error(f'{sys._getframe().f_code.co_name}: Empty setting: {key}')
-        raise Exception(f'Setting is invallid: {key}')
-    try:
-        settings = json.loads(setting_string)
-    except json.JSONDecodeError as e:
-        raise Exception(f'Setting has invalid JSON syntax: {key} {e}')
-    return settings
-
-
 def set_json_template(key, data):
     try:
         template_string = json.dumps(data)
@@ -249,7 +237,7 @@ def set_json_template(key, data):
 # subscribe_setting_changed('generic-translations', lambda x, y: cache_settings(), None)
 
 def get_datatables_config(key):
-    return get_json_coded_setting(f'{key}-datatables-template')
+    return get_configuration_setting(f'{key}-datatables-template')
 
 
 def get_and_increment_default_student_code():

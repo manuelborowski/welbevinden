@@ -52,39 +52,36 @@ def clear_vsk_numbers():
     return {"status": True, "data": nbr_updated}
 
 
-def vsk_numbers_cron_task(opaque):
-    if msettings.get_configuration_setting('cron-enable-update-vsk-numbers'):
-        # check if schooljaar has changed.  If so, clear all vsk numbers first
-        schoolyear_changed, _, _ = msettings.get_changed_schoolyear()
-        if schoolyear_changed:
-            ret = clear_vsk_numbers()
-            log.info(f'vsk_numbers_cron_task: deleted {ret["data"]} vsk numbers')
-        ret = get_next_vsk_number()
-        if ret['status'] and ret['data'] > -1:
-            ret = update_vsk_numbers(ret['data'])
-            if ret['status']:
-                log.info(f'vsk cron task, {ret["data"]} numbers updated')
-            else:
-                log.error(f'vsk cron task, error: {ret["data"]}')
+def vsk_numbers_cron_task(opaque=None):
+    # check if schooljaar has changed.  If so, clear all vsk numbers first
+    schoolyear_changed, _, _ = msettings.get_changed_schoolyear()
+    if schoolyear_changed:
+        ret = clear_vsk_numbers()
+        log.info(f'vsk_numbers_cron_task: deleted {ret["data"]} vsk numbers')
+    ret = get_next_vsk_number()
+    if ret['status'] and ret['data'] > -1:
+        ret = update_vsk_numbers(ret['data'])
+        if ret['status']:
+            log.info(f'vsk cron task, {ret["data"]} numbers updated')
         else:
-            log.error('vsk cron task, error: no vsk numbers available')
-            memail.compose_message('sdh-inform-emails', "SDH: Vsk nummers", "Waarschuwing, er zijn geen Vsk nummers toegekend (niet beschikbaar?)")
+            log.error(f'vsk cron task, error: {ret["data"]}')
+    else:
+        log.error('vsk cron task, error: no vsk numbers available')
+        memail.compose_message('sdh-inform-emails', "SDH: Vsk nummers", "Waarschuwing, er zijn geen Vsk nummers toegekend (niet beschikbaar?)")
 
 
 # students that are marked as deleted are deleted from the database
-def delete_marked_students_cron_task(opaque):
-    if msettings.get_configuration_setting('cron-deactivate-deleted-students'):
-        try:
-            deleted_students = mstudent.get_students({"delete": True})
-            mstudent.delete_students(students=deleted_students)
-            log.info(f"deleted {len(deleted_students)} students")
-        except Exception as e:
-            log.error(f'{sys._getframe().f_code.co_name}: {e}')
+def delete_marked_students_cron_task(opaque=None):
+    try:
+        deleted_students = mstudent.get_students({"delete": True})
+        mstudent.delete_students(students=deleted_students)
+        log.info(f"deleted {len(deleted_students)} students")
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def clear_schoolyear_changed_flag_cron_task(opaque):
-    if msettings.get_configuration_setting('cron-clear-changed-year-flag'):
-        msettings.reset_changed_schoolyear()
+def clear_schoolyear_changed_flag_cron_task(opaque=None):
+    msettings.reset_changed_schoolyear()
 
 
 def get_unique_klassen():
@@ -150,7 +147,7 @@ def update_student(data):
 def prepare_view_form(id, read_only=False):
     try:
         student = mstudent.get_first_student({"id": id})
-        template = app.data.settings.get_json_coded_setting('student-formio-template')
+        template = app.data.settings.get_configuration_setting('student-formio-template')
         photo = mphoto.get_first_photo({'filename': student.foto})
         data = {"photo": base64.b64encode(photo.photo).decode('utf-8') if photo else ''}
         template = mformio.prepare_for_edit(template, data)

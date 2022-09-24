@@ -595,34 +595,33 @@ def update_ad_cn_and_displayname():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def cron_ad_task(opaque):
+def cron_ad_task(opaque=None):
     try:
-        if msettings.get_configuration_setting('cron-enable-update-student-ad'):
-            log.info(('Start update to AD'))
+        log.info(('Start update to AD'))
 
-            ctx = Context()
-            ldap_init(ctx)
-            students_cache_init(ctx)
-            if not create_current_year_ou(ctx):
-                ldap_deinit(ctx)
-                return
-            students_new(ctx)
-            students_changed(ctx)
-            students_deleted(ctx)
-            klas_cache_init(ctx)
-            klas_put_students_in_correct_klas(ctx)  # put all students in the correct klas in AD
-            students_do_to_group_leerlingen(ctx) # then put the new students in the group leerlingen
-            students_process_postponed_tasks(ctx) # then move the students to the current schoolyear OU
-            klas_check_if_student_is_in_one_klas(ctx)
+        ctx = Context()
+        ldap_init(ctx)
+        students_cache_init(ctx)
+        if not create_current_year_ou(ctx):
             ldap_deinit(ctx)
+            return
+        students_new(ctx)
+        students_changed(ctx)
+        students_deleted(ctx)
+        klas_cache_init(ctx)
+        klas_put_students_in_correct_klas(ctx)  # put all students in the correct klas in AD
+        students_do_to_group_leerlingen(ctx) # then put the new students in the group leerlingen
+        students_process_postponed_tasks(ctx) # then move the students to the current schoolyear OU
+        klas_check_if_student_is_in_one_klas(ctx)
+        ldap_deinit(ctx)
 
-            # only once and then comment out
-            # get_usernames_from_ad()
-            # only once and then comment out
-            # update_ad_cn_and_displayname()
+        # only once and then comment out
+        # get_usernames_from_ad()
+        # only once and then comment out
+        # update_ad_cn_and_displayname()
 
-            msettings.set_configuration_setting('ad-schoolyear-changed', False)
-            log.info(f'update_ad: processed ')
+        msettings.set_configuration_setting('ad-schoolyear-changed', False)
+        log.info(f'update_ad: processed ')
     except Exception as e:
         log.error(f'update to AD error: {e}')
 

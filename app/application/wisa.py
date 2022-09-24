@@ -155,23 +155,22 @@ def get_students_from_wisa_database(local_file=None, max=0):
 
 
 def wisa_get_student_cron_task(opaque=None):
-    if msettings.get_configuration_setting('cron-enable-update-student-from-wisa'):
-        with flask_app.app_context():
-            wisa_files = msettings.get_list('test-wisa-json-list')
-            if wisa_files:  # test with wisa files
-                current_wisa_file = msettings.get_configuration_setting('test-wisa-current-json')
-                if current_wisa_file == '' or current_wisa_file not in wisa_files:
-                    current_wisa_file = wisa_files[0]
-                else:
-                    new_index = wisa_files.index(current_wisa_file) + 1
-                    if new_index >= len(wisa_files):
-                        new_index = 0
-                    current_wisa_file = wisa_files[new_index]
-                msettings.set_configuration_setting('test-wisa-current-json', current_wisa_file)
-                get_students_from_wisa_database(local_file=current_wisa_file)
+    with flask_app.app_context():
+        wisa_files = msettings.get_list('test-wisa-json-list')
+        if wisa_files:  # test with wisa files
+            current_wisa_file = msettings.get_configuration_setting('test-wisa-current-json')
+            if current_wisa_file == '' or current_wisa_file not in wisa_files:
+                current_wisa_file = wisa_files[0]
             else:
-                # read_from_wisa_database(max=10)
-                get_students_from_wisa_database()
+                new_index = wisa_files.index(current_wisa_file) + 1
+                if new_index >= len(wisa_files):
+                    new_index = 0
+                current_wisa_file = wisa_files[new_index]
+            msettings.set_configuration_setting('test-wisa-current-json', current_wisa_file)
+            get_students_from_wisa_database(local_file=current_wisa_file)
+        else:
+            # read_from_wisa_database(max=10)
+            get_students_from_wisa_database()
 
 
 def get_staff_from_wisa_database(local_file=None, max=0):
@@ -251,8 +250,7 @@ def get_staff_from_wisa_database(local_file=None, max=0):
 
 
 def wisa_get_staff_cron_task(opaque=None):
-    if msettings.get_configuration_setting('cron-enable-update-staff-from-wisa'):
-        with flask_app.app_context():
-            get_staff_from_wisa_database()
+    with flask_app.app_context():
+        get_staff_from_wisa_database()
 
 

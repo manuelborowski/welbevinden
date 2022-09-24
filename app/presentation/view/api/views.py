@@ -11,7 +11,7 @@ def key_required(func):
     @wraps(func)
     def decorator(*args, **kwargs):
         try:
-            keys = msettings.get_json_coded_setting('api-keys')
+            keys = msettings.get_configuration_setting('api-keys')
             if request.headers.get('x-api-key') in keys:
                 return func(*args, **kwargs)
         except Exception as e:

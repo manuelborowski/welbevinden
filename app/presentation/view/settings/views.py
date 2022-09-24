@@ -4,16 +4,22 @@ from flask_login import login_required
 from app import admin_required
 from app.application import socketio as msocketio, event as mevent
 from . import settings
-from app.application import settings as msettings
+from app.application import settings as msettings, cron as mcron, formio as mformio, cron_table
 import json
 
 @settings.route('/settings', methods=['GET', 'POST'])
 @admin_required
 @login_required
 def show():
-    default_settings = msettings.get_configuration_settings()
-    data = {'default': default_settings, 'template': settings_formio}
-    return render_template('/settings/settings.html', data=data)
+  cron_module_enable_settings = msettings.get_configuration_setting('cron-enable-modules')
+  cron_module = mformio.search_component(settings_formio, 'cron-enable-modules')
+  cron_module["components"] = []
+  for nbr, module in enumerate(cron_table):
+    enabled = cron_module_enable_settings[module[0]] if module[0] in cron_module_enable_settings else False
+    cron_module["components"].append({"label": f'({nbr+1}) {module[2]}', "tooltip": module[3], "tableView": False, "defaultValue": enabled, "key": module[0], "type": "checkbox", "input": True})
+  default_settings = msettings.get_configuration_settings()
+  data = {'default': default_settings, 'template': settings_formio}
+  return render_template('/settings/settings.html', data=data)
 
 
 def update_settings_cb(msg, client_sid=None):
@@ -510,94 +516,12 @@ settings_formio = \
                     "tableView": false
                   },
                   {
-                    "label": "(1) VAN foto (windows share), leerlingen bijwerken",
+                    "label": "Container",
                     "tableView": false,
-                    "defaultValue": false,
-                    "key": "cron-enable-update-student-photo",
-                    "type": "checkbox",
-                    "input": true
-                  },
-                  {
-                    "label": "(2) VAN wisa, leerlingen bijwerken",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "key": "cron-enable-update-student-from-wisa",
-                    "type": "checkbox",
-                    "input": true
-                  },
-                  {
-                    "label": "(3) VAN wisa, personeel bijwerken",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "key": "cron-enable-update-staff-from-wisa",
-                    "type": "checkbox",
-                    "input": true
-                  },
-                  {
-                    "label": "(4) NAAR centrale database, Vsk nummers bijwerken",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "key": "cron-enable-update-vsk-numbers",
-                    "type": "checkbox",
-                    "input": true
-                  },
-                  {
-                    "label": "(5) NAAR cardpresso, nieuwe badges klaarmaken",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "key": "cron-enable-update-student-badge",
-                    "type": "checkbox",
-                    "input": true
-                  },
-                  {
-                    "label": "(6) VAN cardpresso, RFID van studenten bijwerken",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "key": "cron-enable-update-student-rfid",
-                    "type": "checkbox",
-                    "input": true
-                  },
-                  {
-                    "label": "(7) NAAR AD, studenten bijwerken",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "key": "cron-enable-update-student-ad",
-                    "type": "checkbox",
-                    "input": true
-                  },
-                  {
-                    "label": "(8) NAAR smartschool, studenten bijwerken",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "key": "cron-enable-update-student-smartschool",
-                    "type": "checkbox",
-                    "input": true
-                  },
-                  {
-                    "label": "(9) NAAR centrale database, verwijder gemarkeerde studenten",
-                    "tooltip": "studenten die gemarkeerd zijn als 'delete' worden uit de database verwijderd\nCHECK om de goede werking te verzekeren",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "key": "cron-deactivate-deleted-students",
-                    "type": "checkbox",
-                    "input": true
-                  },
-                  {
-                    "label": "(10) NAAR centrale database, verwijder gemarkeerde personeelsleden",
-                    "tooltip": "personeelsleden die gemarkeerd zijn als 'delete' worden uit de database verwijderd\nCHECK om de goede werking te verzekeren",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "key": "cron-deactivate-deleted-staff",
-                    "type": "checkbox",
-                    "input": true
-                  },
-                  {
-                    "label": "(11) NAAR centrale database, wis schooljaar-is-veranderd-vlag",
-                    "tableView": false,
-                    "defaultValue": false,
-                    "key": "cron-clear-changed-year-flag",
-                    "type": "checkbox",
-                    "input": true
+                    "key": "cron-enable-modules",
+                    "type": "container",
+                    "input": true,
+                    "components": []
                   }
                 ],
                 "collapsed": true

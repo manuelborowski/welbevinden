@@ -1,15 +1,15 @@
 from app import log
 from app.application import formio as mformio
-from . import app
+from app.data import user as muser, settings as msettings
 import sys
 
 def add_user(data):
     try:
-        user = app.data.user.get_first_user({'username': data['username']})
+        user = muser.get_first_user({'username': data['username']})
         if user:
             log.error(f'Error, user {user.username} already exists')
             return {"status": False, "data": f'Fout, gebruiker {user.username} bestaat al'}
-        user = app.data.user.add_user(data)
+        user = muser.add_user(data)
         if 'confirm_password' in data:
             del data['confirm_password']
         if 'password' in data:
@@ -24,10 +24,10 @@ def add_user(data):
 
 def update_user(data):
     try:
-        user = app.data.user.get_first_user({'id': data['id']})
+        user = muser.user.get_first_user({'id': data['id']})
         if user:
             del data['id']
-            user = app.data.user.update_user(user, data)
+            user = muser.update_user(user, data)
             if user:
                 if 'confirm_password' in data:
                     del data['confirm_password']
@@ -43,13 +43,13 @@ def update_user(data):
 
 
 def delete_users(ids):
-    app.data.user.delete_users(ids)
+    muser.delete_users(ids)
 
 
 ############## formio forms #############
 def prepare_add_registration_form():
     try:
-        template = app.data.settings.get_json_coded_setting('user-formio-template')
+        template = msettings.get_configuration_setting('user-formio-template')
         return {'template': template,
                 'defaults': {'new_password': True}}
     except Exception as e:
@@ -59,8 +59,8 @@ def prepare_add_registration_form():
 
 def prepare_edit_registration_form(id):
     try:
-        user = app.data.user.get_first_user({"id": id})
-        template = app.data.settings.get_json_coded_setting('user-formio-template')
+        user = muser.get_first_user({"id": id})
+        template = msettings.get_configuration_setting('user-formio-template')
         template = mformio.prepare_for_edit(template, user.to_dict())
         return {'template': template,
                 'defaults': user.to_dict()}

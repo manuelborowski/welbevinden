@@ -1,15 +1,18 @@
 from app import ap_scheduler, log, flask_app
-from app.application import settings as msettings
 import datetime
 from apscheduler.triggers.cron import CronTrigger
+from app.application.settings import get_configuration_setting, subscribe_handle_button_clicked, subscribe_handle_update_setting
+from . import cron_table
 
 
 CRON_TASK = 'datacollector-task'
 
 
 def cron_task():
-    for seq in sorted(cron_sub_tasks):
-        cron_sub_tasks[seq]['cb'](cron_sub_tasks[seq]['opaque'])
+    settings = get_configuration_setting('cron-enable-modules')
+    for task in cron_table:
+        if task[0] in settings and settings[task[0]]:
+            task[1]()
 
 
 def init_job(cron_template):
@@ -25,16 +28,6 @@ def init_job(cron_template):
         log.error(f'could not init {CRON_TASK} job: {e}')
 
 
-cron_sub_tasks = {}
-
-
-def subscribe_cron_task(sequence_nbr, cb, opaque):
-    cron_sub_tasks[sequence_nbr] = {
-        'cb': cb,
-        'opaque': opaque
-    }
-
-
 def update_cron_template(setting, value, opaque):
     try:
         if setting == 'cron-scheduler-template':
@@ -43,12 +36,13 @@ def update_cron_template(setting, value, opaque):
         log.error(f'could not update cron-scheduler-template: {e}')
     return True
 
+
 def start_job():
     try:
-        cron_template = msettings.get_configuration_setting('cron-scheduler-template')
+        cron_template = get_configuration_setting('cron-scheduler-template')
         if cron_template != 'now':  # prevent to run the cronjob each time the server is rebooted
             init_job(cron_template)
-        msettings.subscribe_handle_update_setting('cron-scheduler-template', update_cron_template, None)
+        subscribe_handle_update_setting('cron-scheduler-template', update_cron_template, None)
     except Exception as e:
         log.error(f'could not start cron-scheduler: {e}')
 
@@ -59,6 +53,4 @@ start_job()
 def emulate_cron_start(topic=None, opaque=None):
     with flask_app.app_context():
         cron_task()
-
-
-msettings.subscribe_handle_button_clicked('button-start-cron-cycle', emulate_cron_start, None)
+subscribe_handle_button_clicked('button-start-cron-cycle', emulate_cron_start, None)

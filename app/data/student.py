@@ -185,7 +185,7 @@ def change_students(data=[], overwrite=False):
     return None
 
 
-def flag_students(data = []):
+def flag_students(data=[]):
     try:
         for d in data:
             student = d['student']

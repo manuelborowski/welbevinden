@@ -137,7 +137,7 @@ def database_integrity_check():
     try:
         data = json.loads(request.data)
         ret = mstudent.database_integrity_check(data)
-        return json.dumps({"status": True, "data": ret})
+        return json.dumps(ret)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return json.dumps({"status": False, "data": html.escape(str(e))})

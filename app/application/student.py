@@ -110,17 +110,18 @@ def api_get_students(options=None):
 
 def database_integrity_check(data):
     try:
-        ret = ''
+        ret = {"status": False, "data": "Gelieve minstens één database te selecteren!"}
         if 'ad' in data['databases']:
-            ret += mad.database_integrity_check(return_log=True)
-        else:
-            return 'Gelieve minstens één database te selecteren!'
+            if data['event'] == 'event-update-database':
+                ret = mad.database_integrity_check(return_log=True, mark_changes_in_db=True)
+                if ret['status']:
+                    ret = mad.cron_ad_task()
+            elif data['event'] == 'event-start-integrity-check':
+                ret = mad.database_integrity_check(return_log=True)
         return ret
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         raise e
-
-
 
 
 def update_student(data):

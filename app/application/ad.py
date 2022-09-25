@@ -51,7 +51,7 @@ STAFF_LOCATION_TOPLEVEL = 'OU=Secretariaat,DC=SU,DC=local'
 
 class Context:
     def __init__(self):
-        self.check_properties_changed = ['naam', 'voornaam', 'klascode', 'schooljaar', 'rfid', 'computer']
+        self.check_properties_changed = ['naam', 'voornaam', 'klascode', 'schooljaar', 'rfid', 'computer', 'roepnaam', 'email']
         self.student_location_toplevel = STUDENT_LOCATION_TOPLEVEL
         self.klas_location_toplevel = KLAS_LOCATION_TOPLEVEL
         self.leerlingen_group = 'CN=Leerlingen,OU=Groepen,DC=SU,DC=local'
@@ -333,7 +333,7 @@ def students_new(ctx):
             cn = f'{student.naam} {student.voornaam}'
             dn = f'CN={cn},{ctx.student_ou_current_year}'
             email = student.email
-            if student.email in ctx.ad_active_students_mail or dn in ctx.ad_active_students_dn:
+            if student.email in ctx.ad_active_students_mail or dn in ctx.ad_active_students_dn and ctx.ad_active_students_dn[dn]['attributes']['wwwhomepage'] != student.leerlingnummer:
                 leerlingnummer_suffix = str(student.leerlingnummer)[-2:]
                 cn = f'{cn} {leerlingnummer_suffix}'
                 dn = f'CN={cn},{ctx.student_ou_current_year}'
@@ -389,6 +389,8 @@ def students_changed(ctx):
                             ctx.students_change_cn.append(student)
                         if 'roepnaam' in changed and student.roepnaam != '':
                             changes.update({'displayname': [ldap3.MODIFY_REPLACE, (f'{app.application.util.get_student_voornaam(student)} {student.naam}')]})
+                        if 'email' in changed:
+                            changes.update({'mail': [ldap3.MODIFY_REPLACE, (student.email)]})
                         if 'rfid' in changed:
                             changes.update({'pager': [ldap3.MODIFY_REPLACE, (student.rfid)]})
                         if 'schooljaar' in changed or 'klascode' in changed:
@@ -446,7 +448,7 @@ def students_process_postponed_tasks(ctx):
             old_dn = f'CN={old_cn},{ctx.student_ou_current_year}'
             new_cn = f'CN={student.naam} {student.voornaam}'
             new_dn = f'{new_cn},{ctx.student_ou_current_year}'
-            if new_dn in ctx.ad_active_students_dn:  # check if CN alreaddy exists.  If so, append part of leerlingnummer
+            if new_dn in ctx.ad_active_students_dn and ctx.ad_active_students_dn[new_dn]['attributes']['wwwhomepage'] != student.leerlingnummer:  # check if CN alreaddy exists.  If so, append part of leerlingnummer
                 leerlingnummer_suffix = str(student.leerlingnummer)[-2:]
                 new_cn = f'{new_cn} {leerlingnummer_suffix}'
             res = ctx.ldap.modify_dn(old_dn, new_cn, new_superior=ctx.student_ou_current_year)
@@ -597,13 +599,13 @@ def update_ad_cn_and_displayname():
 
 def cron_ad_task(opaque=None):
     try:
-        log.info(('Start update to AD'))
+        log.info(f"{sys._getframe().f_code.co_name}, START")
         ctx = Context()
         ldap_init(ctx)
         students_cache_init(ctx)
         if not create_current_year_ou(ctx):
             ldap_deinit(ctx)
-            return
+            return {"status": False, "data": "Kan huidig-jaar-ou niet aanmaken"}
         students_new(ctx)
         students_changed(ctx)
         students_deleted(ctx)
@@ -620,9 +622,11 @@ def cron_ad_task(opaque=None):
         # update_ad_cn_and_displayname()
 
         msettings.set_configuration_setting('ad-schoolyear-changed', False)
-        log.info(f'update_ad: processed ')
+        log.info(f"{sys._getframe().f_code.co_name}, STOP")
+        return {"status": True, "data": "AD sync is ok"}
     except Exception as e:
         log.error(f'update to AD error: {e}')
+        return {"status": False, "data": e}
 
 
 def update_student(student, data):
@@ -688,7 +692,7 @@ def update_property(ous, username, data):
 
 
 # if return_log is True, return the logging as a single string.
-def database_integrity_check(return_log=False):
+def database_integrity_check(return_log=False, mark_changes_in_db=False):
 
     class DisplayLog :
         def __init__(self):
@@ -701,11 +705,15 @@ def database_integrity_check(return_log=False):
         def get(self):
             return self.log if self.log != '' else 'Check ok'
 
-    def __check_property(student, sdh_property, ad_property, label):
+    def __check_property(student, sdh_property, ad_property, db_property):
         if sdh_property != ad_property:
             if verbose_logging:
-                log.info(f'{sys._getframe().f_code.co_name}: student {student.leerlingnummer} {label}, SDH: {sdh_property}, AD: {ad_property}')
-            dl.add(f'AD, student {student.naam} {student.voornaam}, {student.leerlingnummer}, {label}, SDH: {sdh_property}, AD: {ad_property}')
+                log.info(f'{sys._getframe().f_code.co_name}: student {student.leerlingnummer} {db_property.upper()}, SDH="{sdh_property}", AD="{ad_property}"')
+            dl.add(f'AD, student {student.naam} {student.voornaam}, {student.leerlingnummer}, {db_property.upper()}, SDH="{sdh_property}", AD="{ad_property}"')
+            if student in changed_students:
+                changed_students[student].append(db_property)
+            else:
+                changed_students[student] = [db_property]
 
     try:
         verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
@@ -715,25 +723,29 @@ def database_integrity_check(return_log=False):
         ldap_init(ctx)
         sdh_students = mstudent.get_students()
         students_cache_init(ctx)
+        changed_students = {}
         for student in sdh_students:
             if student.leerlingnummer in ctx.ad_active_students_leerlingnummer:
                 ad_student = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']
-                __check_property(student, student.naam, ad_student['sn'], 'NAAM')
-                __check_property(student, f"{get_student_voornaam(student)} {student.naam}", ad_student['displayname'], 'ROEPNAAM')
-                __check_property(student, student.voornaam, ad_student['givenname'], 'VOORNAAM')
-                __check_property(student, student.klascode, ad_student['l'], 'KLAS')
-                __check_property(student, student.email, ad_student['mail'].lower(), 'EMAIL')
+                __check_property(student, student.naam, ad_student['sn'], 'naam')
+                __check_property(student, f"{get_student_voornaam(student)} {student.naam}", ad_student['displayname'], 'roepnaam')
+                __check_property(student, student.voornaam, ad_student['givenname'], 'voornaam')
+                __check_property(student, student.klascode, ad_student['l'], 'klascode')
+                __check_property(student, student.email, ad_student['mail'].lower(), 'email')
                 if not ad_student['pager']:
                     ad_student['pager'] = None
-                __check_property(student, student.rfid, ad_student['pager'], 'RFID')
+                __check_property(student, student.rfid, ad_student['pager'], 'rfid')
             else:
                 log.info(f'{sys._getframe().f_code.co_name}: student {student.leerlingnummer} not found in AD')
                 dl.add(f'AD, student {student.leerlingnummer} niet gevonden in AD')
+        if mark_changes_in_db:
+            flagged_students = [{'student': s, 'changed': json.dumps(c)} for s, c in changed_students.items()]
+            mstudent.flag_students(flagged_students)
         ldap_deinit(ctx)
-        if return_log:
-            return dl.get()
         log.info(f'{sys._getframe().f_code.co_name}: end')
+        return {"status": True, "data": dl.get()}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": False, "data": e}
 
 

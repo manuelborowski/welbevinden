@@ -96,18 +96,18 @@ default_configuration_settings = {
     'sdh-current-schoolyear': ('', Settings.SETTING_TYPE.E_STRING),
     'sdh-schoolyear-changed': (False, Settings.SETTING_TYPE.E_BOOL),
 
-    'user-formio-template': ('', Settings.SETTING_TYPE.E_JSON),
-    'user-datatables-template': ('{}', Settings.SETTING_TYPE.E_JSON),
+    'user-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),
+    'user-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
 
-    'student-formio-template': ('', Settings.SETTING_TYPE.E_JSON),
-    'student-datatables-template': ('{}', Settings.SETTING_TYPE.E_JSON),
+    'student-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),
+    'student-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
     'student-max-students-to-view-with-one-click': (5, Settings.SETTING_TYPE.E_INT),
 
-    'staff-formio-template': ('', Settings.SETTING_TYPE.E_JSON),
-    'staff-datatables-template': ('{}', Settings.SETTING_TYPE.E_JSON),
+    'staff-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),
+    'staff-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
 
-    'cardpresso-formio-template': ('', Settings.SETTING_TYPE.E_JSON),
-    'cardpresso-datatables-template': ('{}', Settings.SETTING_TYPE.E_JSON),
+    'cardpresso-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),
+    'cardpresso-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
 
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cron-enable-update-student-from-wisa': (False, Settings.SETTING_TYPE.E_BOOL),
@@ -173,7 +173,7 @@ default_configuration_settings = {
 
     'photo-verbose-logging': (False, Settings.SETTING_TYPE.E_BOOL),
 
-    'api-keys': ('[]', Settings.SETTING_TYPE.E_JSON),
+    'api-keys': ([], Settings.SETTING_TYPE.E_JSON),
 
     'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
     'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),
@@ -188,10 +188,10 @@ default_configuration_settings = {
 }
 
 
-def get_configuration_settings():
+def get_configuration_settings(convert_to_string=False):
     configuration_settings = {}
     for k in default_configuration_settings:
-        configuration_settings[k] = get_configuration_setting(k)
+        configuration_settings[k] = str(get_configuration_setting(k)) if convert_to_string else get_configuration_setting(k)
     return configuration_settings
 
 

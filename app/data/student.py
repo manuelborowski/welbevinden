@@ -138,13 +138,14 @@ def add_students(data = []):
     return None
 
 
-def update_student(student, data={}):
+def update_student(student, data={}, commit=True):
     try:
         for k, v in data.items():
             if hasattr(student, k):
                 if getattr(Student, k).expression.type.python_type == type(v):
                     setattr(student, k, v.strip() if isinstance(v, str) else v)
-        db.session.commit()
+        if commit:
+            db.session.commit()
         return student
     except Exception as e:
         db.session.rollback()

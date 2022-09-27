@@ -115,7 +115,7 @@ def database_integrity_check(data):
             if data['event'] == 'event-update-database':
                 ret = mad.database_integrity_check(return_log=True, mark_changes_in_db=True)
                 if ret['status']:
-                    ret = mad.cron_ad_task()
+                    ret = mad.cron_ad_student_task()
             elif data['event'] == 'event-start-integrity-check':
                 ret = mad.database_integrity_check(return_log=True)
         return ret

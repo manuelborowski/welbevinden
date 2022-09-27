@@ -1,8 +1,8 @@
 from app.data import settings as msettings, utils as mutils
 
 
-def get_configuration_settings():
-    return msettings.get_configuration_settings()
+def get_configuration_settings(convert_to_string=False):
+    return msettings.get_configuration_settings(convert_to_string=convert_to_string)
 
 
 def get_configuration_setting(setting):

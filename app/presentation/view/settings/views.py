@@ -17,7 +17,7 @@ def show():
   for nbr, module in enumerate(cron_table):
     enabled = cron_module_enable_settings[module[0]] if module[0] in cron_module_enable_settings else False
     cron_module["components"].append({"label": f'({nbr+1}) {module[2]}', "tooltip": module[3], "tableView": False, "defaultValue": enabled, "key": module[0], "type": "checkbox", "input": True})
-  default_settings = msettings.get_configuration_settings()
+  default_settings = msettings.get_configuration_settings(convert_to_string=True)
   data = {'default': default_settings, 'template': settings_formio}
   return render_template('/settings/settings.html', data=data)
 

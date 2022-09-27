@@ -224,7 +224,7 @@ def students_cache_init(ctx):
     try:
         # Create student caches
         res = ctx.ldap.search(ctx.student_location_toplevel, f'(&(objectclass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))', ldap3.SUBTREE,
-                              attributes=['cn', 'wwwhomepage', 'userAccountControl', 'mail', 'l', 'sn', 'givenname', 'pager', 'displayname'])
+                              attributes=['cn', 'wwwhomepage', 'userAccountControl', 'mail', 'l', 'sn', 'givenname', 'pager', 'displayname', 'postOfficeBox'])
         if res:
             ctx.ad_active_students_leerlingnummer = {s['attributes']['wwwhomepage']: s for s in ctx.ldap.response if s['attributes']['wwwhomepage'] != []}
             ctx.ad_active_students_dn = {s['dn']: s for s in ctx.ldap.response if s['attributes']['wwwhomepage'] != []}
@@ -597,7 +597,7 @@ def update_ad_cn_and_displayname():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-def cron_ad_task(opaque=None):
+def cron_ad_student_task(opaque=None):
     try:
         log.info(f"{sys._getframe().f_code.co_name}, START")
         ctx = Context()
@@ -627,6 +627,29 @@ def cron_ad_task(opaque=None):
     except Exception as e:
         log.error(f'update to AD error: {e}')
         return {"status": False, "data": e}
+
+
+def cron_ad_get_student_computer_task(opaque=None):
+    try:
+        log.info(f"{sys._getframe().f_code.co_name}, START")
+        verbose_logging = msettings.get_configuration_setting('ad-verbose-logging')
+        ctx = Context()
+        ldap_init(ctx)
+        students_cache_init(ctx)
+        students = mstudent.get_students()
+        for student in students:
+            if student.leerlingnummer in ctx.ad_active_students_leerlingnummer:
+                computer = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']['postOfficeBox']
+                mstudent.update_student(student, {'computer': computer})
+                if verbose_logging:
+                    log.info(f'Student {student.naam} {student.voornaam}, {student.leerlingnummer}, updated computer {computer}')
+            else:
+                log.error(f'Student {student.naam} {student.voornaam}, {student.leerlingnummer}, not found in AD')
+        log.info(f"{sys._getframe().f_code.co_name}, STOP")
+    except Exception as e:
+        log.error(f'update to AD error: {e}')
+
+
 
 
 def update_student(student, data):

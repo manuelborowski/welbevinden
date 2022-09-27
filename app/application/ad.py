@@ -639,15 +639,17 @@ def cron_ad_get_student_computer_task(opaque=None):
         students = mstudent.get_students()
         for student in students:
             if student.leerlingnummer in ctx.ad_active_students_leerlingnummer:
-                computer = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']['postOfficeBox']
-                mstudent.update_student(student, {'computer': computer})
+                computers = ctx.ad_active_students_leerlingnummer[student.leerlingnummer]['attributes']['postOfficeBox']
+                computer = computers[0] if computers else ''
+                mstudent.update_student(student, {'computer': computer}, commit=False)
                 if verbose_logging:
                     log.info(f'Student {student.naam} {student.voornaam}, {student.leerlingnummer}, updated computer {computer}')
             else:
                 log.error(f'Student {student.naam} {student.voornaam}, {student.leerlingnummer}, not found in AD')
+        mstudent.commit()
         log.info(f"{sys._getframe().f_code.co_name}, STOP")
     except Exception as e:
-        log.error(f'update to AD error: {e}')
+        log.info(f"{sys._getframe().f_code.co_name}, {e}")
 
 
 

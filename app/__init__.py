@@ -78,11 +78,12 @@ flask_app.config.from_pyfile('config.py')
 # 0.56: small bugifx
 # 0.57: dabase integrity check: remove issues. Small bugfixes
 # 0.58: bugfix settings of type json.  Added code to get the computer name from AD
+# 0.59: update get computers from AD and bugfix json settings
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.58', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.59', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

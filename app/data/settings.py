@@ -34,7 +34,7 @@ class Settings(db.Model):
 # return: found, value
 # found: if True, setting was found else not
 # value ; if setting was found, returns the value
-def get_setting(name, id=-1):
+def get_setting(name, id=-1, convert_to_string=False):
     try:
         setting = Settings.query.filter_by(name=name, user_id=id if id > -1 else current_user.id).first()
         if setting.type == Settings.SETTING_TYPE.E_INT:
@@ -44,7 +44,7 @@ def get_setting(name, id=-1):
         elif setting.type == Settings.SETTING_TYPE.E_BOOL:
             value = True if setting.value == 'True' else False
         elif setting.type == Settings.SETTING_TYPE.E_JSON:
-            value = json.loads(setting.value)
+            value = json.dumps(json.loads(setting.value), indent=2) if convert_to_string else json.loads(setting.value)
         else:
             value = setting.value
     except Exception as e:
@@ -76,7 +76,10 @@ def set_setting(name, value, id=-1):
             if setting.type == Settings.SETTING_TYPE.E_BOOL:
                 value = 'True' if value else 'False'
             elif setting.type == Settings.SETTING_TYPE.E_JSON:
-                value = json.dumps(value)
+                if type(value) is dict:
+                    value = json.dumps(value)
+                else:
+                    value = json.dumps(json.loads(value))
             setting.value = value
             db.session.commit()
     except Exception as e:
@@ -191,7 +194,7 @@ default_configuration_settings = {
 def get_configuration_settings(convert_to_string=False):
     configuration_settings = {}
     for k in default_configuration_settings:
-        configuration_settings[k] = str(get_configuration_setting(k)) if convert_to_string else get_configuration_setting(k)
+        configuration_settings[k] = get_configuration_setting(k, convert_to_string)
     return configuration_settings
 
 
@@ -205,8 +208,8 @@ def set_configuration_setting(setting, value):
     return ret
 
 
-def get_configuration_setting(setting):
-    found, value = get_setting(setting, 1)
+def get_configuration_setting(setting, convert_to_string=False):
+    found, value = get_setting(setting, 1, convert_to_string=convert_to_string)
     if found:
         return value
     else:

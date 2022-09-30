@@ -17,7 +17,7 @@ def key_required(func):
         except Exception as e:
             log.error(f'{sys._getframe().f_code.co_name}: {e}')
             return json.dumps({"status": False, "data": e})
-        return json.dumps({"status": False, "data": f'Key not valid'})
+        return json.dumps({"status": False, "data": f'API key not valid'})
     return decorator
 
 

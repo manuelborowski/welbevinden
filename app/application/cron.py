@@ -1,7 +1,7 @@
 from app import ap_scheduler, log, flask_app
 import datetime
 from apscheduler.triggers.cron import CronTrigger
-from app.application.settings import get_configuration_setting, subscribe_handle_button_clicked, subscribe_handle_update_setting
+from app.application.settings import get_configuration_setting, subscribe_button_clicked, subscribe_update_setting
 from app.application.test import test_cron_task
 from . import cron_table
 
@@ -44,7 +44,7 @@ def start_job():
         cron_template = get_configuration_setting('cron-scheduler-template')
         if cron_template != 'now':  # prevent to run the cronjob each time the server is rebooted
             init_job(cron_template)
-        subscribe_handle_update_setting('cron-scheduler-template', update_cron_template, None)
+        subscribe_update_setting('cron-scheduler-template', update_cron_template, None)
     except Exception as e:
         log.error(f'could not start cron-scheduler: {e}')
 
@@ -55,4 +55,4 @@ start_job()
 def emulate_cron_start(topic=None, opaque=None):
     with flask_app.app_context():
         cron_task()
-subscribe_handle_button_clicked('button-start-cron-cycle', emulate_cron_start, None)
+subscribe_button_clicked('button-start-cron-cycle', emulate_cron_start, None)

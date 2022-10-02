@@ -110,7 +110,7 @@ def process_new_badges(topic=None, opaque=None):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
-msettings.subscribe_handle_button_clicked('button-new-badges', process_new_badges, None)
+msettings.subscribe_button_clicked('button-new-badges', process_new_badges, None)
 
 
 def check_for_new_rfid():

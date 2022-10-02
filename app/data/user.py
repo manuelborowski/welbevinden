@@ -39,8 +39,6 @@ class User(UserMixin, db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(256))
     username = db.Column(db.String(256))
-    first_name = db.Column(db.String(256))
-    last_name = db.Column(db.String(256))
     password_hash = db.Column(db.String(256))
     level = db.Column(db.Integer)
     user_type = db.Column(db.String(256))
@@ -65,6 +63,10 @@ class User(UserMixin, db.Model, SerializerMixin):
     @property
     def is_at_least_supervisor(self):
         return self.level >= User.LEVEL.SUPERVISOR
+
+    @property
+    def is_max_supervisor(self):
+        return self.level <= User.LEVEL.SUPERVISOR
 
     @property
     def is_at_least_admin(self):
@@ -93,8 +95,6 @@ class User(UserMixin, db.Model, SerializerMixin):
 
     def ret_dict(self):
         return {'id': self.id, 'DT_RowId': self.id, 'email': self.email, 'username': self.username,
-                'first_name': self.first_name,
-                'last_name': self.last_name,
                 'level': User.LEVEL.i2s(self.level), 'user_type': self.user_type, 'last_login': self.last_login,
                 'chbx': ''}
 
@@ -197,8 +197,6 @@ def pre_filter():
 def search_data(search_string):
     search_constraints = []
     search_constraints.append(User.username.like(search_string))
-    search_constraints.append(User.first_name.like(search_string))
-    search_constraints.append(User.last_name.like(search_string))
     search_constraints.append(User.email.like(search_string))
     return search_constraints
 

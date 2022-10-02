@@ -23,9 +23,19 @@ function load_formio_form() {
             _form.getComponentById(button_id).setValue(false);
         })
         form.on('submitButton', button => {
-            console.log(button);
             button_id = button.instance.id;
         });
+
+        form.on('copy-to-clipboard-ouders-link', container => {
+            console.log(container["url-to-ouders-survey"]);
+            navigator.clipboard.writeText(container["url-to-ouders-survey"]);
+        });
+        form.on('copy-to-clipboard-leerlingen-link', container => {
+            console.log(container["url-to-leerlingen-survey"]);
+            navigator.clipboard.writeText(container["url-to-leerlingen-survey"]);
+        });
+
+
     });
 }
 

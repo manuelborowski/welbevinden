@@ -20,70 +20,13 @@ config_name = config_name if config_name else 'production'
 flask_app.config.from_object(app_config[config_name])
 flask_app.config.from_pyfile('config.py')
 
-# V0.1: copy from sum-zorg V0.109
-# 0.2: removed intake and care.  Added functionality to read database and photos from wisa
-# 0.3: added functionality to print badges.  Added right-click
-# 0.4: added cron tasks: import photo's, assign vsk numbers, create badges.  Send email when something changed related to cardpresso.
-# 0.5: updated cron badges task.  Added tests for wisa-cron-task and rfid-cron-task
-# 0.6: AD interface is OK.  added testing
-# 0.7: new and resurrected students: empty password and password must be changed at first logon
-# 0.8: minor updates
-# 0.9: update python-package, use configurable IP address
-# 0.10: small bugfix
-# 0.11: update frontend (css), bugfix right-click
-# 0.12: update api-key, added endpoint to get student info
-# 0.13: commit: add rollback in case of exception
-# 0.14: added import staff from wisa. AD, add new class to 'leerlingen'
-# 0.15: update in settings
-# 0.16: add school email to database.  API, add filters
-# 0.17: api keys are stored as a setting
-# 0.18: extend api, always return status and data.  sqlalchemy, bugfix when querying for field 'delete'
-# 0.19: bugfix api when fields of type datetime are requested.  Refactored model-api
-# 0.20: update api/fields
-# 0.21: clear selectionboxes after action.  Students from WISA, use leerlingnummer as unique id
-# 0.22: put new studens in the ad-group leerlingen, ad: add switch to reset password of respawned students, add verbose logging, api get students/staff: pass non-ascii as is
-# 0.23: bugfix in ad, added a default password, deleted students can be deactivated or not in AD,
-# 0.24: logger, more and longer logfiles.  Added functionality to remove students from a klas they do not belong to
-# 0.25: bugfixed typo
-# 0.26: enable smartschool-login.  rfid-fro-cardpresso: replace q with a
-# 0.27: extended student search
-# 0.28: students with name that is already present: add sufix (last 2 digits of leerlingnummer)
-# 0.29: add logging.  From wisa, email is added for new students only (can change when address already exists in AD)
-# 0.30: bugfixed user-levels.
-# 0.31: bugfix and make email searchable
-# 0.32: AD: existing student in AD, new in SDH -> get e-mailaddress from AD in case it is different from template-address
-# 0.33: cardpresso table: search in additional fields
-# 0.34: cardpresso table: small bugfix
-# 0.35: speed up deleting of badges.  Use API key.  Added filter (klassen)
-# 0.36: switch to allow new users via smartschool or not
-# 0.37: smartschool login: ignore case
-# 0.38: bugfix delete badges
-# 0.39: reworked photo
-# 0.40: when trying to find a photo, use the leerlingnummer as well
-# 0.41: add functionality to change the RFID code with a badgereader and forward the new code to AD
-# 0.42: when updating RFID code, show name of student
-# 0.43: students: get all usernames from ad (once) and store in SDH.  Added functionality to store new RFID directly to papercut
-# 0.44: set the RFID of staff as well
-# 0.45: added feature to udpate password.  Use formio in popup
-# 0.46: add file to git
-# 0.47: bugfix: update of RFID to sdh takes into account that the student is not present anymore
-# 0.48: bugfix, change spaces in field 'middag' to hashes to prevent stripping
-# 0.49: refactored ad.py.  Added functionality to test database integrity
-# 0.50: update database integrity check.  Introduced column roepnaam
-# 0.51: AD, displayname should be first-name last-name.  Added code to update already existing entries in AD
-# 0.52: reworked ad.py.  Take roepnaam into account when adding/changing student names
-# 0.53: reworked cron module
-# 0.54: small bugfix and added ' to not allowed characters in email
-# 0.55: database integerity check: bugfix roepnaam check
-# 0.56: small bugifx
-# 0.57: dabase integrity check: remove issues. Small bugfixes
-# 0.58: bugfix settings of type json.  Added code to get the computer name from AD
-# 0.59: update get computers from AD and bugfix json settings
-# 0.60: small update
+# V0.1: copy from school-data-hub V0.60
+# V0.2: added school specific settings
+
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.60', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.2', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -187,12 +130,13 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings,  api, warning, student, staff, cardpresso
+    from app.presentation.view import auth, user, settings,  api, warning, student, staff, cardpresso, survey
     flask_app.register_blueprint(api.api)
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(settings.settings)
     flask_app.register_blueprint(student.student)
+    flask_app.register_blueprint(survey.survey)
     flask_app.register_blueprint(staff.staff)
     flask_app.register_blueprint(cardpresso.cardpresso)
     flask_app.register_blueprint(warning.warning)

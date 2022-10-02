@@ -1,7 +1,8 @@
-import re, datetime
+import re, datetime, sys
+from app import log
 # noinspection PyUnresolvedReferences
 from bleach.sanitizer import Cleaner
-
+from app.application.util import deepcopy
 
 # iterate over the container, if a component contains a html or content property, replace the TAG(...) with
 # the data provided by 'tag'
@@ -95,14 +96,37 @@ def update_available_timeslots(timeslots, form, key):
 
 # search, in a given hierarchical tree of components, for a component with the given 'key'
 def search_component(form, key):
-    components = form['components']
-    for component in components:
-        if 'key' in component and component['key'] == key:
-            return component
-        if 'components' in component:
-            found_component = search_component(component, key)
-            if found_component: return found_component
+    components = None
+    if 'components' in form:
+        components = form['components']
+    elif 'columns' in form:
+        components = form['columns']
+    if components:
+        for component in components:
+            if 'key' in component and component['key'] == key:
+                return component
+            if 'components' in component or 'columns' in component:
+                found_component = search_component(component, key)
+                if found_component: return found_component
     return None
+
+
+# template is a formio component (with subcomponents, if needed)
+# data is a list of structures.  Each entry creates a new component (from template) and the relevant properties are filled in (found via key)
+def create_components(template, data):
+    try:
+        out = []
+        for item in data:
+            new_component = deepcopy(template)
+            new_component["key"] = item["key"]
+            for value in item['values']:
+                component = search_component(new_component, value['key'])
+                if component:
+                    component[value['property']] = value['value']
+            out.append(new_component)
+        return out
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 
 #in a form, iterate over all components and execute callback for each component

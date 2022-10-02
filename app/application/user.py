@@ -1,3 +1,4 @@
+from flask_login import current_user
 from app import log
 from app.application import formio as mformio
 from app.data import user as muser, settings as msettings

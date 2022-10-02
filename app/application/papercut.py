@@ -59,4 +59,4 @@ def load_staff_rfid_codes(topic=None, opaque=None):
 
 
 
-msettings.subscribe_handle_button_clicked('papercut-load-rfid-event', load_staff_rfid_codes, None)
+msettings.subscribe_button_clicked('papercut-load-rfid-event', load_staff_rfid_codes, None)

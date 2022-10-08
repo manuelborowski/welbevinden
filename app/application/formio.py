@@ -42,7 +42,7 @@ def extract_sub_component(form, key, item ={}, additional_fields = {}):
 
 
 def prepare_for_edit(form, flat={}, unfold=False):
-    def cb(component):
+    def cb(component, opaque):
         if component['key'] == 'photo':
             component['attrs'][0]['value'] = component['attrs'][0]['value'] + str(flat['photo'])
 
@@ -55,7 +55,7 @@ def prepare_for_edit(form, flat={}, unfold=False):
 # -unhide additional components
 # -make all components 'not required'
 def prepare_for_add(form):
-    def cb(component):
+    def cb(component, opaque):
         if component['key'] == 'header':
             component['hidden'] = True
         if component['key'] == 'mail-confirm':
@@ -130,16 +130,19 @@ def create_components(template, data):
 
 
 #in a form, iterate over all components and execute callback for each component
-def iterate_components_cb(form, cb):
-    c_iter = iterate_components(form)
+def iterate_components_cb(form, cb, opaque=None):
+    component_iter = iterate_components(form)
     try:
         while True:
-            c = next(c_iter)
-            cb(c)
+            component = next(component_iter)
+            if "key" in component:
+                print(component["key"])
+            cb(component, opaque)
     except StopIteration as e:
         pass
 
-
+# iterate over all components.
+# If a component is a container (i.e. contains a list of components, such as type container or columns), iterate first over de child-components
 def iterate_components(form):
     components = []
     if 'components' in form:
@@ -148,6 +151,7 @@ def iterate_components(form):
         components = form['columns']
     for component in components:
         if 'components' in component or 'columns' in component or 'rows' in component:
+            yield component
             yield from iterate_components(component)
         else:
             yield component
@@ -155,6 +159,7 @@ def iterate_components(form):
         for row in form['rows']:
             for column in row:
                 if 'components' in column or 'columns' in column or 'rows' in column:
+                    yield column
                     yield from iterate_components(column)
                 else:
                     yield column

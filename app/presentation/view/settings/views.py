@@ -1,11 +1,11 @@
-from flask import render_template
+from flask import render_template, request
 from flask_login import login_required, current_user
 from app import admin_required, log, supervisor_required
 from app.application import socketio as msocketio, event as mevent
 from app.application.util import deepcopy
 from . import settings
 from app.application import settings as msettings, cron as mcron, formio as mformio, cron_table, survey as msurvey, util as mutil
-import json, sys
+import json, sys, re
 
 
 @settings.route('/settings', methods=['GET', 'POST'])
@@ -34,6 +34,7 @@ msocketio.subscribe_on_type('settings', update_settings_cb)
 
 def prepare_form(form):
     try:
+        current_url = re.sub(f'{request.url_rule.rule}.*', '', request.url)
         school_info = msurvey.get_school_info()
         school_container = mformio.search_component(form, "container-scholen")
         data = []
@@ -41,8 +42,8 @@ def prepare_form(form):
             data.append({"key": info["name"],
                          "values": [
                              {"key": "panel-school", "property": "title", "value": f"School: {info['name']}"},
-                             {"key": "url-to-ouders-survey", "property": "defaultValue", "value": f".../ouders/{info['settings']['schoolcode']}"},
-                             {"key": "url-to-leerlingen-survey", "property": "defaultValue", "value": f".../leerlingen/{info['settings']['schoolcode']}"},
+                             {"key": "url-to-ouders-survey", "property": "defaultValue", "value": f"{current_url}/survey/start/ouders/{info['settings']['schoolcode']}"},
+                             {"key": "url-to-leerlingen-survey", "property": "defaultValue", "value": f"{current_url}/survey/start/leerlingen/{info['settings']['schoolcode']}"},
                              {"key": "chk-show-student-list", "property": "defaultValue", "value": info["settings"]["toon-studentenlijst"]},
                              {"key": "klassen", "property": "defaultValue", "value": ", ".join(info["settings"]["klassen"])},
                          ]})

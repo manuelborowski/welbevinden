@@ -22,11 +22,12 @@ flask_app.config.from_pyfile('config.py')
 
 # V0.1: copy from school-data-hub V0.60
 # V0.2: added school specific settings
+# V0.3: added survey
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.2', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.3', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

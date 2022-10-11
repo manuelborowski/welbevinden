@@ -67,10 +67,10 @@ def add_single(model, data = {}, commit=True):
     return None
 
 
-def add_multiple(data = []):
+def add_multiple(model, data = []):
     try:
         for d in data:
-            add_single(d, commit=False)
+            add_single(model, d, commit=False)
         db.session.commit()
     except Exception as e:
         db.session.rollback()

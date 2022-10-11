@@ -4,11 +4,13 @@ $(document).ready(function () {
     socketio.subscribe_on_receive("settings", socketio_settings_ack);
     socketio.subscribe_on_receive("event", socketio_event_ack);
     load_formio_form();
+
 });
 
 
-function load_formio_form() {
-    Formio.createForm(document.getElementById('configuration-settings'), data.template).then((form) => {
+async function load_formio_form() {
+    const options = {};
+    await Formio.createForm(document.getElementById('configuration-settings'), data.template, options).then(form => {
         _form = form
         var button_id; // hack to set the value of the button, which was just clicked, to false again.
         $.each(data.default, function (k, v) {
@@ -18,7 +20,7 @@ function load_formio_form() {
                 return;
             }
         });
-        form.on('submit', function(submission) {
+        form.on('submit', function (submission) {
             socketio_transmit_setting('data', JSON.stringify((submission.data)))
             _form.getComponentById(button_id).setValue(false);
         })
@@ -34,7 +36,22 @@ function load_formio_form() {
             console.log(container["url-to-leerlingen-survey"]);
             navigator.clipboard.writeText(container["url-to-leerlingen-survey"]);
         });
+        form.on('event-load-leerlingen-lijst', container => {
+            console.log(container);
+            const school = container["hidden-school-naam"]
+            const file_selector = document.getElementById(`${school}-input-file-select-leerlingen-lijst`);
+            file_selector.click();
+            file_selector.addEventListener('change', e => {
+                console.log(e);
+                fetch(Flask.url_for("settings.upload", {subject: "leerlingenlijst", school}), {
+                    method: 'POST',
+                    // body: JSON.stringify({file: "test", school})
+                    body: file_selector.files[0]
+                    // body: JSON.stringify({file: file_selector.files[0], school})
+                })
 
+            })
+        })
 
     });
 }
@@ -43,8 +60,8 @@ function load_formio_form() {
 function socketio_settings_ack(type, data) {
     _form.emit('submitDone')
     // setTimeout(function() {$("#configuration-settings .alert").css("display", "none");}, 1000);
-    setTimeout(function() {
-        document.querySelectorAll("[ref=buttonMessageContainer]").forEach(b => b.style.display="none");
+    setTimeout(function () {
+        document.querySelectorAll("[ref=buttonMessageContainer]").forEach(b => b.style.display = "none");
         document.querySelectorAll("[ref=button]").forEach(b => {
             b.classList.remove('btn-success');
             b.classList.remove('submit-success');

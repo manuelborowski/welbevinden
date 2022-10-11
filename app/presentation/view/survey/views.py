@@ -61,7 +61,7 @@ def iterate_form_cb(component, opaque):
         elif component["key"] == "container-leerlingen" and opaque["survey-for"] == "ouders":
             del(component["components"])
         elif component["key"] == "select-klas":
-            if opaque["klassen"] == []:
+            if not "klassen" in opaque or opaque["klassen"] == []:
                 component["hidden"] = True
             else:
                 data = {"values": [{"label": k, "value": k} for k in opaque["klassen"]]}

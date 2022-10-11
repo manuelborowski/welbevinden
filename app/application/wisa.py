@@ -1,6 +1,5 @@
 from app import log, flask_app
 from app.data import student as mstudent, photo as mphoto, settings as msettings, staff as mstaff
-from app.data.utils import belgische_gemeenten
 from app.application import warning as mwarning
 import datetime
 import json, requests, sys

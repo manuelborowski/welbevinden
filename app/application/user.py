@@ -25,7 +25,7 @@ def add_user(data):
 
 def update_user(data):
     try:
-        user = muser.user.get_first_user({'id': data['id']})
+        user = muser.get_first_user({'id': data['id']})
         if user:
             del data['id']
             user = muser.update_user(user, data)
@@ -62,7 +62,6 @@ def prepare_edit_registration_form(id):
     try:
         user = muser.get_first_user({"id": id})
         template = msettings.get_configuration_setting('user-formio-template')
-        template = mformio.prepare_for_edit(template, user.to_dict())
         return {'template': template,
                 'defaults': user.to_dict()}
     except Exception as e:

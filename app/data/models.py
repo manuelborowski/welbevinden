@@ -92,10 +92,10 @@ def update_single(model, obj, data={}):
     return None
 
 
-def delete_multiple(ids=[], objs=[]):
+def delete_multiple(model, ids=[], objs=[]):
     try:
         for id in ids:
-            obj = get_first_single({"id": id})
+            obj = get_first_single(model, {"id": id})
             db.session.delete(obj)
         for obj in objs:
             db.session.delete(obj)
@@ -126,7 +126,8 @@ def get_multiple(model, data={}, fields=[], order_by=None, first=False, count=Fa
                 q = q.order_by(desc(getattr(model, order_by[1::])))
             else:
                 q = q.order_by(getattr(model, order_by))
-        q = q.filter(model.active == active)
+        if hasattr(model, 'active'):
+            q = q.filter(model.active == active)
         if first:
             obj = q.first()
             return obj

@@ -37,22 +37,35 @@ async function load_formio_form() {
             navigator.clipboard.writeText(container["url-to-leerlingen-survey"]);
         });
         form.on('event-load-leerlingen-lijst', container => {
-            console.log(container);
             const school = container["hidden-school-naam"]
             const file_selector = document.getElementById(`${school}-input-file-select-leerlingen-lijst`);
+            file_selector.value = null;
+            // Attach an change-event-handler to the input-file-element so to start uploading and processing the file
+            file_selector.addEventListener('change', async e => {
+                const ret = await fetch(Flask.url_for("settings.upload", {subject: "leerlingenlijst", school}), {method: 'POST', body: file_selector.files[0]})
+                const status = await ret.json();
+                if (status.status) {
+                    bootbox.alert(status.data);
+                    const indicator_key = `${school}-upload-leerlingen-lijst-indicator`;
+                    _form.getComponent(indicator_key).setValue('Er zijn studenten uploaded, ververs browserscherm');
+                } else {
+                    bootbox.alert('Foutmelding: ' + status.data);
+                }
+            }, {once:true})
             file_selector.click();
-            file_selector.addEventListener('change', e => {
-                console.log(e);
-                fetch(Flask.url_for("settings.upload", {subject: "leerlingenlijst", school}), {
-                    method: 'POST',
-                    // body: JSON.stringify({file: "test", school})
-                    body: file_selector.files[0]
-                    // body: JSON.stringify({file: file_selector.files[0], school})
-                })
-
-            })
         })
-
+        form.on('event-clear-leerlingen-lijst', async container => {
+            const school = container["hidden-school-naam"]
+            const ret = await fetch(Flask.url_for("settings.clear", {subject: "leerlingenlijst", school}), {method: 'POST'})
+                const status = await ret.json();
+                if (status.status) {
+                    bootbox.alert(status.data);
+                    const indicator_key = `${school}-upload-leerlingen-lijst-indicator`;
+                    _form.getComponent(indicator_key).setValue('De lijst is gewist, ververs browserscherm');
+                } else {
+                    bootbox.alert('Foutmelding: ' + status.data);
+                }
+        })
     });
 }
 

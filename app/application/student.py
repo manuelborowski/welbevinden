@@ -7,17 +7,38 @@ def delete_students(ids):
     mstudent.delete_students(ids)
 
 
-def upload_studenten(students, school):
+def upload_studenten(students, schoolnaam):
     try:
         current_year = mutils.get_current_schoolyear()
-        log.info(f'{sys._getframe().f_code.co_name}: upload studenten for school {school} and schooljaar {current_year}')
-        school_info = mschool.get_school_info_for_school(school)
+        log.info(f'{sys._getframe().f_code.co_name}: upload studenten for school {schoolnaam} and schooljaar {current_year}')
+        school_info = mschool.get_school_info_for_school(schoolnaam)
+        schoolcode = school_info['schoolcode']
+        current_students = mstudent.get_students({"schoolcode": schoolcode, "schooljaar": current_year})
+        students_cache = [s.voornaam + s.naam + s.klas for s in current_students]
         data = []
         for _, student in students.items():
-            data.append({'voornaam': student['VOORNAAM'], 'naam': student["NAAM"], 'klas': student['KLAS'], 'schoolcode': school_info['schoolcode'], 'schooljaar': current_year})
+            if not 'VOORNAAM' in student or not 'NAAM' in student or not 'KLAS' in student:
+                raise Exception('Het bestand moet minstens de kolommen VOORNAAM, NAAM en KLAS bevatten')
+            if not student['VOORNAAM'] + student["NAAM"] + student['KLAS'] in students_cache:
+                data.append({'voornaam': student['VOORNAAM'], 'naam': student["NAAM"], 'klas': student['KLAS'], 'schoolcode': school_info['schoolcode'], 'schooljaar': current_year})
         mstudent.add_students(data)
+        return len(data)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
+
+
+def clear_students(schoolnaam):
+    try:
+        current_year = mutils.get_current_schoolyear()
+        log.info(f'{sys._getframe().f_code.co_name}: clear students for school {schoolnaam} and schooljaar {current_year}')
+        school_info = mschool.get_school_info_for_school(schoolnaam)
+        schoolcode = school_info['schoolcode']
+        current_students = mstudent.get_students({"schoolcode": schoolcode, "schooljaar": current_year})
+        mstudent.delete_students(objs=current_students)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
 
 
 ############ datatables: student overview list #########

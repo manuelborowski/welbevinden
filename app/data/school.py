@@ -20,15 +20,12 @@ def get_school_info_for_school(school):
 # if username is not of form school-level (e.g. admin) return a list of all schools
 def get_school_info_for_current_user():
     try:
-        out = []
+        out = {}
         scholen = get_school_from_username()
         school_settings = msettings.get_configuration_setting('school-profile')
         for name, settings in school_settings.items():
             if name in scholen:
-                out.append({
-                    "name": name,
-                    "settings": settings
-                })
+                out[name] = settings
         return out
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

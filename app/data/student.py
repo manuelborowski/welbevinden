@@ -35,3 +35,10 @@ def add_students(data = []):
     return mmodels.add_multiple(Student, data)
 
 
+def get_students(data={}, fields=[], order_by=None, first=False, count=False, active=True):
+    return mmodels.get_multiple(Student, data=data, fields=fields, order_by=order_by, first=first, count=count, active=active)
+
+
+def delete_students(ids=[], objs=[]):
+    return mmodels.delete_multiple(Student, ids=ids, objs=objs)
+

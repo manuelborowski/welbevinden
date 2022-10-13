@@ -116,13 +116,24 @@ def search_component(form, key):
 def create_components(template, data):
     try:
         out = []
-        for item in data:
+        for component_info in data:
             new_component = deepcopy(template)
-            new_component["key"] = item["key"]
-            for value in item['values']:
-                component = search_component(new_component, value['key'])
-                if component:
-                    component[value['property']] = value['value']
+            new_component["key"] = component_info["key"]
+            for property in component_info['properties']:
+                sub_component = search_component(new_component, property['key'])
+                if sub_component:
+                    if property['name'] == "attrs":
+                        if "attrs" in sub_component:
+                            for i, attr in enumerate(sub_component['attrs']):
+                                if attr['attr'] in property["value"]:
+                                    sub_component["attrs"][i] = {"attr": attr["attr"], "value": property["value"][attr["attr"]]}
+                                    del property["value"][attr["attr"]]
+                        else:
+                            sub_component['attrs'] = []
+                        for k, v in property["value"].items():
+                            sub_component["attrs"].append({"attr": k, "value": v})
+                    else:
+                        sub_component[property['name']] = property['value']
             out.append(new_component)
         return out
     except Exception as e:
@@ -135,8 +146,6 @@ def iterate_components_cb(form, cb, opaque=None):
     try:
         while True:
             component = next(component_iter)
-            if "key" in component:
-                print(component["key"])
             cb(component, opaque)
     except StopIteration as e:
         pass

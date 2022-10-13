@@ -1,7 +1,20 @@
-from app.data import settings as msettings
-from flask_login import current_user
+from app.data import settings as msettings, school as mschool, student as mstudent, utils as mutils
 from app import log
 import sys
+
+
+def get_default_values():
+    try:
+        default_settings = msettings.get_configuration_settings(convert_to_string=True)
+        school_infos = mschool.get_school_info_for_current_user()
+        schooljaar = mutils.get_current_schoolyear()
+        for name, info in school_infos.items():
+            count = mstudent.get_students({"schoolcode": info["schoolcode"], "schooljaar": schooljaar}, count=True)
+            default_settings[f"{name}-upload-leerlingen-lijst-indicator"] = f"{count} studenten in schooljaar {schooljaar}"
+        return default_settings
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
 
 
 def get_configuration_settings(convert_to_string=False):

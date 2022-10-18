@@ -159,19 +159,15 @@ def iterate_components(form):
     elif 'columns' in form:
         components = form['columns']
     for component in components:
+        yield component
         if 'components' in component or 'columns' in component or 'rows' in component:
-            yield component
             yield from iterate_components(component)
-        else:
-            yield component
     if 'rows' in form:
         for row in form['rows']:
             for column in row:
+                yield column
                 if 'components' in column or 'columns' in column or 'rows' in column:
-                    yield column
                     yield from iterate_components(column)
-                else:
-                    yield column
 
 
 def datetimestring_to_datetime(date_in, seconds=False):

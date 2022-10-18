@@ -15,6 +15,9 @@ const load_formio_form = async () => {
                 return;
             }
         });
+        // const a = [{label: "drie", value: 3}, {label: "vier", value: 4}]
+        // const a = ["drie","vier"]
+        // form.getComponent("select-leerling").setItems(a, false)
         form.on('submit', async function(submission) {
             const ret = await fetch(Flask.url_for('survey.done'), {method: 'POST', body: JSON.stringify(submission.data), });
             const status = await ret.json();
@@ -25,5 +28,19 @@ const load_formio_form = async () => {
             }
             _form.getComponentById(button_id).setValue(false);
         })
+        const select_leerling_id = form.getComponent("select-leerling").id;
+        const select_leerling = document.querySelector("#" + select_leerling_id + " select")
+        select_leerling.addEventListener("change", e => {
+            console.log(e);
+            const school = e.detail.value.split("-")[3];
+            _form.getComponent('bs-welke-secundaire-school').value = school;
+            _form.getComponent('ss-andere-basisschool').value = school;
+        })
     });
+}
+
+const get_choices = (values, id) => {
+    console.log(values, id)
+    return data.select_choices[id]
+    // return [{value: 1, label:"een"}, {value: 2, label: "twee"}]
 }

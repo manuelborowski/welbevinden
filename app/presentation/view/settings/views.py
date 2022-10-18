@@ -549,10 +549,18 @@ formio_settings = \
                                                 "saveOnEnter": false
                                             },
                                             {
-                                                "label": "Detail template (formio)",
+                                                "label": "Enquête template (formio)",
                                                 "autoExpand": false,
                                                 "tableView": true,
                                                 "key": "survey-formio-template",
+                                                "type": "textarea",
+                                                "input": true
+                                            },
+                                            {
+                                                "label": "Enquête gedaan template (formio)",
+                                                "autoExpand": false,
+                                                "tableView": true,
+                                                "key": "survey-done-formio-template",
                                                 "type": "textarea",
                                                 "input": true
                                             },

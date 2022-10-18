@@ -3,10 +3,10 @@ from app import log, supervisor_required, flask_app
 from flask import redirect, url_for, request, render_template
 from flask_login import login_required, current_user
 from app.presentation.view import datatables
-from app.application import socketio as msocketio, settings as msettings, cardpresso as mcardpresso, formio as mformio
+from app.application import socketio as msocketio, settings as msettings, survey as msurvey
 from app.presentation.view.formio_popups import update_password, database_integrity_check
 from app.application.util import deepcopy
-import sys, json, re
+import sys, json, re, html
 import app.data.survey
 import app.application.survey
 
@@ -54,63 +54,23 @@ table_configuration = {
     'socketio_endpoint': 'celledit-survey',
 }
 
-def iterate_form_cb(component, opaque):
-    if component and "key" in component:
-        if component["key"] == "container-ouders" and opaque["survey-for"] == "leerlingen":
-            del(component["components"])
-        elif component["key"] == "container-leerlingen" and opaque["survey-for"] == "ouders":
-            del(component["components"])
-        elif component["key"] == "select-klas":
-            if not "klassen" in opaque or opaque["klassen"] == []:
-                component["hidden"] = True
-            else:
-                data = {"values": [{"label": k, "value": k} for k in opaque["klassen"]]}
-                component["data"] = data
-        elif component["key"] == "container-select-leerling" and not opaque["toon-leerlingenlijst"]:
-            component["hidden"] = True
-        elif component["key"] == "container-leerling-data" and not opaque["toon-leerlingenlijst"]:
-            del(component["conditional"])
-        elif component["key"] == "ss-selecteer-basisschool" and opaque["type"] == "basisschool":
-            component["hidden"] = True
-        elif component["key"] == "bs-welke-secundaire-school" and opaque["type"] == "secundaireschool":
-            component["hidden"] = True
-        elif component["key"] == "ss-selecteer-basisschool":
-                data = [{"label": k, "value": k} for k in opaque["basisscholen"]]
-                component["data"]["values"].extend(data)
-
-
-@survey.route('/survey/start/<string:type>/<string:code>', methods=['GET'])
-def start(type, code):
+@survey.route('/survey/start/<string:targetgroup>/<string:schoolcode>', methods=['GET'])
+def start(targetgroup, schoolcode):
     try:
-        school_infos = msettings.get_configuration_setting("school-profile")
-        basisscholen = []
-        school_info = None
-        for naam, info in school_infos.items():
-            if code == info["schoolcode"]:
-                school_info = info
-                school_info["naam"] = naam
-            if info["type"] == "basisschool":
-                basisscholen.append(naam)
-        if not school_info or type not in ["ouders", "leerlingen"]: return "Sorry, er is een fout opgetreden"
-        survey_template = deepcopy(msettings.get_configuration_setting("survey-formio-template"))
-        school_info["survey-for"] = type
-        school_info["basisscholen"] = basisscholen
-        mformio.iterate_components_cb(survey_template, iterate_form_cb, school_info)
-        default = {
-            "school-type-code": f'{info["schoolcode"]}-{type}'
-        }
-        data = {'template': survey_template, "default": default}
-        return render_template('/survey/start_survey.html', data=data)
+        data = msurvey.prepare_survey(targetgroup, schoolcode)
+        return render_template('/survey/survey_formio.html', data=data)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-
+        return html.escape(str(e))
 
 @survey.route('/survey/done', methods=['POST'])
 def done():
     try:
         data = json.loads(request.data)
-        school_infos = msettings.get_configuration_setting("school-profile")
+        data = msurvey.save_survey(data)
+        return render_template('/survey/survey_formio.html', data=data)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return html.escape(str(e))
 
 

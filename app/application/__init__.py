@@ -1,5 +1,6 @@
-__all__ = ['tables', 'datatables', 'socketio', 'settings', 'warning', 'wisa', 'cron', 'cardpresso', 'photo', 'student', 'ad', 'test', 'staff']
+__all__ = ['tables', 'datatables', 'socketio', 'settings', 'warning', 'wisa', 'cron', 'cardpresso', 'photo', 'student', 'ad', 'test', 'staff', 'school']
 
+from . import school
 
 from app.application.photo import photo_cron_task
 from app.application.wisa import wisa_get_student_cron_task

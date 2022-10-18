@@ -94,6 +94,7 @@ default_configuration_settings = {
     'user-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
 
     'survey-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),
+    'survey-done-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),
     'survey-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
 
     'api-keys': ([], Settings.SETTING_TYPE.E_JSON),

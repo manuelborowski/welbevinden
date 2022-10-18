@@ -11,7 +11,7 @@ def upload_studenten(students, schoolnaam):
     try:
         current_year = mutils.get_current_schoolyear()
         log.info(f'{sys._getframe().f_code.co_name}: upload studenten for school {schoolnaam} and schooljaar {current_year}')
-        school_info = mschool.get_school_info_for_school(schoolnaam)
+        school_info = mschool.get_school_info_for_key(schoolnaam)
         schoolcode = school_info['schoolcode']
         current_students = mstudent.get_students({"schoolcode": schoolcode, "schooljaar": current_year})
         students_cache = [s.voornaam + s.naam + s.klas for s in current_students]
@@ -32,7 +32,7 @@ def clear_students(schoolnaam):
     try:
         current_year = mutils.get_current_schoolyear()
         log.info(f'{sys._getframe().f_code.co_name}: clear students for school {schoolnaam} and schooljaar {current_year}')
-        school_info = mschool.get_school_info_for_school(schoolnaam)
+        school_info = mschool.get_school_info_for_key(schoolnaam)
         schoolcode = school_info['schoolcode']
         current_students = mstudent.get_students({"schoolcode": schoolcode, "schooljaar": current_year})
         mstudent.delete_students(objs=current_students)

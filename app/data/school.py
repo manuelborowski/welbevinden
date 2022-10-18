@@ -4,12 +4,33 @@ from app.data import settings as msettings
 from app import log
 import sys
 
-def get_school_info_for_school(school):
+
+def get_scholen_info_for_type(type):
+    try:
+        scholen = {}
+        school_settings = msettings.get_configuration_setting('school-profile')
+        for key, settings in school_settings.items():
+            if settings["type"] == type:
+                scholen[key] = settings
+        return scholen
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def get_school_info_for_key(key):
     try:
         school_settings = msettings.get_configuration_setting('school-profile')
-        for name, settings in school_settings.items():
-            if name == school:
-                return settings
+        return school_settings[key]
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def get_school_info_for_schoolcode(code):
+    try:
+        school_settings = msettings.get_configuration_setting('school-profile')
+        for key, setting in school_settings.items():
+            if setting["schoolcode"] == code:
+                return setting
         return None
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -23,9 +44,9 @@ def get_school_info_for_current_user():
         out = {}
         scholen = get_school_from_username()
         school_settings = msettings.get_configuration_setting('school-profile')
-        for name, settings in school_settings.items():
-            if name in scholen:
-                out[name] = settings
+        for key, settings in school_settings.items():
+            if key in scholen:
+                out[key] = settings
         return out
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

@@ -589,6 +589,51 @@ formio_settings = \
                         "tableView": false,
                         "components": [
                             {
+                                "label": "container-survey",
+                                "tableView": false,
+                                "key": "container-survey",
+                                "type": "container",
+                                "input": true,
+                                "components": [
+                                    {
+                                        "title": "Enquête",
+                                        "theme": "primary",
+                                        "collapsible": true,
+                                        "key": "enquete",
+                                        "type": "panel",
+                                        "label": "Panel",
+                                        "input": false,
+                                        "tableView": false,
+                                        "components": [
+                                            {
+                                                "label": "Opslaan",
+                                                "showValidations": false,
+                                                "theme": "warning",
+                                                "tableView": false,
+                                                "key": "submit",
+                                                "type": "button",
+                                                "saveOnEnter": false,
+                                                "input": true
+                                            },
+                                            {
+                                                "label": "Minimum aantal dagen tussen twee enquêtes",
+                                                "labelPosition": "left-left",
+                                                "mask": false,
+                                                "tableView": false,
+                                                "delimiter": false,
+                                                "requireDecimal": false,
+                                                "inputFormat": "plain",
+                                                "truncateMultipleSpaces": false,
+                                                "key": "survey-minimum-delta-days",
+                                                "type": "number",
+                                                "input": true
+                                            }
+                                        ],
+                                        "collapsed": false
+                                    }
+                                ]
+                            },
+                            {
                                 "label": "scholen",
                                 "tableView": false,
                                 "key": "module-scholen",

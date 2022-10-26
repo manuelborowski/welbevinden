@@ -7,7 +7,6 @@ $(document).ready(function () {
 const load_formio_form = async () => {
     Formio.createForm(document.getElementById('survey-form'), data.template).then((form) => {
         _form = form
-        var button_id; // hack to set the value of the button, which was just clicked, to false again.
         $.each(data.default, function (k, v) {
             try {
                 form.getComponent(k).setValue(v);
@@ -15,32 +14,24 @@ const load_formio_form = async () => {
                 return;
             }
         });
-        // const a = [{label: "drie", value: 3}, {label: "vier", value: 4}]
-        // const a = ["drie","vier"]
-        // form.getComponent("select-leerling").setItems(a, false)
         form.on('submit', async function(submission) {
-            const ret = await fetch(Flask.url_for('survey.done'), {method: 'POST', body: JSON.stringify(submission.data), });
+            const ret = await fetch(Flask.url_for('survey.save'), {method: 'POST', body: JSON.stringify(submission.data), });
             const status = await ret.json();
             if (status.status) {
-                bootbox.alert(`Er zijn ${status.data} nieuwe nummers toegekend`)
+                window.location.href = Flask.url_for('survey.done') + `?targetgroup=${status.data.targetgroup}&status=${status.data.status}&message=${status.data.message}`
             } else {
-                bootbox.alert(`Fout bij het toekennen van de nieuwe nummers: ${status.data}`)
+                bootbox.alert(`Er is een fout opgetreden:<br> ${status.data}`)
             }
-            _form.getComponentById(button_id).setValue(false);
         })
-        const select_leerling_id = form.getComponent("select-leerling").id;
-        const select_leerling = document.querySelector("#" + select_leerling_id + " select")
-        select_leerling.addEventListener("change", e => {
-            console.log(e);
-            const school = e.detail.value.split("-")[3];
-            _form.getComponent('bs-welke-secundaire-school').value = school;
-            _form.getComponent('ss-andere-basisschool').value = school;
-        })
+        const select_leerling_element = form.getComponent("select-leerling");
+        if (select_leerling_element) {
+            const select_leerling = document.querySelector("#" + select_leerling_element.id + " select")
+            select_leerling.addEventListener("change", e => {
+                const school = e.detail.value.split("+")[3];
+                _form.getComponent('bs-welke-secundaire-school').setValue(school);
+                _form.getComponent('select-basisschool').setValue(school);
+                _form.getComponent('select-basisschool').redraw();
+            })
+        }
     });
-}
-
-const get_choices = (values, id) => {
-    console.log(values, id)
-    return data.select_choices[id]
-    // return [{value: 1, label:"een"}, {value: 2, label: "twee"}]
 }

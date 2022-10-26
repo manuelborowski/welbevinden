@@ -10,7 +10,10 @@ def handle_school_settings(key, container, opaque):
         scholen_container = container["container-scholen"]
         for school, settings in scholen_container.items():
             if school_settings[school]["type"] == "secundaireschool":
-                school_settings[school]["klassen"] = settings["container-secundaire-school"]["klassen"].split(",")
+                if settings["container-secundaire-school"]["klassen"] == '':
+                    school_settings[school]["klassen"] = []
+                else:
+                    school_settings[school]["klassen"] = settings["container-secundaire-school"]["klassen"].split(",")
         msettings.set_configuration_setting('school-profile', school_settings)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

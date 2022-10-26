@@ -11,16 +11,14 @@ def upload_studenten(students, schoolnaam):
     try:
         current_year = mutils.get_current_schoolyear()
         log.info(f'{sys._getframe().f_code.co_name}: upload studenten for school {schoolnaam} and schooljaar {current_year}')
-        school_info = mschool.get_school_info_for_key(schoolnaam)
-        schoolcode = school_info['schoolcode']
-        current_students = mstudent.get_students({"schoolcode": schoolcode, "schooljaar": current_year})
+        current_students = mstudent.get_students({"schoolkey": schoolnaam, "schooljaar": current_year})
         students_cache = [s.voornaam + s.naam + s.klas for s in current_students]
         data = []
         for _, student in students.items():
             if not 'VOORNAAM' in student or not 'NAAM' in student or not 'KLAS' in student:
                 raise Exception('Het bestand moet minstens de kolommen VOORNAAM, NAAM en KLAS bevatten')
             if not student['VOORNAAM'] + student["NAAM"] + student['KLAS'] in students_cache:
-                data.append({'voornaam': student['VOORNAAM'], 'naam': student["NAAM"], 'klas': student['KLAS'], 'schoolcode': school_info['schoolcode'], 'schooljaar': current_year})
+                data.append({'voornaam': student['VOORNAAM'], 'naam': student["NAAM"], 'klas': student['KLAS'], 'schoolkey': schoolnaam, 'schooljaar': current_year})
         mstudent.add_students(data)
         return len(data)
     except Exception as e:

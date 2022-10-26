@@ -24,7 +24,7 @@ flask_app.config.from_pyfile('config.py')
 # V0.2: added school specific settings
 # V0.3: added survey
 # V0.4: updated formio-create-components: take attributes into account.  Added functionality to upload/clear leerlingenlijst
-
+# V0.5: creating the survey form for different scenarios is ok
 
 @flask_app.context_processor
 def inject_defaults():

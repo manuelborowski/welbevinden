@@ -24,5 +24,6 @@ import app.data.student
 import app.data.photo
 import app.data.warning
 import app.data.utils
+import app.data.survey
 import app.data.user
 import app.data.staff

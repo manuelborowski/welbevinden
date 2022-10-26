@@ -13,13 +13,25 @@ class Survey(db.Model, SerializerMixin):
     datetime_format = '%d/%m/%Y %H:%M'
 
     id = db.Column(db.Integer(), primary_key=True)
-
     voornaam = db.Column(db.String(256), default='')
     naam = db.Column(db.String(256), default='')
     klas = db.Column(db.String(256), default='')
-    schoolcode = db.Column(db.String(256), default='')
-    schooljaar = db.Column(db.Integer)
+    schoolkey = db.Column(db.String(256), default='')
+    andereschool = db.Column(db.String(256), default='')
+    targetgroup = db.Column(db.String(256), default='')
+    schooljaar = db.Column(db.String(256), default='')
     survey = db.Column(MEDIUMTEXT)
+    timestamp = db.Column(db.DateTime)
+
+
+class StringCache(db.Model, SerializerMixin):
+    __tablename__ = 'string_cache'
+
+    date_format = '%d/%m/%Y'
+    datetime_format = '%d/%m/%Y %H:%M'
+
+    id = db.Column(db.Integer(), primary_key=True)
+    label = db.Column(db.String(2048), default='')
 
 
 def commit():
@@ -37,6 +49,21 @@ def add_survey(data={}, commit=True):
 def get_surveys(data={}, fields=[], order_by=None, first=False, count=False, active=True):
     return mmodels.get_multiple(Survey, data=data, fields=fields, order_by=order_by, first=first, count=count, active=active)
 
+
+def add_string(data={}, commit=True):
+    return mmodels.add_single(StringCache, data, commit)
+
+
+def get_strings(data={}, fields=[], order_by=None, first=False, count=False, active=True):
+    return mmodels.get_multiple(StringCache, data=data, fields=fields, order_by=order_by, first=first, count=count, active=active)
+
+
+def add_default_string():
+    s = get_strings({"label": ''})
+    if not s:
+        add_string({"label": ""})
+
+add_default_string()
 
 ############ staff overview list #########
 def pre_filter():

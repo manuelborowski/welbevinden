@@ -30,6 +30,7 @@ def get_school_info_for_schoolcode(code):
         school_settings = msettings.get_configuration_setting('school-profile')
         for key, setting in school_settings.items():
             if setting["schoolcode"] == code:
+                setting["key"] = key
                 return setting
         return None
     except Exception as e:

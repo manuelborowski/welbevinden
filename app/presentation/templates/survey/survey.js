@@ -23,14 +23,18 @@ const load_formio_form = async () => {
                 bootbox.alert(`Er is een fout opgetreden:<br> ${status.data}`)
             }
         })
-        const select_leerling_element = form.getComponent("select-leerling");
-        if (select_leerling_element) {
-            const select_leerling = document.querySelector("#" + select_leerling_element.id + " select")
+        const select_leerling_component = form.getComponent("select-leerling");
+        if (select_leerling_component) {
+            const select_leerling = document.querySelector("#" + select_leerling_component.id + " select")
             select_leerling.addEventListener("change", e => {
                 const school = e.detail.value.split("+")[3];
-                _form.getComponent('bs-welke-secundaire-school').setValue(school);
-                _form.getComponent('select-basisschool').setValue(school);
-                _form.getComponent('select-basisschool').redraw();
+                var component = _form.getComponent('bs-welke-secundaire-school');
+                if (component)  component.setValue(school);
+                component = _form.getComponent('select-basisschool');
+                if (component) {
+                    component.setValue(school);
+                    component.redraw();
+                }
             })
         }
     });

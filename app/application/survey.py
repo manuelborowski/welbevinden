@@ -18,8 +18,10 @@ def delete_students(ids):
 def update_form_cb(component, opaque):
     try:
         if component and "key" in component:
-            if component["key"] in opaque:
-                for property in opaque[component["key"]]:
+            if "clear-containers" in opaque and component["key"] in opaque["clear-containers"] and opaque["clear-containers"][component["key"]]:
+                component["components"] = []
+            elif "update-properties" in opaque and component["key"] in opaque["update-properties"]:
+                for property in opaque["update-properties"][component["key"]]:
                     component[property["name"]] = property["value"]
             if "container-vraag" in component["key"]:   #change, depending on the question type, the values of the answers (copy the labels of the leerlingen to the values)
                 vraag_ouders = vraag_leerlingen = None
@@ -106,25 +108,29 @@ def prepare_survey(targetgroup, schoolcode):
 
         survey_template = deepcopy(msettings.get_configuration_setting("survey-formio-template"))
         template_update = {
-            "container-ouders": [{"name": "hidden", "value": not targetgroup == "ouders"}],
-            "container-leerlingen": [{"name": "hidden", "value": not targetgroup == "leerlingen"}],
-            "container-leerling-lijst": [{"name": "hidden", "value": select_leerling_data == None}],
-            "container-klas": [{"name": "hidden", "value": select_klas_data == None}],
-            "container-basisschool": [{"name": "hidden", "value": not school_info["type"] == "basisschool"}],
-            "container-secundaireschool": [{"name": "hidden", "value": not school_info["type"] == "secundaireschool"}],
-            "targetgroup-schoolcode": [{"name": "defaultValue", "value": f"{targetgroup}+{schoolcode}"}],
+            "clear-containers" : {
+                "container-ouders": not targetgroup == "ouders",
+                "container-leerlingen": not targetgroup == "leerlingen",
+                "container-leerling-lijst": select_leerling_data == None,
+                "container-klas": select_klas_data == None,
+                "container-basisschool": not school_info["type"] == "basisschool",
+                "container-secundaireschool": not school_info["type"] == "secundaireschool",
+            },
+            "update-properties": {
+                "targetgroup-schoolcode": [{"name": "defaultValue", "value": f"{targetgroup}+{schoolcode}"}],
+            },
             "strings": string_cache
         }
 
         if select_leerling_data:
-            template_update["select-leerling"] = [{"name": "data", "value": select_leerling_data}]
-            template_update["container-leerling-extra-gegevens"] = [{"name": "hidden", "value": True}]
+            template_update["update-properties"]["select-leerling"] = [{"name": "data", "value": select_leerling_data}]
+            template_update["update-properties"]["container-leerling-extra-gegevens"] = [{"name": "hidden", "value": True}]
         else:
-             template_update["container-leerling-extra-gegevens"] = [{"name": "hidden", "value": False}, {"name": "conditional", "value": ""}]
+             template_update["update-properties"]["container-leerling-extra-gegevens"] = [{"name": "conditional", "value": ""}]
         if select_klas_data:
-            template_update["select-klas"] = [{"name": "data", "value": select_klas_data}]
+            template_update["update-properties"]["select-klas"] = [{"name": "data", "value": select_klas_data}]
         if select_basisschool_data:
-            template_update["select-basisschool"] = [{"name": "data", "value": select_basisschool_data}]
+            template_update["update-properties"]["select-basisschool"] = [{"name": "data", "value": select_basisschool_data}]
 
         mformio.iterate_components_cb(survey_template, update_form_cb, template_update)
         return {'template': survey_template, "default": default}
@@ -172,16 +178,20 @@ def save_survey(data):
 
         schooljaar = get_current_schoolyear()
         survey = []
-        previous_survey = msurvey.get_surveys({"naam": naam, "voornaam": voornaam, "klas": klas, "schoolkey": school_info["key"], "targetgroup": targetgroup,
-                                               "schooljaar": schooljaar}, order_by="-timestamp", first=True)
+        previous_surveys = msurvey.get_surveys({"naam": naam, "voornaam": voornaam, "klas": klas, "schoolkey": school_info["key"], "targetgroup": targetgroup,
+                                               "schooljaar": schooljaar}, order_by="-timestamp")
         now = datetime.datetime.now()
-        if previous_survey: # check if a survey is sent in, too soon after a previous one.
+        nbr_prvious_surveys = 0
+        if previous_surveys: # check if a survey is sent in, too soon after a previous one.
             minimum_days = msettings.get_configuration_setting("survey-minimum-delta-days")
-            delta_date = now - previous_survey.timestamp
-            if delta_date.days < minimum_days:
+            for previous_survey in previous_surveys:
+                delta_date = now - previous_survey.timestamp
+                if delta_date.days < minimum_days:
+                    nbr_prvious_surveys += 1
+            if nbr_prvious_surveys >= 2 or nbr_prvious_surveys >= 1 and targetgroup == "leerlingen":
                 return {"status": False, "message": f"U heeft al een enquête ingediend, deze enquête wordt genegeerd."}
         for container_vraag  in data["container-vragen"].values():
-            container_targetgroup,  = container_vraag.values()
+            container_targetgroup = container_vraag[f"container-{targetgroup}"]
             (key, antwoord),  = container_targetgroup.items()
             [vraag_type_id, vraag_id] = [int(v) for v in key.split("+")[1:]]
             vraag_type = string_cache[vraag_type_id]
@@ -221,11 +231,15 @@ def survey_done(data):
     try:
         survey_done_template = deepcopy(msettings.get_configuration_setting("survey-done-formio-template"))
         template_update = {
-            "container-ouders": [{"name": "hidden", "value": not data["targetgroup"] == "ouders"}],
-            "container-leerlingen": [{"name": "hidden", "value": not data["targetgroup"] == "leerlingen"}],
-            "container-ok": [{"name": "hidden", "value": not data["status"] == "true"}],
-            "container-nok": [{"name": "hidden", "value": not data["status"] == "false"}],
-            "survey-response-text": [{"name": "html", "value": data["message"]}]
+            "clear-containers": {
+                "container-ouders": not data["targetgroup"] == "ouders",
+                "container-leerlingen": not data["targetgroup"] == "leerlingen",
+                "container-ok": not data["status"] == "true",
+                "container-nok": not data["status"] == "false",
+            },
+            "update-properties": {
+                "survey-response-text": [{"name": "html", "value": data["message"]}]
+            },
         }
         mformio.iterate_components_cb(survey_done_template, update_form_cb, template_update)
         return {'template': survey_done_template}

@@ -25,10 +25,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.3: added survey
 # V0.4: updated formio-create-components: take attributes into account.  Added functionality to upload/clear leerlingenlijst
 # V0.5: creating the survey form for different scenarios is ok
+# V0.6: bugfix formio preparation (remove obsolete components).  Ouders may sent in 2 surveys
+
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.4', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.6', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

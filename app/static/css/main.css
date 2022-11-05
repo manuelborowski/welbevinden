@@ -1,9 +1,9 @@
 
-td.details-control {
+.details-control {
     background: url('../img/details_open.png') no-repeat center center;
     cursor: pointer;
 }
-tr.details td.details-control {
+.details .details-control {
     background: url('../img/details_close.png') no-repeat center center;
 }
 

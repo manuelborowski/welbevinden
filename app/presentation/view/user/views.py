@@ -107,6 +107,7 @@ table_configuration = {
     'view': 'user',
     'title': 'Gebruikers',
     'filter': [],
+    'buttons': [],
     'href': [],
     'pre_filter': data.user.pre_filter,
     'format_data': data.user.format_data,

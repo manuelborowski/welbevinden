@@ -38,9 +38,9 @@ def show(table_configuration, template=None, popups={}):
         api_key = flask_app.config['API_KEY']
     except Exception as e:
         flash_plus(f'Tabel kan niet getoond worden (show)', e)
-    if template:
-        return render_template(template, table_config=config, filters=filters, api_key=api_key, popups=popups)
-    return render_template('datatables.html', table_config=config, filters=filters, api_key=api_key, popups=popups)
+    if not template:
+        template = 'datatables.html'
+    return render_template(template, table_config=config, filters=filters, api_key=api_key, popups=popups)
 
 
 def format_datatable(table_configuration, data_list, total_count, filtered_count):

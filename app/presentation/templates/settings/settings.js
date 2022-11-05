@@ -28,13 +28,16 @@ async function load_formio_form() {
             button_id = button.instance.id;
         });
 
-        form.on('copy-to-clipboard-ouders-link', container => {
-            console.log(container["url-to-ouders-survey"]);
-            navigator.clipboard.writeText(container["url-to-ouders-survey"]);
-        });
-        form.on('copy-to-clipboard-leerlingen-link', container => {
-            console.log(container["url-to-leerlingen-survey"]);
-            navigator.clipboard.writeText(container["url-to-leerlingen-survey"]);
+        form.on('copy-link-to-clipboard', container => {
+            for (const [k, v] of Object.entries(container)) {
+                if (v === true) {
+                    const id = k.split("-").slice(1, 3).join("-");
+                    const key = `url-to-${id}-survey`;
+                    const url = container[key];
+                    navigator.clipboard.writeText(url);
+                    break;
+                }
+            }
         });
         form.on('event-load-leerlingen-lijst', container => {
             const school = container["hidden-school-naam"]

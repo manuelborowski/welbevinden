@@ -16,7 +16,7 @@ import app.application.survey
 def show():
     # start = datetime.datetime.now()
     datatables.update(table_configuration)
-    ret = datatables.show(table_configuration, template='survey/survey.html')
+    ret = datatables.show(table_configuration)
     # print('survey.show', datetime.datetime.now() - start)
     return ret
 
@@ -50,14 +50,16 @@ table_configuration = {
     'format_data': app.application.survey.format_data,
     'filter_data': app.data.survey.filter_data,
     'search_data': app.data.survey.search_data,
-    'default_order': (1, 'asc'),
+    'default_order': (2, 'asc'),
     'socketio_endpoint': 'celledit-survey',
+    "suppress_column_visible_selector": True
 }
 
-@survey.route('/survey/start/<string:targetgroup>/<string:schoolcode>', methods=['GET'])
-def start(targetgroup, schoolcode):
+
+@survey.route('/survey/start/<string:period>/<string:targetgroup>/<string:schoolcode>', methods=['GET'])
+def start(period, targetgroup, schoolcode):
     try:
-        data = msurvey.prepare_survey(targetgroup, schoolcode)
+        data = msurvey.prepare_survey(period, targetgroup, schoolcode)
         return render_template('/survey/survey_formio.html', data=data)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

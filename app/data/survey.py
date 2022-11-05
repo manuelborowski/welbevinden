@@ -19,6 +19,7 @@ class Survey(db.Model, SerializerMixin):
     schoolkey = db.Column(db.String(256), default='')
     andereschool = db.Column(db.String(256), default='')
     targetgroup = db.Column(db.String(256), default='')
+    period = db.Column(db.String(256), default='')
     schooljaar = db.Column(db.String(256), default='')
     survey = db.Column(MEDIUMTEXT)
     timestamp = db.Column(db.DateTime)

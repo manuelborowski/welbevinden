@@ -21,20 +21,21 @@ class User(UserMixin, db.Model, SerializerMixin):
         SUPERVISOR = 3
         ADMIN = 5
 
-        ls = ["GEBRUIKER", "SECRETARIAAT", "ADMINISTRATOR"]
+        ls = ["GEBRUIKER", "INSTELLEN", "NAAM-LEERLING", "ALLE-SCHOLEN", "ADMINISTRATOR"]
 
         @staticmethod
         def i2s(i):
-            if i == 1:
-                return User.LEVEL.ls[0]
-            elif i == 3:
-                return User.LEVEL.ls[1]
-            if i == 5:
-                return User.LEVEL.ls[2]
+            return User.LEVEL.ls[i - 1]
+            # if i == 1:
+            #     return User.LEVEL.ls[0]
+            # elif i == 3:
+            #     return User.LEVEL.ls[1]
+            # if i == 5:
+            #     return User.LEVEL.ls[2]
 
     @staticmethod
     def get_zipped_levels():
-        return list(zip(["1", "3", "5"], User.LEVEL.ls))
+        return list(zip(["1", "2", "3", "4", "5"], User.LEVEL.ls))
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(256))
@@ -52,22 +53,35 @@ class User(UserMixin, db.Model, SerializerMixin):
     def is_oauth(self):
         return self.user_type == User.USER_TYPE.OAUTH
 
+    ### level 1 ###
     @property
-    def is_at_least_user(self):
+    def is_at_least_gebruiker(self):
         return self.level >= User.LEVEL.USER
 
     @property
-    def is_strict_user(self):
+    def is_strict_gebruiker(self):
         return self.level == User.LEVEL.USER
 
+    ### level 2 ###
     @property
-    def is_at_least_supervisor(self):
+    def is_at_least_instellen(self):
+        return self.level >= User.LEVEL.USER
+
+    ### level 3 ###
+    @property
+    def is_at_least_naam_leerling(self):
         return self.level >= User.LEVEL.SUPERVISOR
 
     @property
-    def is_max_supervisor(self):
+    def is_max_naam_leerling(self):
         return self.level <= User.LEVEL.SUPERVISOR
 
+    ### level 4 ###
+    @property
+    def is_at_least_alle_scholen(self):
+        return self.level >= User.LEVEL.USER
+
+    ### level 5 ###
     @property
     def is_at_least_admin(self):
         return self.level >= User.LEVEL.ADMIN
@@ -97,7 +111,6 @@ class User(UserMixin, db.Model, SerializerMixin):
         return {'id': self.id, 'DT_RowId': self.id, 'email': self.email, 'username': self.username,
                 'level': User.LEVEL.i2s(self.level), 'user_type': self.user_type, 'last_login': self.last_login,
                 'chbx': ''}
-
 
 
 def add_user(data = {}):

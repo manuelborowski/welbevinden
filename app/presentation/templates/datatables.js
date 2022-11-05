@@ -2,7 +2,7 @@
 var False = false;
 var True = true;
 const view = table_config.view;
-let table;
+let $table;
 let filter_settings = [];
 window.jsPDF = window.jspdf.jsPDF;
 window.html2canvas = html2canvas;
@@ -46,14 +46,14 @@ function clear_checked_boxes() {
 }
 
 function get_data_of_row(id) {
-    return table.row(`#${id}`).data();
+    return $table.row(`#${id}`).data();
 }
 
 
 function update_cell(row_id, column_name, value) {
-    let row_idx = table.row(`#${row_id}`).index();
+    let row_idx = $table.row(`#${row_id}`).index();
     let column_idx = column_name_to_index[column_name];
-    table.cell(row_idx, column_idx).data(value);
+    $table.cell(row_idx, column_idx).data(value);
 }
 
 
@@ -140,7 +140,7 @@ $(document).ready(function () {
     //if a filter is changed, then the filter is applied by simulating a click on the filter button
     $(".table-filter").change(function () {
         store_filter_settings();
-        table.ajax.reload();
+        $table.ajax.reload();
     });
 
     //Store locally in the client-browser
@@ -269,7 +269,7 @@ $(document).ready(function () {
             }
         },
         rowCallback: function (row, data, displayNum, displayIndex, dataIndex) {
-            if (data.row_action !== null) {
+            if (data.row_action !== null && data.row_action !== undefined) {
                 row.cells[0].innerHTML = `<input type='checkbox' class='chbx_all' name='chbx' value='${data.row_action}'>` +
                     `<div value='${data.row_action}' class='pencil glyphicon glyphicon-pencil'></div>`;
 
@@ -287,7 +287,7 @@ $(document).ready(function () {
             let api = this.api();
             busy_indication_off();
             if (cell_to_color) {
-                table.cells().every(function () {
+                $table.cells().every(function () {
                     if (this.data() in cell_to_color) {
                         $(this.node()).css("background-color", cell_to_color[this.data()]);
                         if (suppress_cell_content) {
@@ -339,55 +339,60 @@ $(document).ready(function () {
         $("#datatable").attr("width", table_config.width);
     }
 
-    table = $('#datatable').DataTable(datatable_config);
+    $table = $('#datatable').DataTable(datatable_config);
 
     //double click a row to edit
-    table.on('dblclick', 'tr', function () {
-        document.querySelector(`input[value="${this.id}"]`).checked = true;
-        button_pushed('edit');
-    });
-
-    //Toggle column visibility
-    let column_visible_div = document.querySelector('.column-visible-div');
-    let column_visible_settings = JSON.parse(localStorage.getItem(`ColumnsVisible-${view}`));
-    if (!column_visible_settings || column_visible_settings.length !== config_columns.length) {
-        column_visible_settings = []
-        config_columns.forEach((column, i) => {
-            column_visible_settings.push({data: column.data, visible: column.visible});
-        });
-        localStorage.setItem(`ColumnsVisible-${view}`, JSON.stringify(column_visible_settings));
-    }
-    column_visible_settings.forEach((column, i) => {
-        if (column.visible !== 'never') {
-            const config_column = config_columns_cache[column.data];
-            let a = document.createElement('p');
-            a.appendChild(document.createTextNode(`${config_column.name}`));
-            if ('tt' in config_column) {
-                a.setAttribute("title", config_column.tt);
-            }
-            a.setAttribute("data-column", i);
-            a.setAttribute("class", column.visible === 'yes' ? "column-visible-a": "column-invisible-a")
-            table.column(i).visible(column.visible === 'yes');
-            a.addEventListener('click', e => {
-                e.preventDefault();
-                let c = table.column(e.currentTarget.dataset['column']);
-                c.visible(!c.visible());
-                e.currentTarget.classList.toggle('column-invisible-a')
-                e.currentTarget.classList.toggle('column-visible-a')
-                column_visible_settings[e.currentTarget.dataset.column].visible = c.visible() ? 'yes' : 'no';
-                localStorage.setItem(`ColumnsVisible-${view}`, JSON.stringify(column_visible_settings));
-            });
-            column_visible_div.appendChild(a);
+    $table.on('dblclick', 'tr', function () {
+        const input_element = document.querySelector(`input[value="${this.id}"]`);
+        if (input_element !== null) {
+            input_element.checked = true;
+            button_pushed('edit');
         }
     });
+
+    if (!suppress_column_visible_selector) {
+        //Toggle column visibility
+        let column_visible_div = document.querySelector('.column-visible-div');
+        let column_visible_settings = JSON.parse(localStorage.getItem(`ColumnsVisible-${view}`));
+        if (!column_visible_settings || column_visible_settings.length !== config_columns.length) {
+            column_visible_settings = []
+            config_columns.forEach((column, i) => {
+                column_visible_settings.push({data: column.data, visible: column.visible});
+            });
+            localStorage.setItem(`ColumnsVisible-${view}`, JSON.stringify(column_visible_settings));
+        }
+        column_visible_settings.forEach((column, i) => {
+            if (column.visible !== 'never') {
+                const config_column = config_columns_cache[column.data];
+                let a = document.createElement('p');
+                a.appendChild(document.createTextNode(`${config_column.name}`));
+                if ('tt' in config_column) {
+                    a.setAttribute("title", config_column.tt);
+                }
+                a.setAttribute("data-column", i);
+                a.setAttribute("class", column.visible === 'yes' ? "column-visible-a" : "column-invisible-a")
+                $table.column(i).visible(column.visible === 'yes');
+                a.addEventListener('click', e => {
+                    e.preventDefault();
+                    let c = $table.column(e.currentTarget.dataset['column']);
+                    c.visible(!c.visible());
+                    e.currentTarget.classList.toggle('column-invisible-a')
+                    e.currentTarget.classList.toggle('column-visible-a')
+                    column_visible_settings[e.currentTarget.dataset.column].visible = c.visible() ? 'yes' : 'no';
+                    localStorage.setItem(`ColumnsVisible-${view}`, JSON.stringify(column_visible_settings));
+                });
+                column_visible_div.appendChild(a);
+            }
+        });
+    }
 
     function cell_edit_cb(type, data) {
         if ("status" in data) {
             if (data.status) {
-                table.ajax.reload();
+                $table.ajax.reload();
             }
         } else if ("reload-table" in data) {
-            table.ajax.reload();
+            $table.ajax.reload();
         }
     }
 
@@ -404,7 +409,7 @@ $(document).ready(function () {
             $.getJSON(Flask.url_for("{{table_config.cell_endpoint}}", {'jds': JSON.stringify(data)}),
                 function (data) {
                     if (data.status) {
-                        table.ajax.reload();
+                        $table.ajax.reload();
                     } else {
                         bootbox.alert('Fout: kan waarde niet aanpassen');
                     }
@@ -431,7 +436,7 @@ $(document).ready(function () {
 
     if (celledit_inputtypes.length > 0) {
         // table.MakeCellsEditable("destroy");
-        table.MakeCellsEditable({
+        $table.MakeCellsEditable({
             onUpdate: cell_edit_changed_cb,
             columns: celledit_columns,
             inputTypes: celledit_inputtypes,
@@ -439,81 +444,72 @@ $(document).ready(function () {
         });
     }
 
-    var cell_toggle = new MakeCellsToggleable(table, {
+
+    var cell_toggle = new MakeCellsToggleable($table, {
         onUpdate: cell_toggle_changed_cb,
         columns: celltoggle_columns
     })
 
-    if ("row_detail" in table_config) {
-        //For an extra-measure, show the associated remarks as a sub-table
-        var d_table_start = '<table cellpadding="5" cellspacing="0" border="2" style="padding-left:50px;">'
-        var d_table_stop = '</table>'
-        var d_header = '<tr><td>Datum</td><td>Leerling</td><td>LKR</td><td>KL</td><td>Les</td><td>Opmerking</td><td>Maatregel</td></tr>'
-
-        function format_row_detail(data) {
-            s = d_table_start;
-            s += d_header;
-            if (data) {
-                for (i = 0; i < data.length; i++) {
-                    s += '<tr>'
-                    s = s + '<td>' + data[i].date + '</td>';
-                    s = s + '<td>' + data[i].student.full_name + '</td>';
-                    s = s + '<td>' + data[i].teacher.code + '</td>';
-                    s = s + '<td>' + data[i].grade.code + '</td>';
-                    s = s + '<td>' + data[i].lesson.code + '</td>';
-                    s = s + '<td>' + data[i].subjects + '</td>';
-                    s = s + '<td>' + data[i].measures + '</td>';
-                    s += '</tr>'
+    function format_row_detail(data) {
+        let s = '<table style="margin-left:50px;">';
+        if (data) {
+            for (i = 0; i < data.data.length; i++) {
+                s += '<tr style="background: aqua">'
+                for (j = 0; j < data.width; j++) {
+                    s = s + '<td>' + data.data[i][j] + '</td>';
                 }
-                s += d_table_stop;
-                return s;
+                s += '</tr>'
             }
-            return 'Geen gegevens';
+            s += '</table>';
+            return s;
         }
+        return 'Geen gegevens';
+    }
 
-        // Array to track the ids of the details displayed rows
-        var detail_rows_cache = [];
 
-        $('#datatable tbody').on('click', 'tr td.details-control', function () {
-            var tr = $(this).closest('tr');
-            var row = table.row(tr);
-            var idx = $.inArray(tr.attr('DT_RowId'), detail_rows_cache);
-
-            if (row.child.isShown()) {
-                tr.removeClass('details');
-                row.child.hide();
-                detail_rows_cache.splice(idx, 1);
+    $table.on('click', 'tr td.details-control', function () {
+        const $tr = $(this).closest('tr');
+        const $row = $table.row($tr);
+        const row_detail = $row.data().row_detail;
+        if (row_detail !== undefined) {
+            if ($row.child.isShown()) {
+                $tr.removeClass('details');
+                $row.child.hide();
             } else {
-                var tx_data = {"id": row.data().DT_RowId};
-                $.getJSON(Flask.url_for('reviewed.get_row_detail', {'data': JSON.stringify(tx_data)}),
-                    function (rx_data) {
-                        if (rx_data.status) {
-                            row.child(format_row_detail(rx_data.details)).show();
-                            tr.addClass('details');
-                            if (idx === -1) {
-                                detail_rows_cache.push(tr.attr('DT_RowId'));
-                            }
-                        } else {
-                            bootbox.alert('Fout: kan details niet ophalen');
-                        }
-                    });
+                $row.child(format_row_detail(row_detail)).show();
+                $tr.addClass('details');
             }
-        });
-    }
+        }
+    });
 
-    if ("row_detail" in table_config) {
-        //This function is called, each time the table is drawn
-        table.on('draw', function () {
-            //Row details
-            $.each(detail_rows_cache, function (i, id) {
-                $('#' + id + ' td.details-control').trigger('click');
-            });
-        });
-    }
 
     //checkbox in header is clicked
     $("#select_all").change(function () {
         $(".chbx_all").prop('checked', this.checked);
+    });
+
+    //row_detail in header is clicked
+    $("#row-detail-all").click(function () {
+        const $tr = $(this).closest('tr');
+        console.log($tr);
+        if ($tr.hasClass("details")) {
+            $tr.removeClass("details");
+            for (let i=0; i < $table.rows().count(); i++) {
+                const $row = $table.row(i);
+                $row.child.hide();
+                $row.nodes().to$().removeClass("details");
+            }
+        } else {
+            $tr.addClass("details");
+            for (let i=0; i < $table.rows().count(); i++) {
+                const $row = $table.row(i);
+                const row_detail = $row.data().row_detail;
+                $row.child(format_row_detail(row_detail)).show();
+                $row.nodes().to$().addClass("details");
+            }
+            // $table.find("tr").addClass("details");
+        }
+
     });
 
 });

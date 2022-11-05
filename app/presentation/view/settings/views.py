@@ -80,8 +80,10 @@ def prepare_form(form):
             school_info = {"key": key,
                          "properties": [
                              {"key": "panel-school", "name": "title", "value": f"School: {info['label']}"},
-                             {"key": "url-to-ouders-survey", "name": "defaultValue", "value": f"{current_url}/survey/start/ouders/{info['schoolcode']}"},
-                             {"key": "url-to-leerlingen-survey", "name": "defaultValue", "value": f"{current_url}/survey/start/leerlingen/{info['schoolcode']}"},
+                             {"key": "url-to-sept-ouders-survey", "name": "defaultValue", "value": f"{current_url}/survey/start/sept/ouders/{info['schoolcode']}"},
+                             {"key": "url-to-sept-leerlingen-survey", "name": "defaultValue", "value": f"{current_url}/survey/start/sept/leerlingen/{info['schoolcode']}"},
+                             {"key": "url-to-nov-ouders-survey", "name": "defaultValue", "value": f"{current_url}/survey/start/nov/ouders/{info['schoolcode']}"},
+                             {"key": "url-to-nov-leerlingen-survey", "name": "defaultValue", "value": f"{current_url}/survey/start/nov/leerlingen/{info['schoolcode']}"},
                          ]}
             if info["type"] == "secundaireschool":
                 school_info["properties"].append({"key": "klassen", "name": "defaultValue", "value": ", ".join(info["klassen"])})
@@ -95,7 +97,7 @@ def prepare_form(form):
                 school_info["properties"].append({"key": "container-secundaire-school", "name": "hidden", "value": True})
             data.append(school_info)
         school_container["components"] = mformio.create_components(school_container["components"][0], data)
-        if current_user.is_max_supervisor: # remove admin-only settings
+        if current_user.is_max_naam_leerling: # remove admin-only settings
             admin_container = mformio.search_component(form, "user-level-5")
             admin_container["components"] = []
     except Exception as e:
@@ -150,6 +152,7 @@ formio_settings = \
                                                 "components": [
                                                     {
                                                         "title": "School:",
+                                                        "theme": "success",
                                                         "collapsible": false,
                                                         "key": "panel-school",
                                                         "type": "panel",
@@ -163,13 +166,13 @@ formio_settings = \
                                                                     {
                                                                         "components": [
                                                                             {
-                                                                                "label": "Link naar ouders enquête",
+                                                                                "label": "Link naar SEPTEMBER ouders enquête",
                                                                                 "labelPosition": "left-left",
                                                                                 "disabled": true,
                                                                                 "tableView": true,
                                                                                 "defaultValue": "test",
                                                                                 "persistent": false,
-                                                                                "key": "url-to-ouders-survey",
+                                                                                "key": "url-to-sept-ouders-survey",
                                                                                 "type": "textfield",
                                                                                 "labelWidth": 25,
                                                                                 "input": true
@@ -189,9 +192,9 @@ formio_settings = \
                                                                                 "action": "event",
                                                                                 "showValidations": false,
                                                                                 "tableView": false,
-                                                                                "key": "copy-user-link1",
+                                                                                "key": "copy-sept-ouders-user-link",
                                                                                 "type": "button",
-                                                                                "event": "copy-to-clipboard-ouders-link",
+                                                                                "event": "copy-link-to-clipboard",
                                                                                 "input": true
                                                                             }
                                                                         ],
@@ -214,11 +217,11 @@ formio_settings = \
                                                                     {
                                                                         "components": [
                                                                             {
-                                                                                "label": "Link naar leerlingen enquête",
+                                                                                "label": "Link naar SEPTEMBER leerlingen enquête",
                                                                                 "labelPosition": "left-left",
                                                                                 "disabled": true,
                                                                                 "tableView": true,
-                                                                                "key": "url-to-leerlingen-survey",
+                                                                                "key": "url-to-sept-leerlingen-survey",
                                                                                 "type": "textfield",
                                                                                 "labelWidth": 25,
                                                                                 "input": true
@@ -238,9 +241,9 @@ formio_settings = \
                                                                                 "action": "event",
                                                                                 "showValidations": false,
                                                                                 "tableView": false,
-                                                                                "key": "copy-student-link1",
+                                                                                "key": "copy-sept-leerlingen-user-link",
                                                                                 "type": "button",
-                                                                                "event": "copy-to-clipboard-leerlingen-link",
+                                                                                "event": "copy-link-to-clipboard",
                                                                                 "input": true
                                                                             }
                                                                         ],
@@ -253,6 +256,106 @@ formio_settings = \
                                                                     }
                                                                 ],
                                                                 "key": "columns1",
+                                                                "type": "columns",
+                                                                "input": false,
+                                                                "tableView": false
+                                                            },
+                                                            {
+                                                                "label": "Columns",
+                                                                "columns": [
+                                                                    {
+                                                                        "components": [
+                                                                            {
+                                                                                "label": "Link naar NOVEMBER ouders enquête",
+                                                                                "labelPosition": "left-left",
+                                                                                "disabled": true,
+                                                                                "tableView": true,
+                                                                                "defaultValue": "test",
+                                                                                "persistent": false,
+                                                                                "key": "url-to-nov-ouders-survey",
+                                                                                "type": "textfield",
+                                                                                "labelWidth": 25,
+                                                                                "input": true
+                                                                            }
+                                                                        ],
+                                                                        "width": 6,
+                                                                        "offset": 0,
+                                                                        "push": 0,
+                                                                        "pull": 0,
+                                                                        "size": "md",
+                                                                        "currentWidth": 6
+                                                                    },
+                                                                    {
+                                                                        "components": [
+                                                                            {
+                                                                                "label": "Kopieer naar clipboard",
+                                                                                "action": "event",
+                                                                                "showValidations": false,
+                                                                                "tableView": false,
+                                                                                "key": "copy-nov-ouders-user-link",
+                                                                                "type": "button",
+                                                                                "event": "copy-link-to-clipboard",
+                                                                                "input": true
+                                                                            }
+                                                                        ],
+                                                                        "width": 2,
+                                                                        "offset": 0,
+                                                                        "push": 0,
+                                                                        "pull": 0,
+                                                                        "size": "md",
+                                                                        "currentWidth": 2
+                                                                    }
+                                                                ],
+                                                                "key": "columns2",
+                                                                "type": "columns",
+                                                                "input": false,
+                                                                "tableView": false
+                                                            },
+                                                            {
+                                                                "label": "Columns",
+                                                                "columns": [
+                                                                    {
+                                                                        "components": [
+                                                                            {
+                                                                                "label": "Link naar NOVEMBER leerlingen enquête",
+                                                                                "labelPosition": "left-left",
+                                                                                "disabled": true,
+                                                                                "tableView": true,
+                                                                                "key": "url-to-nov-leerlingen-survey",
+                                                                                "type": "textfield",
+                                                                                "labelWidth": 25,
+                                                                                "input": true
+                                                                            }
+                                                                        ],
+                                                                        "width": 6,
+                                                                        "offset": 0,
+                                                                        "push": 0,
+                                                                        "pull": 0,
+                                                                        "size": "md",
+                                                                        "currentWidth": 6
+                                                                    },
+                                                                    {
+                                                                        "components": [
+                                                                            {
+                                                                                "label": "Kopieer naar clipboard",
+                                                                                "action": "event",
+                                                                                "showValidations": false,
+                                                                                "tableView": false,
+                                                                                "key": "copy-nov-leerlingen-user-link",
+                                                                                "type": "button",
+                                                                                "event": "copy-link-to-clipboard",
+                                                                                "input": true
+                                                                            }
+                                                                        ],
+                                                                        "width": 2,
+                                                                        "offset": 0,
+                                                                        "push": 0,
+                                                                        "pull": 0,
+                                                                        "size": "md",
+                                                                        "currentWidth": 2
+                                                                    }
+                                                                ],
+                                                                "key": "columns3",
                                                                 "type": "columns",
                                                                 "input": false,
                                                                 "tableView": false
@@ -549,10 +652,34 @@ formio_settings = \
                                                 "saveOnEnter": false
                                             },
                                             {
-                                                "label": "Enquête template (formio)",
+                                                "label": "Enquête SEPTEMBER OUDERS template (formio)",
                                                 "autoExpand": false,
                                                 "tableView": true,
-                                                "key": "survey-formio-template",
+                                                "key": "survey-sept-ouders-formio-template",
+                                                "type": "textarea",
+                                                "input": true
+                                            },
+                                            {
+                                                "label": "Enquête SEPTEMBER LEERLINGEN template (formio)",
+                                                "autoExpand": false,
+                                                "tableView": true,
+                                                "key": "survey-sept-leerlingen-formio-template",
+                                                "type": "textarea",
+                                                "input": true
+                                            },
+                                            {
+                                                "label": "Enquête NOVEMBER OUDERS template (formio)",
+                                                "autoExpand": false,
+                                                "tableView": true,
+                                                "key": "survey-nov-ouders-formio-template",
+                                                "type": "textarea",
+                                                "input": true
+                                            },
+                                            {
+                                                "label": "Enquête NOVEMBER LEERLINGEN template (formio)",
+                                                "autoExpand": false,
+                                                "tableView": true,
+                                                "key": "survey-nov-leerlingen-formio-template",
                                                 "type": "textarea",
                                                 "input": true
                                             },

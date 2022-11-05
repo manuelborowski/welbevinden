@@ -48,14 +48,15 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 {% if current_user.is_authenticated %}
                     <ul class="navbar-nav mr-auto">
-                    {% if  current_user.is_at_least_supervisor %}
-                    {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('survey.show') }}">Resultaten</a>
+                        </li>
                     {% if  current_user.is_at_least_admin %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('user.show') }}">Gebruikers</a>
                         </li>
                     {% endif %}
-                    {% if  current_user.is_at_least_supervisor %}
+                    {% if  current_user.is_at_least_instellen %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('settings.show') }}">Instellingen</a>
                         </li>

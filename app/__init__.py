@@ -26,11 +26,13 @@ flask_app.config.from_pyfile('config.py')
 # V0.4: updated formio-create-components: take attributes into account.  Added functionality to upload/clear leerlingenlijst
 # V0.5: creating the survey form for different scenarios is ok
 # V0.6: bugfix formio preparation (remove obsolete components).  Ouders may sent in 2 surveys
+# V0.7: switched to 5 user levels.  Re-implemented row_detail (datatables).  Implemented survey-question-overview.
+# Datatables; make it possible to create columns from json-data from single-database column.  Use 4 survey templates iso 1.
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.6', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.7', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -129,7 +131,7 @@ else:
     def supervisor_required(func):
         @wraps(func)
         def decorated_view(*args, **kwargs):
-            if not current_user.is_at_least_supervisor:
+            if not current_user.is_at_least_naam_leerling:
                 abort(403)
             return func(*args, **kwargs)
         return decorated_view

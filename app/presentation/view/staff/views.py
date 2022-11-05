@@ -66,7 +66,7 @@ def get_right_click_settings():
         'endpoint': 'staff.right_click',
         'menu': []
     }
-    if current_user.is_at_least_supervisor:
+    if current_user.is_at_least_naam_leerling:
         settings['menu'].extend([
             {'label': 'RFID code aanpassen', 'item': 'check-rfid', 'iconscout': 'wifi'},
         ])

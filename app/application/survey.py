@@ -23,49 +23,39 @@ def update_form_cb(component, opaque):
             elif "update-properties" in opaque and component["key"] in opaque["update-properties"]:
                 for property in opaque["update-properties"][component["key"]]:
                     component[property["name"]] = property["value"]
-            if "container-vraag" in component["key"]:   #change, depending on the question type, the values of the answers (copy the labels of the leerlingen to the values)
-                vraag_ouders = vraag_leerlingen = None
-                for sub_component in component["components"]:
-                    if sub_component["key"] == "container-ouders":
-                        vraag_ouders = sub_component["components"][0]
-                    if sub_component["key"] == "container-leerlingen":
-                        vraag_leerlingen = sub_component["components"][0]
-                if vraag_leerlingen and vraag_ouders:
-                    vraag_type = vraag_leerlingen["type"]
-                    if vraag_type in opaque["strings"]:
-                        vraag_type_id = opaque["strings"][vraag_type]
-                    else:
-                        survey_string = msurvey.add_string({"label": vraag_type})
-                        opaque["strings"][vraag_type] = survey_string.id
-                        vraag_type_id = survey_string.id
-                    vraag = vraag_leerlingen["label"]
-                    if vraag in opaque["strings"]:
-                        vraag_id = opaque["strings"][vraag]
-                    else:
-                        survey_string = msurvey.add_string({"label": vraag})
-                        opaque["strings"][vraag] = survey_string.id
-                        vraag_id = survey_string.id
+            if "vraag-" in component["key"]:   #use the string cache to store strings or to get a reference to a stored string
+                vraag_type = component["type"]
+                if vraag_type in opaque["strings"]:
+                    vraag_type_id = opaque["strings"][vraag_type]
+                else:
+                    survey_string = msurvey.add_string({"label": vraag_type})
+                    opaque["strings"][vraag_type] = survey_string.id
+                    vraag_type_id = survey_string.id
+                vraag = component["label"]
+                if vraag in opaque["strings"]:
+                    vraag_id = opaque["strings"][vraag]
+                else:
+                    survey_string = msurvey.add_string({"label": vraag})
+                    opaque["strings"][vraag] = survey_string.id
+                    vraag_id = survey_string.id
+                if vraag_type in ["radio", "selectboxes"]:
+                    for i, value in enumerate(component["values"]):
+                        optie = value["label"]
+                        if optie in opaque["strings"]:
+                            optie_id = opaque["strings"][optie]
+                        else:
+                            option = msurvey.add_string({"label": optie})
+                            opaque["strings"][optie] = option.id
+                            optie_id = option.id
+                        component["values"][i]["value"] = optie_id
 
-                    if vraag_type in ["radio", "selectboxes"]:
-                        for i, value in enumerate(vraag_leerlingen["values"]):
-                            optie = value["label"]
-                            if optie in opaque["strings"]:
-                                optie_id = opaque["strings"][optie]
-                            else:
-                                option = msurvey.add_string({"label": optie})
-                                opaque["strings"][optie] = option.id
-                                optie_id = option.id
-                            vraag_leerlingen["values"][i]["value"] = optie_id
-                            vraag_ouders["values"][i]["value"] = optie_id
-
-                    vraag_ouders["key"] = vraag_ouders["key"] + f"+{vraag_type_id}+{vraag_id}"
-                    vraag_leerlingen["key"] = vraag_leerlingen["key"] + f"+{vraag_type_id}+{vraag_id}"
+                component["key"] = component["key"] + f"+{vraag_type_id}+{vraag_id}"
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         raise e
 
 
-def prepare_survey(targetgroup, schoolcode):
+def prepare_survey(period, targetgroup, schoolcode):
     def make_key(a, b, c):
         return (f"{a}+{b}+{c}")
     def unmake_key(k):
@@ -106,18 +96,16 @@ def prepare_survey(targetgroup, schoolcode):
         else:
             select_basisschool_data = None
 
-        survey_template = deepcopy(msettings.get_configuration_setting("survey-formio-template"))
+        survey_template = deepcopy(msettings.get_configuration_setting(f"survey-{period}-{targetgroup}-formio-template"))
         template_update = {
             "clear-containers" : {
-                "container-ouders": not targetgroup == "ouders",
-                "container-leerlingen": not targetgroup == "leerlingen",
                 "container-leerling-lijst": select_leerling_data == None,
                 "container-klas": select_klas_data == None,
                 "container-basisschool": not school_info["type"] == "basisschool",
                 "container-secundaireschool": not school_info["type"] == "secundaireschool",
             },
             "update-properties": {
-                "targetgroup-schoolcode": [{"name": "defaultValue", "value": f"{targetgroup}+{schoolcode}"}],
+                "targetgroup-schoolcode": [{"name": "defaultValue", "value": f"{period}+{targetgroup}+{schoolcode}"}],
             },
             "strings": string_cache
         }
@@ -154,9 +142,9 @@ def save_survey(data):
         print(data)
         string_cache = {s.id: s.label for s in msurvey.get_strings()}
         empty_string_id = msurvey.get_strings({"label": ""}, first=True).id
-        [targetgroup, schoolcode] = data["targetgroup-schoolcode"].split("+")
+        [period, targetgroup, schoolcode] = data["targetgroup-schoolcode"].split("+")
         school_info = mschool.get_school_info_for_schoolcode(schoolcode)
-        container_leerlinggegevens = data["container-leerling-gegevens"][f"container-{targetgroup}"]
+        container_leerlinggegevens = data["container-leerling-gegevens"]
         naam = voornaam = klas = andere_school = ''
 
         if "container-leerling-lijst" in container_leerlinggegevens: # a leerlingenlijst dropdown is available
@@ -190,9 +178,7 @@ def save_survey(data):
                     nbr_prvious_surveys += 1
             if nbr_prvious_surveys >= 2 or nbr_prvious_surveys >= 1 and targetgroup == "leerlingen":
                 return {"status": False, "message": f"U heeft al een enquête ingediend, deze enquête wordt genegeerd."}
-        for container_vraag  in data["container-vragen"].values():
-            container_targetgroup = container_vraag[f"container-{targetgroup}"]
-            (key, antwoord),  = container_targetgroup.items()
+        for (key, antwoord)  in data["container-vragen"].items():
             [vraag_type_id, vraag_id] = [int(v) for v in key.split("+")[1:]]
             vraag_type = string_cache[vraag_type_id]
             if vraag_type == "radio":
@@ -206,7 +192,7 @@ def save_survey(data):
                 survey.append((vraag_type_id, vraag_id, antwoord))
         print(targetgroup, naam, voornaam, andere_school, survey)
         ret = msurvey.add_survey({"naam": naam, "voornaam": voornaam, "klas": klas, "targetgroup": targetgroup, "schoolkey": school_info["key"], "andereschool": andere_school,
-                                  "schooljaar": schooljaar, "survey": json.dumps(survey), "timestamp": now})
+                                  "schooljaar": schooljaar, "survey": json.dumps(survey), "timestamp": now, "period": period})
         data = {"targetgroup": targetgroup, "status": True, "message": ""}
         if ret == None:
             data["status"] = False
@@ -250,11 +236,54 @@ def survey_done(data):
 ############ datatables: student overview list #########
 def format_data(db_list):
     out = []
-    for survey in db_list:
-        em = survey.to_dict()
-        em.update({
-            'row_action': survey.id,
-            'DT_RowId': survey.id
+    string_cache = {s.id: s.label for s in msurvey.get_strings()}
+    type_radio_id = msurvey.get_strings({"label": "radio"}, first=True).id
+    type_selectboxes_id = msurvey.get_strings({"label": "selectboxes"}, first=True).id
+    type_textarea_id = msurvey.get_strings({"label": "textarea"}, first=True).id
+    collect_data = {}
+    for item in db_list:
+        survey = json.loads(item.survey)
+        for question_nbr, [type_id, question_id, answer] in enumerate(survey):
+            if question_id in collect_data:
+                if type_id == type_radio_id:
+                    if answer in collect_data[question_id][2]:
+                        collect_data[question_id][2][answer] += 1
+                    else:
+                        collect_data[question_id][2][answer] = 1
+                    collect_data[question_id][3] += 1
+
+                elif type_id == type_selectboxes_id:
+                    for a in answer:
+                        if a in collect_data[question_id][2]:
+                            collect_data[question_id][2][a] += 1
+                        else:
+                            collect_data[question_id][2][a] = 1
+                    collect_data[question_id][3] += len(answer)
+
+                elif type_id == type_textarea_id:
+                    collect_data[question_id][2].append(answer)
+                    collect_data[question_id][3] += 1
+
+            else:
+                if type_id == type_radio_id:
+                    collect_data[question_id] = [type_id, question_nbr, {answer: 1}, 1]
+                elif type_id == type_selectboxes_id:
+                    collect_data[question_id] = [type_id, question_nbr, {a: 1 for a in answer}, len(answer)]
+                elif type_id == type_textarea_id:
+                    collect_data[question_id] = [type_id, question_nbr, [answer], 1]
+
+    for q, v in collect_data.items():
+        details = {"width": 2, "data": [[f"Totaal: {v[3]} antwoorden", ""]]}
+        if v[0] == type_radio_id or v[0] == type_selectboxes_id:
+            for [item_id, nbr] in v[2].items():
+                details["data"].append([string_cache[item_id], f"{nbr/v[3]*100:.1f}%"])
+        elif v[0] == type_textarea_id:
+            for item in v[2]:
+                details["data"].append([item, ""])
+        out.append({
+            "nummer": v[1],
+            "vraag": string_cache[q],
+            "row_detail": details,
+            'DT_RowId': v[1]
         })
-        out.append(em)
     return out

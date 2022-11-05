@@ -74,8 +74,9 @@ def prepare_data_for_ajax(table_configuration, paginate=True):
             filtered_count = sql_query.count()
 
             column_number = int(check_value_in_form('order[0][column]', request.values))
-            order_by = template[column_number]['order_by']
-            order_table_in_sql = not callable(order_by)
+            order_on = template[column_number]['data']
+            if "order_by" not in template[column_number]:
+                template[column_number]['order_by'] = "database"
             if 'row_detail' in table_configuration:
                 column_number -= 1
             order_direction = check_string_in_form('order[0][dir]', request.values)
@@ -87,13 +88,14 @@ def prepare_data_for_ajax(table_configuration, paginate=True):
                     paginate_length = int(check_value_in_form('length', request.values))
                     paginate_start = int(paginate_start)
 
-            if order_table_in_sql:
+            # if order_table_in_sql:
+            if template[column_number]['order_by'] == "database":
                 # order the table via the SQL query based on a specified table-column
-                if isinstance(order_by, list):
-                    for i in order_by:
+                if isinstance(order_on, list):
+                    for i in order_on:
                         sql_query = sql_query.order_by(desc(i)) if order_direction == 'desc' else sql_query.order_by(i)
                 else:
-                    sql_query = sql_query.order_by(desc(order_by)) if order_direction == 'desc' else sql_query.order_by(order_by)
+                    sql_query = sql_query.order_by(desc(order_on)) if order_direction == 'desc' else sql_query.order_by(order_on)
                 # if it is a composed query, execute the composed query
                 # else if it is a flat query, paginate in SQL and do SQL query
                 if composed_query:
@@ -109,8 +111,7 @@ def prepare_data_for_ajax(table_configuration, paginate=True):
                 # if it is a composed query, it is still required to paginate
                 if composed_query and paginate:
                     formatted_list = formatted_list[paginate_start:paginate_start + paginate_length]
-            else:
-                # order the list based on a user specified lambda function
+            elif template[column_number]['order_by'] == "after_format":
                 # if it is a composed query, execute the composed query
                 # else if it is a flat query, do the SQL query
                 if composed_query:
@@ -122,7 +123,7 @@ def prepare_data_for_ajax(table_configuration, paginate=True):
                 # format, order and and paginate
                 formatted_list = table_configuration['format_data'](filtered_list)
                 reverse = False if check_string_in_form('order[0][dir]', request.values) == 'desc' else True
-                formatted_list = sorted(formatted_list, key=order_by, reverse=reverse)
+                formatted_list = sorted(formatted_list, key=lambda x: x[order_on], reverse=reverse)
                 if paginate:
                     formatted_list = formatted_list[paginate_start:paginate_start + paginate_length]
         else:

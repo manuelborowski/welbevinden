@@ -143,47 +143,52 @@ $(document).ready(function () {
         $table.ajax.reload();
     });
 
-    //Store locally in the client-browser
-    function store_filter_settings() {
-        filter_settings = [];
-        if (filters.length > 0) {
-            filters.forEach(f => {
-                if (f.type === 'select') {
-                    filter_settings.push({
-                        name: f.name,
-                        type: f.type,
-                        value: document.querySelector(`#${f.name} option:checked`).value
-                    });
-                } else if (f.type === 'checkbox') {
-                    let boxes = [];
-                    f.boxes.forEach(([k, l]) => { boxes.push({id: k, checked: document.querySelector(`#${k}`).checked}) });
-                   filter_settings.push({
-                       name: f.name,
-                       type: f.type,
-                       value: boxes
-                   })
-                }
-            });
-            localStorage.setItem(`Filter-${view}`, JSON.stringify(filter_settings));
-        }
-    }
-
-    function load_filter_settings() {
-        if (filters.length === 0) return true;
-        filter_settings = JSON.parse(localStorage.getItem(`Filter-${view}`));
-        if (!filter_settings) {
+    if (suppress_persistent_filter_settings) {
+        function store_filter_settings() {return null;}
+    } else {
+        //Store locally in the client-browser
+        function store_filter_settings() {
             filter_settings = [];
-            return false
-        }
-        filter_settings.forEach(f => {
-            if (f.type === 'select') {
-                document.querySelector(`#${f.name}`).value = f.value;
+            if (filters.length > 0) {
+                filters.forEach(f => {
+                    if (f.type === 'select') {
+                        filter_settings.push({
+                            name: f.name,
+                            type: f.type,
+                            value: document.querySelector(`#${f.name} option:checked`).value
+                        });
+                    } else if (f.type === 'checkbox') {
+                        let boxes = [];
+                        f.boxes.forEach(([k, l]) => {
+                            boxes.push({id: k, checked: document.querySelector(`#${k}`).checked})
+                        });
+                        filter_settings.push({
+                            name: f.name,
+                            type: f.type,
+                            value: boxes
+                        })
+                    }
+                });
+                localStorage.setItem(`Filter-${view}`, JSON.stringify(filter_settings));
             }
-        })
-        return true;
-    }
+        }
 
-    if (!load_filter_settings()) store_filter_settings(); //filters are applied when the page is loaded for the first time
+        function load_filter_settings() {
+            if (filters.length === 0) return true;
+            filter_settings = JSON.parse(localStorage.getItem(`Filter-${view}`));
+            if (!filter_settings) {
+                filter_settings = [];
+                return false
+            }
+            filter_settings.forEach(f => {
+                if (f.type === 'select') {
+                    document.querySelector(`#${f.name}`).value = f.value;
+                }
+            })
+            return true;
+        }
+        if (!load_filter_settings()) store_filter_settings(); //filters are applied when the page is loaded for the first time
+    }
 
     //Bugfix to repeat the table header at the bottom
     $("#datatable").append(

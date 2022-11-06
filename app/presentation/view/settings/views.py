@@ -153,7 +153,7 @@ formio_settings = \
                                                     {
                                                         "title": "School:",
                                                         "theme": "success",
-                                                        "collapsible": false,
+                                                        "collapsible": true,
                                                         "key": "panel-school",
                                                         "type": "panel",
                                                         "label": "Panel",
@@ -178,12 +178,12 @@ formio_settings = \
                                                                                 "input": true
                                                                             }
                                                                         ],
-                                                                        "width": 6,
+                                                                        "width": 8,
                                                                         "offset": 0,
                                                                         "push": 0,
                                                                         "pull": 0,
                                                                         "size": "md",
-                                                                        "currentWidth": 6
+                                                                        "currentWidth": 8
                                                                     },
                                                                     {
                                                                         "components": [
@@ -227,12 +227,12 @@ formio_settings = \
                                                                                 "input": true
                                                                             }
                                                                         ],
-                                                                        "width": 6,
+                                                                        "width": 8,
                                                                         "offset": 0,
                                                                         "push": 0,
                                                                         "pull": 0,
                                                                         "size": "md",
-                                                                        "currentWidth": 6
+                                                                        "currentWidth": 8
                                                                     },
                                                                     {
                                                                         "components": [
@@ -278,12 +278,12 @@ formio_settings = \
                                                                                 "input": true
                                                                             }
                                                                         ],
-                                                                        "width": 6,
+                                                                        "width": 8,
                                                                         "offset": 0,
                                                                         "push": 0,
                                                                         "pull": 0,
                                                                         "size": "md",
-                                                                        "currentWidth": 6
+                                                                        "currentWidth": 8
                                                                     },
                                                                     {
                                                                         "components": [
@@ -327,12 +327,12 @@ formio_settings = \
                                                                                 "input": true
                                                                             }
                                                                         ],
-                                                                        "width": 6,
+                                                                        "width": 8,
                                                                         "offset": 0,
                                                                         "push": 0,
                                                                         "pull": 0,
                                                                         "size": "md",
-                                                                        "currentWidth": 6
+                                                                        "currentWidth": 8
                                                                     },
                                                                     {
                                                                         "components": [
@@ -535,7 +535,8 @@ formio_settings = \
                                                                     }
                                                                 ]
                                                             }
-                                                        ]
+                                                        ],
+                                                        "collapsed": true
                                                     }
                                                 ]
                                             }

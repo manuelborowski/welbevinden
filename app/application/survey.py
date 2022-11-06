@@ -11,6 +11,47 @@ def delete_students(ids):
     mstudent.delete_students(ids)
 
 
+def get_surveys(data={}, fields=[], order_by=None, first=False, count=False, active=True):
+    return msurvey.get_surveys(data=data, fields=fields, order_by=order_by, first=first, count=count, active=active)
+
+
+def get_schooljaren():
+    try:
+        surveys = msurvey.get_surveys()
+        schooljaren = sorted(list(set([s.schooljaar for s in surveys])))
+        return schooljaren
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def get_periodes():
+    try:
+        surveys = msurvey.get_surveys()
+        periodes = sorted(list(set([s.period for s in surveys])))
+        return periodes
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def get_targetgroups():
+    try:
+        surveys = msurvey.get_surveys()
+        targetgroups = sorted(list(set([s.targetgroup for s in surveys])))
+        return targetgroups
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def get_klassen(data={}):
+    try:
+        surveys = msurvey.get_surveys(data=data)
+        klassen = sorted(list(set([s.klas for s in surveys])))
+        if klassen[0] == "":
+            return []
+        return klassen
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
 
 ############## formio #########################
 
@@ -139,7 +180,6 @@ def get_question_types_from_form_cb(component, opaque):
 
 def save_survey(data):
     try:
-        print(data)
         string_cache = {s.id: s.label for s in msurvey.get_strings()}
         empty_string_id = msurvey.get_strings({"label": ""}, first=True).id
         [period, targetgroup, schoolcode] = data["targetgroup-schoolcode"].split("+")
@@ -190,7 +230,6 @@ def save_survey(data):
                 survey.append((vraag_type_id, vraag_id, selected_true))
             elif vraag_type == "textarea":
                 survey.append((vraag_type_id, vraag_id, antwoord))
-        print(targetgroup, naam, voornaam, andere_school, survey)
         ret = msurvey.add_survey({"naam": naam, "voornaam": voornaam, "klas": klas, "targetgroup": targetgroup, "schoolkey": school_info["key"], "andereschool": andere_school,
                                   "schooljaar": schooljaar, "survey": json.dumps(survey), "timestamp": now, "period": period})
         data = {"targetgroup": targetgroup, "status": True, "message": ""}

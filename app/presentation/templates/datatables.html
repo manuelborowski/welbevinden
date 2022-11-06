@@ -161,6 +161,7 @@
             var config_columns ={{ table_config.template | tojson }}
             var api_key = {{ (api_key or '') | tojson }}
             var suppress_column_visible_selector = {{ (table_config.suppress_column_visible_selector or False) | tojson }}
+            var suppress_persistent_filter_settings = {{ (table_config.suppress_persistent_filter_settings or False) | tojson }}
              {% if 'cell_color' in table_config %}
                 var cell_to_color = {{ (table_config.cell_color.color_keys or null) | tojson}}
                 var suppress_cell_content = {{(table_config.cell_color.supress_cell_content or false) | tojson}}

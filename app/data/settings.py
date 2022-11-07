@@ -98,9 +98,10 @@ default_configuration_settings = {
     'survey-nov-ouders-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),
     'survey-nov-leerlingen-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),
     'survey-done-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),
-    'survey-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
     'survey-minimum-delta-days': (5, Settings.SETTING_TYPE.E_INT),  # minimum number of days between the same survey
 
+    'opq-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
+    'ops-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
 
     'api-keys': ([], Settings.SETTING_TYPE.E_JSON),
 

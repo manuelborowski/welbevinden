@@ -693,10 +693,18 @@ formio_settings = \
                                                 "input": true
                                             },
                                             {
-                                                "label": "Lijst template (JSON)",
+                                                "label": "Lijst overzicht-per-vraag template (JSON)",
                                                 "autoExpand": false,
                                                 "tableView": true,
-                                                "key": "survey-datatables-template",
+                                                "key": "opq-datatables-template",
+                                                "type": "textarea",
+                                                "input": true
+                                            },
+                                            {
+                                                "label": "Lijst overzicht-per-leerling template (JSON)",
+                                                "autoExpand": false,
+                                                "tableView": true,
+                                                "key": "opl-datatables-template",
                                                 "type": "textarea",
                                                 "input": true
                                             }

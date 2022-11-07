@@ -67,25 +67,14 @@ def add_default_string():
 add_default_string()
 
 ############ staff overview list #########
-def pre_filter():
-    return db.session.query(Survey)
-
-
-def filter_data(query, filter):
-    return query
-
-
-def search_data(search_string):
-    search_constraints = []
-    search_constraints.append(Survey.survey.like(search_string))
-    return search_constraints
-
-
 def pre_sql_query():
     return db.session.query(Survey)
 
 
 def pre_sql_filter(q, filter):
+    for f in filter:
+        if hasattr(Survey, f["name"]) and f["value"] != "all":
+            q = q.filter(getattr(Survey, f["name"]) == f["value"])
     return q
 
 

@@ -13,7 +13,11 @@ let column_name_to_index = {};
 //If not exactly one checkbox is selected, display warning and return false, else return true
 function is_exactly_one_checkbox_selected() {
     var nbr_checked = 0;
-    $(".chbx_all").each(function (i) {if (this.checked) {nbr_checked++;}});
+    $(".chbx_all").each(function (i) {
+        if (this.checked) {
+            nbr_checked++;
+        }
+    });
     if (nbr_checked == 1) {
         return true;
     } else {
@@ -25,7 +29,11 @@ function is_exactly_one_checkbox_selected() {
 //If one or more checkboxes are checked, return true.  Else display warning and return false
 function is_at_least_one_checkbox_selected() {
     var nbr_checked = 0;
-    $(".chbx_all").each(function (i) {if (this.checked) {nbr_checked++;}});
+    $(".chbx_all").each(function (i) {
+        if (this.checked) {
+            nbr_checked++;
+        }
+    });
     if (nbr_checked == 0) {
         bootbox.alert("U hebt niets geselecteerd, probeer nogmaals");
         return false;
@@ -37,7 +45,9 @@ function is_at_least_one_checkbox_selected() {
 function get_id_of_checked_boxes() {
     let ids = [];
     const chbxs = document.querySelectorAll('.chbx_all:checked')
-    chbxs.forEach(chbx => {ids.push(chbx.value);});
+    chbxs.forEach(chbx => {
+        ids.push(chbx.value);
+    });
     return ids;
 }
 
@@ -103,7 +113,7 @@ function button_pushed(action) {
 
 
 const get_form = async (endpoint, id) => {
-        const form_options = {
+    const form_options = {
         sanitizeConfig: {addTags: ['iframe'], addAttr: ['allow'], ALLOWED_TAGS: ['iframe'], ALLOWED_ATTR: ['allow']},
         // noAlerts: true,
     }
@@ -124,7 +134,9 @@ const get_form = async (endpoint, id) => {
         }
         const doc = new jsPDF();
         doc.html(document.getElementById('formio-form'), {
-            callback: function (doc) {doc.save();}
+            callback: function (doc) {
+                doc.save();
+            }
         })
     }
 }
@@ -138,40 +150,40 @@ function clear_filter_setting() {
 $(document).ready(function () {
     //if a filter is changed, then the filter is applied by simulating a click on the filter button
     $(".table-filter").change(function () {
-        store_filter_settings();
+        parse_filter_settings();
         $table.ajax.reload();
     });
 
-    if (!table_config.enable_persistent_filter_settings) {
-        function store_filter_settings() {return null;}
-    } else {
-        //Store locally in the client-browser
-        function store_filter_settings() {
-            filter_settings = [];
-            if (table_config.filters.length > 0) {
-                table_config.filters.forEach(f => {
-                    if (f.type === 'select') {
-                        filter_settings.push({
-                            name: f.name,
-                            type: f.type,
-                            value: document.querySelector(`#${f.name} option:checked`).value
-                        });
-                    } else if (f.type === 'checkbox') {
-                        let boxes = [];
-                        f.boxes.forEach(([k, l]) => {
-                            boxes.push({id: k, checked: document.querySelector(`#${k}`).checked})
-                        });
-                        filter_settings.push({
-                            name: f.name,
-                            type: f.type,
-                            value: boxes
-                        })
-                    }
-                });
+    function parse_filter_settings() {
+        filter_settings = [];
+        if (table_config.filters.length > 0) {
+            table_config.filters.forEach(f => {
+                if (f.type === 'select') {
+                    filter_settings.push({
+                        name: f.name,
+                        type: f.type,
+                        value: document.querySelector(`#${f.name} option:checked`).value
+                    });
+                } else if (f.type === 'checkbox') {
+                    let boxes = [];
+                    f.boxes.forEach(([k, l]) => {
+                        boxes.push({id: k, checked: document.querySelector(`#${k}`).checked})
+                    });
+                    filter_settings.push({
+                        name: f.name,
+                        type: f.type,
+                        value: boxes
+                    })
+                }
+            });
+            if (table_config.enable_persistent_filter_settings) {
+                // if required, store the filter settings locally in the browser
                 localStorage.setItem(`Filter-${view}`, JSON.stringify(filter_settings));
             }
         }
+    }
 
+    if (table_config.enable_persistent_filter_settings) {
         function load_filter_settings() {
             if (table_config.filters.length === 0) return true;
             filter_settings = JSON.parse(localStorage.getItem(`Filter-${view}`));
@@ -186,7 +198,8 @@ $(document).ready(function () {
             })
             return true;
         }
-        if (!load_filter_settings()) store_filter_settings(); //table_config.filters are applied when the page is loaded for the first time
+
+        if (!load_filter_settings()) parse_filter_settings(); //table_config.filters are applied when the page is loaded for the first time
     }
 
     //Bugfix to repeat the table header at the bottom
@@ -208,7 +221,7 @@ $(document).ready(function () {
             v.render = $.fn.dataTable.render.ellipsis(cutoff, wordbreak, true);
         } else if ("bool" in v) {
             v.render = function (data, type, full, meta) {
-                return  data === true ?`<input type="checkbox" checked disabled/>` : '';
+                return data === true ? `<input type="checkbox" checked disabled/>` : '';
                 // let is_checked = data === true ? "checked" : "";
                 // return `<input type="checkbox" ${is_checked}/>`;
             };
@@ -258,13 +271,13 @@ $(document).ready(function () {
             if ('flash' in json) {
                 bootbox.alert(json['flash'].toString());
             }
-         },
+        },
         createdRow: function (row, data, dataIndex, cells) {
             if (data.overwrite_row_color && data.overwrite_row_color != "") {
                 $(row).attr("style", "background-color: " + data.overwrite_row_color + ";");
             }
             if (data.overwrite_cell_color && data.overwrite_cell_color.length > 0) {
-                data.overwrite_cell_color.forEach( ([cn, cc])  => {
+                data.overwrite_cell_color.forEach(([cn, cc]) => {
                     const ci = column_name_to_index[cn];
                     $(cells[ci]).attr("style", `background-color: ${cc};`);
                 })
@@ -277,7 +290,7 @@ $(document).ready(function () {
 
             }
             if (celledit_select) {
-                for ([column, select]  of Object.entries(celledit_select)) {
+                for ([column, select] of Object.entries(celledit_select)) {
                     row.cells[column].innerHTML = select[row.cells[column].innerHTML]
                 }
             }
@@ -310,11 +323,11 @@ $(document).ready(function () {
             cell_toggle.display();
 
             let json = api.ajax.json();
-            if('show_info' in json && json.show_info.length > 0) {
+            if ('show_info' in json && json.show_info.length > 0) {
                 let show_info_div = document.querySelector(".show-info");
                 show_info_div.innerHTML = '';
                 json.show_info.forEach(i => {
-                    show_info_div.innerHTML += `<div class="p-2 border">${ i }</div>`
+                    show_info_div.innerHTML += `<div class="p-2 border">${i}</div>`
                 });
             }
         },
@@ -337,7 +350,7 @@ $(document).ready(function () {
         datatable_config["order"] = [[table_config.default_order[0], table_config.default_order[1]]];
     }
 
-    if("width" in table_config) {
+    if ("width" in table_config) {
         $("#datatable").attr("width", table_config.width);
     }
 
@@ -422,8 +435,8 @@ $(document).ready(function () {
 
     function cell_edit_changed_cb(cell, row, old_value) {
         const column = cell.index().column;
-        value = config_columns[column].celledit.type.includes('int') ? parseInt(cell.data()) :  cell.data();
-        data = { id: row.data().DT_RowId, column, value}
+        value = config_columns[column].celledit.type.includes('int') ? parseInt(cell.data()) : cell.data();
+        data = {id: row.data().DT_RowId, column, value}
         update_cell_changed(data);
     }
 
@@ -496,14 +509,14 @@ $(document).ready(function () {
         console.log($tr);
         if ($tr.hasClass("details")) {
             $tr.removeClass("details");
-            for (let i=0; i < $table.rows().count(); i++) {
+            for (let i = 0; i < $table.rows().count(); i++) {
                 const $row = $table.row(i);
                 $row.child.hide();
                 $row.nodes().to$().removeClass("details");
             }
         } else {
             $tr.addClass("details");
-            for (let i=0; i < $table.rows().count(); i++) {
+            for (let i = 0; i < $table.rows().count(); i++) {
                 const $row = $table.row(i);
                 const row_detail = $row.data().row_detail;
                 $row.child(format_row_detail(row_detail)).show();

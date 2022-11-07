@@ -19,6 +19,9 @@
                 top: 0;
                 z-index: 9;
             }
+            .navbar-selected {
+                background-color: green;
+            }
             @media (min-width: 1200px) {
                 .container, .container-lg, .container-md, .container-sm, .container-xl {
                     max-width: 100%;
@@ -49,16 +52,16 @@
                 {% if current_user.is_authenticated %}
                     <ul class="navbar-nav mr-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('survey.show') }}">Overzicht per vraag</a>
+                            <a id="opq" class="nav-link" href="{{ url_for('opq.show') }}">Overzicht per vraag</a>
                         </li>
                     {% if  current_user.is_at_least_admin %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('user.show') }}">Gebruikers</a>
+                            <a id="user" class="nav-link" href="{{ url_for('user.show') }}">Gebruikers</a>
                         </li>
                     {% endif %}
                     {% if  current_user.is_at_least_instellen %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('settings.show') }}">Instellingen</a>
+                            <a id="settings" class="nav-link" href="{{ url_for('settings.show') }}">Instellingen</a>
                         </li>
                     {% endif %}
                     {% if table_config and table_config.buttons %}

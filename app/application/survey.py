@@ -328,10 +328,6 @@ def format_data(db_list, count):
     return len(out), out
 
 
-def post_sql_filter(l, filter):
-    return l
-
-
 def post_sql_search(l, search, count):
     out = []
     if search == "":

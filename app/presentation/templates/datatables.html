@@ -28,9 +28,9 @@
                 <h2>{{ table_config.title }}</h2>
                 <form method="post" id="action_form" enctype=multipart/form-data
                       action="{{ url_for(table_config.table_action) }}">
-                    {% if filters %}
+                    {% if table_config.filters %}
                         <div class="flex-container">
-                            {% for f in filters %}
+                            {% for f in table_config.filters %}
                                 {% if f.type == "select" %}
                                     <div class="form-group "><label class="control-label" for="{{ f.name }}"
                                                                     title="{{ f.tt }}">{{ f.label }}</label>
@@ -63,7 +63,7 @@
 
                         <hr class="nice-green-line">
                     {% endif %}
-                    {%  if not table_config.suppress_column_visible_selector %}
+                    {%  if table_config.enable_column_visible_selector %}
                     <div class="column-visible-div flex-container">Kolom zichtbaar:&nbsp;</div>
                     <br>
                     <hr class="nice-green-line">
@@ -154,21 +154,10 @@
     {{ super() }}
     {% if table_config %}
         <script>
-            var filters = {{ (filters or []) | tojson }}
-            var pdf_template = {{ (pdf_template or []) | tojson }}
             var table_config = {{ (table_config or []) | tojson }}
+            var pdf_template = {{ (pdf_template or []) | tojson }}
             var popups = {{ (popups or {}) | tojson }}
-            var config_columns ={{ table_config.template | tojson }}
             var api_key = {{ (api_key or '') | tojson }}
-            var suppress_column_visible_selector = {{ (table_config.suppress_column_visible_selector or False) | tojson }}
-            var suppress_persistent_filter_settings = {{ (table_config.suppress_persistent_filter_settings or False) | tojson }}
-             {% if 'cell_color' in table_config %}
-                var cell_to_color = {{ (table_config.cell_color.color_keys or null) | tojson}}
-                var suppress_cell_content = {{(table_config.cell_color.supress_cell_content or false) | tojson}}
-            {% else %}
-                var cell_to_color = null
-                var suppress_cell_content = null
-            {% endif %}
             var current_user_is_at_least_admin = {{ current_user.is_at_least_admin | tojson }}
         </script>
         <script type="text/javascript"> {% include "datatables.js" %}</script>

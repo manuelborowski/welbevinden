@@ -77,7 +77,27 @@ def filter_data(query, filter):
 
 def search_data(search_string):
     search_constraints = []
-    search_constraints.append(Survey.naam.like(search_string))
-    search_constraints.append(Survey.voornaam.like(search_string))
+    search_constraints.append(Survey.survey.like(search_string))
     return search_constraints
+
+
+def pre_sql_query():
+    return db.session.query(Survey)
+
+
+def pre_sql_filter(q, filter):
+    return q
+
+
+def pre_sql_search(q, search):
+    return q
+
+
+def pre_sql_order(q, on, direction):
+    return q.order_by(desc(on)) if direction == 'desc' else q.order_by(on)
+
+def pre_sql_paginate(q, start, stop):
+    return q.slice(start, stop)
+
+
 

@@ -2,9 +2,9 @@ from app import log
 from app.data import school as mschool
 from app.application.util import deepcopy
 from app.data.utils import get_current_schoolyear
-from app.data import student as mstudent, photo as mphoto, settings as msettings, survey as msurvey
+from app.data import student as mstudent, settings as msettings, survey as msurvey
 from app.application import formio as mformio
-import sys, base64, json, datetime
+import sys, json, datetime
 
 
 def delete_students(ids):
@@ -272,8 +272,8 @@ def survey_done(data):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         raise e
 
-############ datatables: student overview list #########
-def format_data(db_list):
+############ datatables: survey overview list #########
+def format_data(db_list, count):
     out = []
     string_cache = {s.id: s.label for s in msurvey.get_strings()}
     type_radio_id = msurvey.get_strings({"label": "radio"}, first=True).id
@@ -325,4 +325,26 @@ def format_data(db_list):
             "row_detail": details,
             'DT_RowId': v[1]
         })
-    return out
+    return len(out), out
+
+
+def post_sql_filter(l, filter):
+    return l
+
+
+def post_sql_search(l, search, count):
+    out = []
+    if search == "":
+        return count, l
+    for item in l:
+        if search in item["vraag"]:
+            out.append(item)
+    return len(out), out
+
+
+def post_sql_order(l, on, direction):
+    return l
+
+
+def post_sql_paginate(l, start, length):
+    return l

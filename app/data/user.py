@@ -203,22 +203,14 @@ def load_user(user_id):
     return user
 
 
-def pre_filter():
+def pre_sql_query():
     return db.session.query(User)
 
 
-def search_data(search_string):
+def pre_sql_search(search_string):
     search_constraints = []
     search_constraints.append(User.username.like(search_string))
     search_constraints.append(User.email.like(search_string))
     return search_constraints
 
-
-def format_data(db_list):
-    out = []
-    for i in db_list:
-        em = i.ret_dict()
-        em['row_action'] = f"{i.id}"
-        out.append(em)
-    return out
 

@@ -1,14 +1,14 @@
 //Convert python True/False to js true/false
-var False = false;
-var True = true;
+let False = false;
+let True = true;
+
+
 const view = table_config.view;
 let $table;
 let filter_settings = [];
-window.jsPDF = window.jspdf.jsPDF;
-window.html2canvas = html2canvas;
-//column-name to column-index
-let column_name_to_index = {};
 
+let config_columns = table_config.template
+let column_name_to_index = {};
 
 //If not exactly one checkbox is selected, display warning and return false, else return true
 function is_exactly_one_checkbox_selected() {
@@ -136,21 +136,20 @@ function clear_filter_setting() {
 }
 
 $(document).ready(function () {
-
     //if a filter is changed, then the filter is applied by simulating a click on the filter button
     $(".table-filter").change(function () {
         store_filter_settings();
         $table.ajax.reload();
     });
 
-    if (suppress_persistent_filter_settings) {
+    if (!table_config.enable_persistent_filter_settings) {
         function store_filter_settings() {return null;}
     } else {
         //Store locally in the client-browser
         function store_filter_settings() {
             filter_settings = [];
-            if (filters.length > 0) {
-                filters.forEach(f => {
+            if (table_config.filters.length > 0) {
+                table_config.filters.forEach(f => {
                     if (f.type === 'select') {
                         filter_settings.push({
                             name: f.name,
@@ -174,7 +173,7 @@ $(document).ready(function () {
         }
 
         function load_filter_settings() {
-            if (filters.length === 0) return true;
+            if (table_config.filters.length === 0) return true;
             filter_settings = JSON.parse(localStorage.getItem(`Filter-${view}`));
             if (!filter_settings) {
                 filter_settings = [];
@@ -187,7 +186,7 @@ $(document).ready(function () {
             })
             return true;
         }
-        if (!load_filter_settings()) store_filter_settings(); //filters are applied when the page is loaded for the first time
+        if (!load_filter_settings()) store_filter_settings(); //table_config.filters are applied when the page is loaded for the first time
     }
 
     //Bugfix to repeat the table header at the bottom
@@ -254,9 +253,7 @@ $(document).ready(function () {
         },
         pagingType: "full_numbers",
         columns: config_columns,
-        language: {
-            url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Dutch.json"
-        },
+        language: {url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Dutch.json"},
         initComplete: function (settings, json) { //intercept flash messages when the table is loaded
             if ('flash' in json) {
                 bootbox.alert(json['flash'].toString());
@@ -291,11 +288,11 @@ $(document).ready(function () {
         drawCallback: function (settings) {
             let api = this.api();
             busy_indication_off();
-            if (cell_to_color) {
+            if (table_config.cell_to_color) {
                 $table.cells().every(function () {
-                    if (this.data() in cell_to_color) {
-                        $(this.node()).css("background-color", cell_to_color[this.data()]);
-                        if (suppress_cell_content) {
+                    if (this.data() in table_config.cell_to_color) {
+                        $(this.node()).css("background-color", table_config.cell_to_color[this.data()]);
+                        if (table_config.suppress_cell_content) {
                             $(this.node()).html("");
                         }
                     }
@@ -355,7 +352,7 @@ $(document).ready(function () {
         }
     });
 
-    if (!suppress_column_visible_selector) {
+    if (table_config.enable_column_visible_selector) {
         //Toggle column visibility
         let column_visible_div = document.querySelector('.column-visible-div');
         let column_visible_settings = JSON.parse(localStorage.getItem(`ColumnsVisible-${view}`));
@@ -512,9 +509,7 @@ $(document).ready(function () {
                 $row.child(format_row_detail(row_detail)).show();
                 $row.nodes().to$().addClass("details");
             }
-            // $table.find("tr").addClass("details");
         }
-
     });
 
 });

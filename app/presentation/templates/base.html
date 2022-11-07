@@ -49,7 +49,7 @@
                 {% if current_user.is_authenticated %}
                     <ul class="navbar-nav mr-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('survey.show') }}">Resultaten</a>
+                            <a class="nav-link" href="{{ url_for('survey.show') }}">Overzicht per vraag</a>
                         </li>
                     {% if  current_user.is_at_least_admin %}
                         <li class="nav-item">

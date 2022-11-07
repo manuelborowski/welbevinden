@@ -2,10 +2,10 @@ import app.data.school
 from . import settings
 from flask import render_template, request
 from flask_login import login_required, current_user
-from app import admin_required, log, supervisor_required
-from app.application import socketio as msocketio, event as mevent, student as mstudent
+from app import log, supervisor_required
+from app.application import socketio as msocketio, student as mstudent
 from app.application.util import deepcopy
-from app.application import settings as msettings, cron as mcron, formio as mformio, cron_table, survey as msurvey, util as mutil
+from app.application import settings as msettings, formio as mformio
 import json, sys, re, html, io
 
 

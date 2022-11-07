@@ -8,13 +8,15 @@ from app.application import user as muser
 from app.presentation.layout.utils import flash_plus
 from app.presentation.view import datatables
 import json
+from app.data.datatables import DatatableConfig
+import app.data.user
+import app.application.user
 
 @user.route('/user', methods=['GET', 'POST'])
 @admin_required
 @login_required
 def show():
     # start = datetime.datetime.now()
-    datatables.update(table_configuration)
     ret = datatables.show(table_configuration)
     # print('student.show', datetime.datetime.now() - start)
     return ret
@@ -24,7 +26,6 @@ def show():
 @login_required
 def table_ajax():
     # start = datetime.datetime.now()
-    datatables.update(table_configuration)
     ret =  datatables.ajax(table_configuration)
     # print('student.table_ajax', datetime.datetime.now() - start)
     return ret
@@ -103,22 +104,25 @@ def right_click():
     return {"status": False, "data": "iets is fout gelopen"}
 
 
-table_configuration = {
-    'view': 'user',
-    'title': 'Gebruikers',
-    'filter': [],
-    'buttons': [],
-    'href': [],
-    'pre_filter': data.user.pre_filter,
-    'format_data': data.user.format_data,
-    'search_data': data.user.search_data,
-    'default_order': (1, 'asc'),
-    'right_click': {
-        'endpoint': 'user.right_click',
-        'menu': [
-            {'label': 'Nieuwe gebruiker', 'item': 'add', 'iconscout': 'plus-circle'},
-            {'label': 'Gebruiker aanpassen', 'item': 'edit', 'iconscout': 'pen'},
-            {'label': 'Gebruiker(s) verwijderen', 'item': 'delete', 'iconscout': 'trash-alt', 'ack': 'Bent u zeker dat u deze gebruiker(s) wilt verwijderen?'},
-        ]
-    }
-}
+class UserConfig(DatatableConfig):
+    def pre_sql_query(self):
+        return app.data.user.pre_sql_query()
+
+    def pre_sql_search(self, search):
+        return data.user.pre_sql_search(search)
+
+    def get_right_click(self):
+        return {
+            'endpoint': 'user.right_click',
+            'menu': [
+                {'label': 'Nieuwe gebruiker', 'item': 'add', 'iconscout': 'plus-circle'},
+                {'label': 'Gebruiker aanpassen', 'item': 'edit', 'iconscout': 'pen'},
+                {'label': 'Gebruiker(s) verwijderen', 'item': 'delete', 'iconscout': 'trash-alt', 'ack': 'Bent u zeker dat u deze gebruiker(s) wilt verwijderen?'},
+            ]
+        }
+
+    def format_data(self, l, count):
+        return app.application.user.format_data(l, count)
+
+table_configuration = UserConfig("user", "Gebruikers")
+

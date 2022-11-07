@@ -69,3 +69,14 @@ def prepare_edit_registration_form(id):
         raise e
 
 
+
+############ datatables: user overview list #########
+def format_data(db_list, count):
+    out = []
+    for i in db_list:
+        em = i.ret_dict()
+        em['row_action'] = f"{i.id}"
+        out.append(em)
+    return count, out
+
+

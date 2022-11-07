@@ -29,10 +29,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.7: switched to 5 user levels.  Re-implemented row_detail (datatables).  Implemented survey-question-overview.
 # Datatables; make it possible to create columns from json-data from single-database column.  Use 4 survey templates iso 1.
 # V0.8: suppress persistent-filter-settings if required.  Introduced filters
+# V0.9: big update.  Removed obsolete files.  datatables-configuration; switched to object, cleaned up processing of data from database.
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.8', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.9', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -136,13 +137,12 @@ else:
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings,  api, warning, survey
+    from app.presentation.view import auth, user, settings,  api, survey
     flask_app.register_blueprint(api.api)
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(settings.settings)
     flask_app.register_blueprint(survey.survey)
-    flask_app.register_blueprint(warning.warning)
 
     @flask_app.errorhandler(403)
     def forbidden(error):

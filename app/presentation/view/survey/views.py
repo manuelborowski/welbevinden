@@ -1,21 +1,18 @@
 from . import survey
-from app import log, supervisor_required, flask_app
+from app import log
 from flask import redirect, url_for, request, render_template
-from flask_login import login_required, current_user
+from flask_login import login_required
 from app.presentation.view import datatables
-from app.application import socketio as msocketio, settings as msettings, survey as msurvey, school as mschool
-from app.presentation.view.formio_popups import update_password, database_integrity_check
-from app.application.util import deepcopy
-import sys, json, re, html
+from app.application import socketio as msocketio, survey as msurvey, school as mschool
+import sys, json, html
 import app.data.survey
 import app.application.survey
-
+from app.data.datatables import DatatableConfig
 
 @survey.route('/survey/survey', methods=['POST', 'GET'])
 @login_required
 def show():
     # start = datetime.datetime.now()
-    datatables.update(table_configuration)
     ret = datatables.show(table_configuration)
     # print('survey.show', datetime.datetime.now() - start)
     return ret
@@ -25,7 +22,6 @@ def show():
 @login_required
 def table_ajax():
     # start = datetime.datetime.now()
-    datatables.update(table_configuration)
     ret = datatables.ajax(table_configuration)
     # print('survey.table_ajax', datetime.datetime.now() - start)
     return ret
@@ -105,21 +101,24 @@ def get_filters():
     return filters
 
 
-table_configuration = {
-    'view': 'survey',
-    'title': 'Resultaten van de bevraging',
-    'buttons': [],
-    'href': [],
-    'get_filters': get_filters,
-    'pre_filter': app.data.survey.pre_filter,
-    'format_data': app.application.survey.format_data,
-    'filter_data': app.data.survey.filter_data,
-    'search_data': app.data.survey.search_data,
-    'default_order': (2, 'asc'),
-    'socketio_endpoint': 'celledit-survey',
-    "suppress_column_visible_selector": True,
-    "suppress_persistent_filter_settings": True
-}
+class SurveyConfig(DatatableConfig):
+    def pre_sql_query(self):
+        return app.data.survey.pre_sql_query()
+
+    def format_data(self, l, count):
+        return app.application.survey.format_data(l, count)
+
+    def post_sql_search(self, l, search, count):
+        return app.application.survey.post_sql_search(l, search, count)
+
+    def show_filter_elements(self):
+        return get_filters()
+
+    enable_column_visible_selector = False
+    enable_persistent_filter_settings = False
+
+
+table_configuration = SurveyConfig("survey", "Overzicht per vraag")
 
 
 @survey.route('/survey/start/<string:period>/<string:targetgroup>/<string:schoolcode>', methods=['GET'])

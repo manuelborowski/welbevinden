@@ -11,36 +11,46 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/welbevinden.png') }}">
     {{ JSGlue.include() }}
 
-    {% block styles %}
-        <div class="content-section">
-            <div class="center">
-                <div class="container-form">
-                    <div id="survey-form"></div>
-                </div>
-            </div>
-        </div>
-        <style>
-            .card-header, .form-control, .btn {
-                padding: 0;
-            }
+    <style>
+        .card-header, .form-control, .btn {
+            padding: 0;
+        }
 
-            .form-group {
-                margin: 0;
-            }
-        </style>
-    {% endblock %}
+        .form-group {
+            margin: 0;
+        }
+
+        .survey {
+            width: 50%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        body {
+            background-color: rgba(255, 183, 2, 0.25);
+        }
+    </style>
 </head>
 <body>
+<div class="content-section">
+    <div class="center">
+        <div class="container-form survey">
+            <img src="/static/img/header.png" alt="logo">
+            <div id="survey-form"></div>
+        </div>
+    </div>
+</div>
+
 <script>
-    var data = {{ data | tojson }}
+    var data =
+    {{ data | tojson }}
 </script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
-            crossorigin="anonymous"></script>
-    <script type="text/javascript"
-            src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js"></script>
-    <script src='https://cdn.form.io/formiojs/formio.full.min.js'></script>
-    <script type="text/javascript"> {% include "survey/survey.js" %}</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+        crossorigin="anonymous"></script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js"></script>
+<script src='https://cdn.form.io/formiojs/formio.full.min.js'></script>
+<script type="text/javascript"> {% include "survey/survey.js" %}</script>
 </body>
 </html>

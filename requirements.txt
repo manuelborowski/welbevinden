@@ -68,6 +68,7 @@ SQLAlchemy==1.4.8
 SQLAlchemy-serializer==1.4.1
 typing-extensions==4.2.0
 tzlocal==2.1
+unicodecsv==0.14.1
 urllib3==1.26.8
 uWSGI==2.0.20
 webencodings==0.5.1

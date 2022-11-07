@@ -32,8 +32,8 @@ class DatatableConfig:
     def pre_sql_paginate(self, q, start, stop):
         return q.slice(start, stop)
 
-    def format_data(self, l, count):
-        return count, l
+    def format_data(self, l, total_count, filtered_count):
+        return total_count, filtered_count, l
 
     def post_sql_filter(self, l, filter, count):
         return count, l

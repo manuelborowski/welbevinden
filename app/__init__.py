@@ -31,11 +31,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.8: suppress persistent-filter-settings if required.  Introduced filters
 # V0.9: big update.  Removed obsolete files.  datatables-configuration; switched to object, cleaned up processing of data from database.
 # V0.10: extracted overview-per-question from survey-view.  Added functionality to color the selected menu-item
+# V0.11: small bugfixes.
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.10', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.11', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

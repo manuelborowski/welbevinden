@@ -121,8 +121,8 @@ class UserConfig(DatatableConfig):
             ]
         }
 
-    def format_data(self, l, count):
-        return app.application.user.format_data(l, count)
+    def format_data(self, l, total_count, filtered_count):
+        return app.application.user.format_data(l, total_count, filtered_count)
 
 table_configuration = UserConfig("user", "Gebruikers")
 

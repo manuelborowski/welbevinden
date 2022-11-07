@@ -187,7 +187,7 @@ def save_survey(data):
         container_leerlinggegevens = data["container-leerling-gegevens"]
         naam = voornaam = klas = andere_school = ''
 
-        if "container-leerling-lijst" in container_leerlinggegevens: # a leerlingenlijst dropdown is available
+        if "container-leerling-lijst" in container_leerlinggegevens and "select-leerling" in container_leerlinggegevens["container-leerling-lijst"]: # a leerlingenlijst dropdown is available
             selected_leerling = container_leerlinggegevens["container-leerling-lijst"]["select-leerling"]
             if selected_leerling != "not-found": # and contains a valid leerling
                 [klas, naam, voornaam, andere_school] = selected_leerling.split("+")
@@ -198,7 +198,7 @@ def save_survey(data):
             container_extra_leerling_gegevens = container_leerlinggegevens["container-leerling-extra-gegevens"]
             naam = container_extra_leerling_gegevens["achternaam"]
             voornaam = container_extra_leerling_gegevens["voornaam"]
-            if "container-klas" in container_extra_leerling_gegevens:
+            if "container-klas" in container_extra_leerling_gegevens and "select-klas" in container_extra_leerling_gegevens["container-klas"]:
                 klas = container_extra_leerling_gegevens["container-klas"]["select-klas"]
             else:
                 klas = ""
@@ -273,7 +273,7 @@ def survey_done(data):
         raise e
 
 ############ datatables: survey overview list #########
-def format_data(db_list, count):
+def format_data(db_list, total_count, filtered_count):
     out = []
     string_cache = {s.id: s.label for s in msurvey.get_strings()}
     type_radio_id = msurvey.get_strings({"label": "radio"}, first=True).id
@@ -325,7 +325,7 @@ def format_data(db_list, count):
             "row_detail": details,
             'DT_RowId': v[1]
         })
-    return len(out), out
+    return len(out), len(out), out
 
 
 def post_sql_search(l, search, count):

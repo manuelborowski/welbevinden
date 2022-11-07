@@ -77,7 +77,7 @@ def prepare_data_for_ajax(table_config, paginate=True):
 
         db_data = sql_query.all()
 
-        total_count, formatted_data = table_config.format_data(db_data, total_count)
+        total_count, filtered_count, formatted_data = table_config.format_data(db_data, total_count, filtered_count)
 
         if filter:
             filtered_count, formatted_data = table_config.post_sql_filter(formatted_data, filter, filtered_count)

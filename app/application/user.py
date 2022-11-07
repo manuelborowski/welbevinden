@@ -71,12 +71,12 @@ def prepare_edit_registration_form(id):
 
 
 ############ datatables: user overview list #########
-def format_data(db_list, count):
+def format_data(db_list, total_count, filtered_count):
     out = []
     for i in db_list:
         em = i.ret_dict()
         em['row_action'] = f"{i.id}"
         out.append(em)
-    return count, out
+    return total_count, filtered_count, out
 
 

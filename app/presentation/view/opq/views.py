@@ -108,8 +108,8 @@ class SurveyConfig(DatatableConfig):
     def pre_sql_filter(self, q, filter):
         return app.data.survey.pre_sql_filter(q, filter)
 
-    def format_data(self, l, count):
-        return app.application.survey.format_data(l, count)
+    def format_data(self, l, total_count, filtered_count):
+        return app.application.survey.format_data(l, total_count, filtered_count)
 
     def post_sql_search(self, l, search, count):
         return app.application.survey.post_sql_search(l, search, count)

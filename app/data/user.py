@@ -17,21 +17,17 @@ class User(UserMixin, db.Model, SerializerMixin):
         return list(zip(['local', 'oauth'], ['LOCAL', 'OAUTH']))
 
     class LEVEL:
-        USER = 1
-        SUPERVISOR = 3
+        GEBRUIKER = 1
+        INSTELLEN = 2
+        NAAM_LEERLING_ZIEN = 3
+        ALLE_SCHOLEN_ZIEN = 4
         ADMIN = 5
 
-        ls = ["GEBRUIKER", "INSTELLEN", "NAAM-LEERLING", "ALLE-SCHOLEN", "ADMINISTRATOR"]
+        ls = ["GEBRUIKER", "INSTELLEN", "NAAM-LEERLING-ZIEN", "ALLE-SCHOLEN-ZIEN", "ADMINISTRATOR"]
 
         @staticmethod
         def i2s(i):
             return User.LEVEL.ls[i - 1]
-            # if i == 1:
-            #     return User.LEVEL.ls[0]
-            # elif i == 3:
-            #     return User.LEVEL.ls[1]
-            # if i == 5:
-            #     return User.LEVEL.ls[2]
 
     @staticmethod
     def get_zipped_levels():
@@ -56,30 +52,34 @@ class User(UserMixin, db.Model, SerializerMixin):
     ### level 1 ###
     @property
     def is_at_least_gebruiker(self):
-        return self.level >= User.LEVEL.USER
+        return self.level >= User.LEVEL.GEBRUIKER
 
     @property
     def is_strict_gebruiker(self):
-        return self.level == User.LEVEL.USER
+        return self.level == User.LEVEL.GEBRUIKER
 
     ### level 2 ###
     @property
     def is_at_least_instellen(self):
-        return self.level >= User.LEVEL.USER
+        return self.level >= User.LEVEL.INSTELLEN
 
     ### level 3 ###
     @property
     def is_at_least_naam_leerling(self):
-        return self.level >= User.LEVEL.SUPERVISOR
+        return self.level >= User.LEVEL.NAAM_LEERLING_ZIEN
 
     @property
     def is_max_naam_leerling(self):
-        return self.level <= User.LEVEL.SUPERVISOR
+        return self.level <= User.LEVEL.NAAM_LEERLING_ZIEN
 
     ### level 4 ###
     @property
     def is_at_least_alle_scholen(self):
-        return self.level >= User.LEVEL.USER
+        return self.level >= User.LEVEL.ALLE_SCHOLEN_ZIEN
+
+    @property
+    def is_max_alle_scholen(self):
+        return self.level <= User.LEVEL.ALLE_SCHOLEN_ZIEN
 
     ### level 5 ###
     @property

@@ -1,4 +1,5 @@
 from app import log
+from flask_login import current_user
 from app.data import school as mschool
 from app.application.util import deepcopy
 from app.data.utils import get_current_schoolyear
@@ -46,7 +47,7 @@ def get_klassen(data={}):
     try:
         surveys = msurvey.get_surveys(data=data)
         klassen = sorted(list(set([s.klas for s in surveys])))
-        if klassen[0] == "":
+        if klassen[0] == "" and len(klassen) <= 1:
             return []
         return klassen
     except Exception as e:
@@ -273,7 +274,7 @@ def survey_done(data):
         raise e
 
 ############ datatables: survey overview list #########
-def format_data(db_list, total_count, filtered_count):
+def format_data_opq(db_list, total_count, filtered_count):
     out = []
     string_cache = {s.id: s.label for s in msurvey.get_strings()}
     type_radio_id = msurvey.get_strings({"label": "radio"}, first=True).id
@@ -328,7 +329,35 @@ def format_data(db_list, total_count, filtered_count):
     return len(out), len(out), out
 
 
-def post_sql_search(l, search, count):
+def format_data_ops(db_list, total_count, filtered_count):
+    out = []
+    string_cache = {s.id: s.label for s in msurvey.get_strings()}
+    type_radio_id = msurvey.get_strings({"label": "radio"}, first=True).id
+    type_selectboxes_id = msurvey.get_strings({"label": "selectboxes"}, first=True).id
+    type_textarea_id = msurvey.get_strings({"label": "textarea"}, first=True).id
+    show_name = current_user.is_at_least_naam_leerling
+    for i, item in enumerate(db_list):
+        survey = json.loads(item.survey)
+        details = {"width": 2, "data": [["Vraag", "Antwoord"]]}
+        for question_nbr, [type_id, question_id, answer] in enumerate(survey):
+            if type_id == type_selectboxes_id:
+                answer_text = (", ").join([string_cache[a] for a in answer])
+            elif type_id == type_radio_id:
+                answer_text = string_cache[answer]
+            else:
+                answer_text = answer
+            details["data"].append([string_cache[question_id], answer_text])
+        out.append({
+            "leerling": f"{item.naam} {item.voornaam}" if show_name else f"Leerling {i+1}",
+            "klas": item.klas if show_name else "",
+            "school": item.schoolkey,
+            "row_detail": details,
+            'DT_RowId': item.id
+        })
+    return len(out), len(out), out
+
+
+def post_sql_search_opq(l, search, count):
     out = []
     if search == "":
         return count, l
@@ -338,9 +367,16 @@ def post_sql_search(l, search, count):
     return len(out), out
 
 
-def post_sql_order(l, on, direction):
-    return l
+def post_sql_search_ops(l, search, count):
+    out = []
+    if search == "":
+        return count, l
+    for item in l:
+        if search in item["leerling"] or search in item["klas"]:
+            out.append(item)
+    return len(out), out
 
 
-def post_sql_paginate(l, start, length):
-    return l
+def post_sql_order_ops(l, on, direction):
+    out = sorted(l, key=lambda x: x[on], reverse=direction=="desc")
+    return out

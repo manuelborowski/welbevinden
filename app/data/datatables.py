@@ -5,7 +5,6 @@ class DatatableConfig:
     def __init__(self, view, title):
         self.view = view
         self.title = title
-        self.template = get_datatables_config(self.view)
 
     buttons = []
     href = []
@@ -13,6 +12,7 @@ class DatatableConfig:
     suppress_cell_content = None
     enable_column_visible_selector = True
     enable_persistent_filter_settings = True
+    default_order = [2, "asc"]
 
     def show_filter_elements(self):
         return []
@@ -27,10 +27,10 @@ class DatatableConfig:
         return None
 
     def pre_sql_order(self, q, on, direction):
-        return q.order_by(desc(on)) if direction == 'desc' else q.order_by(on)
+        return q
 
     def pre_sql_paginate(self, q, start, stop):
-        return q.slice(start, stop)
+        return q
 
     def format_data(self, l, total_count, filtered_count):
         return total_count, filtered_count, l
@@ -53,6 +53,10 @@ class DatatableConfig:
     def get_right_click(self):
         return {}
 
+    @property
+    def template(self):
+        return get_datatables_config(self.view)
+
     def create_table_config(self):
         return {
             "buttons": self.buttons,
@@ -66,5 +70,6 @@ class DatatableConfig:
             "show_info": self.show_info(),
             "right_click": self.get_right_click(),
             "cell_to_color": self.cell_to_color,
-            "suppress_cell_content": self.suppress_cell_content
+            "suppress_cell_content": self.suppress_cell_content,
+            "default_order": self.default_order,
         }

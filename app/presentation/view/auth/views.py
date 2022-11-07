@@ -23,7 +23,7 @@ def login():
                 log.error('Could not save timestamp')
                 return redirect(url_for('auth.login'))
             # Ok, continue
-            return redirect(url_for('survey.show'))
+            return redirect(url_for('opq.show'))
         else:
             utils.flash_plus(u'Ongeldige gebruikersnaam of paswoord')
             log.error(u'Invalid username/password')
@@ -68,7 +68,7 @@ def login_ss():
                     profile['first_name'] = profile['name']
                     profile['last_name'] = profile['surname']
                     profile['user_type'] = muser.User.USER_TYPE.OAUTH
-                    profile['level'] = muser.User.LEVEL.USER
+                    profile['level'] = muser.User.LEVEL.GEBRUIKER
                     user = muser.add_user(profile)
                 else:
                     log.info('New users not allowed via smartschool')

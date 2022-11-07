@@ -32,11 +32,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.9: big update.  Removed obsolete files.  datatables-configuration; switched to object, cleaned up processing of data from database.
 # V0.10: extracted overview-per-question from survey-view.  Added functionality to color the selected menu-item
 # V0.11: small bugfixes.
+# V0.12: implemented overview-per-student.  Implemented different user-levels.
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.11', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.12', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -132,21 +133,22 @@ else:
 
 
     # decorator to grant access to at least supervisors
-    def supervisor_required(func):
+    def instellen_required(func):
         @wraps(func)
         def decorated_view(*args, **kwargs):
-            if not current_user.is_at_least_naam_leerling:
+            if not current_user.is_at_least_instellen:
                 abort(403)
             return func(*args, **kwargs)
         return decorated_view
 
-    from app.presentation.view import auth, user, settings,  api, survey, opq
+    from app.presentation.view import auth, user, settings,  api, survey, opq, ops
     flask_app.register_blueprint(api.api)
     flask_app.register_blueprint(auth.auth)
     flask_app.register_blueprint(user.user)
     flask_app.register_blueprint(settings.settings)
     flask_app.register_blueprint(survey.survey)
     flask_app.register_blueprint(opq.opq)
+    flask_app.register_blueprint(ops.ops)
 
     @flask_app.errorhandler(403)
     def forbidden(error):

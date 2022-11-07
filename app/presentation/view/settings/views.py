@@ -2,7 +2,7 @@ import app.data.school
 from . import settings
 from flask import render_template, request
 from flask_login import login_required, current_user
-from app import log, supervisor_required
+from app import log, instellen_required
 from app.application import socketio as msocketio, student as mstudent
 from app.application.util import deepcopy
 from app.application import settings as msettings, formio as mformio
@@ -11,7 +11,7 @@ import json, sys, re, html, io
 
 
 @settings.route('/settings', methods=['GET'])
-@supervisor_required
+@instellen_required
 @login_required
 def show():
     default_settings = msettings.get_default_values()
@@ -24,7 +24,7 @@ def show():
 @settings.route('/settings/upload/<string:subject>/<string:school>', methods=['POST'])
 @settings.route('/settings/upload/<string:subject>', methods=['POST'])
 @settings.route('/settings/upload/', methods=['POST'])
-@supervisor_required
+@instellen_required
 @login_required
 def upload(subject=None, school=None):
     try:
@@ -43,7 +43,7 @@ def upload(subject=None, school=None):
 @settings.route('/settings/clear/<string:subject>/<string:school>', methods=['POST'])
 @settings.route('/settings/clear/<string:subject>', methods=['POST'])
 @settings.route('/settings/clear/', methods=['POST'])
-@supervisor_required
+@instellen_required
 @login_required
 def clear(subject=None, school=None):
     try:
@@ -97,7 +97,7 @@ def prepare_form(form):
                 school_info["properties"].append({"key": "container-secundaire-school", "name": "hidden", "value": True})
             data.append(school_info)
         school_container["components"] = mformio.create_components(school_container["components"][0], data)
-        if current_user.is_max_naam_leerling: # remove admin-only settings
+        if current_user.is_max_alle_scholen: # remove admin-only settings
             admin_container = mformio.search_component(form, "user-level-5")
             admin_container["components"] = []
     except Exception as e:
@@ -704,7 +704,7 @@ formio_settings = \
                                                 "label": "Lijst overzicht-per-leerling template (JSON)",
                                                 "autoExpand": false,
                                                 "tableView": true,
-                                                "key": "opl-datatables-template",
+                                                "key": "ops-datatables-template",
                                                 "type": "textarea",
                                                 "input": true
                                             }

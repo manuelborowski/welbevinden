@@ -66,27 +66,13 @@ def add_default_string():
 
 add_default_string()
 
-############ staff overview list #########
-def pre_sql_query():
+############ survey overview list #########
+def pre_sql_query_opq():
     return db.session.query(Survey)
 
 
-def pre_sql_filter(q, filter):
+def pre_sql_filter_opq(q, filter):
     for f in filter:
         if hasattr(Survey, f["name"]) and f["value"] != "all":
             q = q.filter(getattr(Survey, f["name"]) == f["value"])
     return q
-
-
-def pre_sql_search(q, search):
-    return q
-
-
-def pre_sql_order(q, on, direction):
-    return q.order_by(desc(on)) if direction == 'desc' else q.order_by(on)
-
-def pre_sql_paginate(q, start, stop):
-    return q.slice(start, stop)
-
-
-

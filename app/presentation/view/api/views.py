@@ -1,9 +1,9 @@
 from flask import request
 from . import api
-from app.application import  student as mstudent, user as muser
+from app.application import user as muser, survey as msurvey
 from app.data import settings as msettings
-from app import flask_app, log
-import json, sys, html
+from app import log
+import json, sys
 from functools import wraps
 
 
@@ -34,6 +34,14 @@ def user_add():
 def user_update():
     data = json.loads(request.data)
     ret = muser.update_user(data)
+    return(json.dumps(ret))
+
+
+@api.route('/api/survey/add', methods=['POST'])
+@key_required
+def survey_add():
+    data = json.loads(request.data)
+    ret = msurvey.save_survey(data)
     return(json.dumps(ret))
 
 

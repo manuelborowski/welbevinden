@@ -108,19 +108,19 @@ def prepare_survey(period, targetgroup, schoolcode):
         if not school_info or targetgroup not in ["ouders", "leerlingen"]:
             raise Exception("Sorry, er is een fout opgetreden")
         schooljaar = get_current_schoolyear()
-        leerlingen = [[l.klas, l.naam, l.voornaam, 'not-found'] for l in mstudent.get_students({"schoolkey": school_info["key"], "schooljaar": schooljaar})]
-        # extend with students from survey results
-        surveys = msurvey.get_surveys({"schoolkey": school_info["key"], "schooljaar": schooljaar})
-        survey_cache = {make_key(s.klas, s.naam, s.voornaam) : s.andereschool for s in surveys}
         string_cache = {s.label: s.id for s in msurvey.get_strings()}
-        for l in leerlingen:
-            key = make_key(l[0], l[1], l[2])
-            if key in survey_cache:
-                l[3]= survey_cache[key]
-                del(survey_cache[key])
-        for key, school in survey_cache.items():
-            leerlingen.append(unmake_key(key) + [school])
+        leerlingen = [[l.klas, l.naam, l.voornaam, 'not-found'] for l in mstudent.get_students({"schoolkey": school_info["key"], "schooljaar": schooljaar})]
+        surveys = msurvey.get_surveys({"schoolkey": school_info["key"], "schooljaar": schooljaar})
+        # extend with students from survey results, but only when leerlingen is not empty
         if leerlingen:
+            survey_cache = {make_key(s.klas, s.naam, s.voornaam) : s.andereschool for s in surveys}
+            for l in leerlingen:
+                key = make_key(l[0], l[1], l[2])
+                if key in survey_cache:
+                    l[3]= survey_cache[key]
+                    del(survey_cache[key])
+            for key, school in survey_cache.items():
+                leerlingen.append(unmake_key(key) + [school])
             select_leerling_data = {"values": [{"value": f"{klas}+{naam}+{voornaam}+{school}", "label": f"{klas} {naam} {voornaam}"}
                                                for [klas, naam, voornaam, school] in sorted(leerlingen, key=lambda i: i[0]+i[1]+i[2])]
                                               + [{"label": "Niet gevonden", "value": "not-found"}]}

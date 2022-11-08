@@ -36,11 +36,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.13: updated survey-page
 # V0.14: update requirements.txt
 # V0.15: bugfixes when database is empty
+# V0.16: when no leerlingen are loaded, do not show list of leerlingen for second survey.  Add add_survey api
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.15', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.16', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

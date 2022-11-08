@@ -38,6 +38,42 @@ def table_action(action, ids=None):
 
 
 def get_filters():
+    filters = []
+    scholen = mschool.get_school_info_for_current_user()
+    if scholen:
+        school_choices = [[k, s["label"]] for k, s in scholen.items()]
+        if len(scholen) == 1:
+            school_default = school_choices[0][0]
+        else:
+            school_choices = [['all', 'Alle']] + school_choices
+            school_default = "all"
+        filters.append({'type': 'select', 'name': 'schoolkey', 'label': 'School', 'choices': school_choices, 'default': school_default,})
+
+    schooljaren = msurvey.get_schooljaren()
+    if schooljaren:
+        schooljaar_choices = [[s, s] for s in schooljaren]
+        schooljaar_default = schooljaar_choices[0][0]
+        filters.append({'type': 'select', 'name': 'schooljaar', 'label': 'Schooljaar', 'choices': schooljaar_choices, 'default': schooljaar_default,})
+    periodes = msurvey.get_periodes()
+    if periodes:
+        periode_choices = [[s, s] for s in periodes]
+        periode_default = periode_choices[0][0]
+        filters.append({'type': 'select', 'name': 'period', 'label': 'Periode', 'choices': periode_choices, 'default': periode_default, })
+    targetgroups = msurvey.get_targetgroups()
+    if targetgroups:
+        targetgroup_choices = [[s, s] for s in targetgroups]
+        targetgroup_default = targetgroup_choices[0][0]
+        filters.append({'type': 'select', 'name': 'targetgroup', 'label': 'Doelgroep', 'choices': targetgroup_choices, 'default': targetgroup_default,})
+    if current_user.is_at_least_naam_leerling:
+        klassen = msurvey.get_klassen()
+        if klassen:
+            klas_choices = [['all', 'Alle']] + [[s, s] for s in klassen]
+            klas_default = klas_choices[0][0]
+            filters.append({'type': 'select', 'name': 'klas', 'label': 'Klas', 'choices': klas_choices, 'default': klas_default,})
+    return filters
+
+
+def get_filters2():
     klassen = []
     scholen = mschool.get_school_info_for_current_user()
     school_choices = [[k, s["label"]] for k, s in scholen.items()]

@@ -277,9 +277,12 @@ def survey_done(data):
 def format_data_opq(db_list, total_count, filtered_count):
     out = []
     string_cache = {s.id: s.label for s in msurvey.get_strings()}
-    type_radio_id = msurvey.get_strings({"label": "radio"}, first=True).id
-    type_selectboxes_id = msurvey.get_strings({"label": "selectboxes"}, first=True).id
-    type_textarea_id = msurvey.get_strings({"label": "textarea"}, first=True).id
+    type_radio = msurvey.get_strings({"label": "radio"}, first=True)
+    type_radio_id = type_radio.id if type_radio else -1
+    type_selectboxes = msurvey.get_strings({"label": "selectboxes"}, first=True)
+    type_selectboxes_id = type_selectboxes.id if type_selectboxes else -1
+    type_textarea = msurvey.get_strings({"label": "textarea"}, first=True)
+    type_textarea_id = type_textarea.id if type_textarea else -1
     collect_data = {}
     for item in db_list:
         survey = json.loads(item.survey)
@@ -332,9 +335,12 @@ def format_data_opq(db_list, total_count, filtered_count):
 def format_data_ops(db_list, total_count, filtered_count):
     out = []
     string_cache = {s.id: s.label for s in msurvey.get_strings()}
-    type_radio_id = msurvey.get_strings({"label": "radio"}, first=True).id
-    type_selectboxes_id = msurvey.get_strings({"label": "selectboxes"}, first=True).id
-    type_textarea_id = msurvey.get_strings({"label": "textarea"}, first=True).id
+    type_radio = msurvey.get_strings({"label": "radio"}, first=True)
+    type_radio_id = type_radio.id if type_radio else -1
+    type_selectboxes = msurvey.get_strings({"label": "selectboxes"}, first=True)
+    type_selectboxes_id = type_selectboxes.id if type_selectboxes else -1
+    type_textarea = msurvey.get_strings({"label": "textarea"}, first=True)
+    type_textarea_id = type_textarea.id if type_textarea else -1
     show_name = current_user.is_at_least_naam_leerling
     for i, item in enumerate(db_list):
         survey = json.loads(item.survey)

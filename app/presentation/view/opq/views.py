@@ -38,66 +38,39 @@ def table_action(action, ids=None):
 
 
 def get_filters():
+    filters = []
     klassen = []
     scholen = mschool.get_school_info_for_current_user()
-    school_choices = [[k, s["label"]] for k, s in scholen.items()]
-    if len(scholen) == 1:
-        school_default = school_choices[0][0]
-        klassen = msurvey.get_klassen({"schoolkey": school_default})
-        if klassen:
-            klas_choices = [['all', 'Alle']] + [[s, s] for s in klassen]
-            klas_default = klas_choices[0][0]
-    else:
-        school_choices = [['all', 'Alle']] + school_choices
-        school_default = "all"
-    schooljaren = msurvey.get_schooljaren()
-    schooljaar_choices = [[s, s] for s in schooljaren]
-    schooljaar_default = schooljaar_choices[0][0]
-    periodes = msurvey.get_periodes()
-    periode_choices = [[s, s] for s in periodes]
-    periode_default = periode_choices[0][0]
-    targetgroups = msurvey.get_targetgroups()
-    targetgroup_choices = [[s, s] for s in targetgroups]
-    targetgroup_default = targetgroup_choices[0][0]
+    if scholen:
+        school_choices = [[k, s["label"]] for k, s in scholen.items()]
+        if len(scholen) == 1:
+            school_default = school_choices[0][0]
+            klassen = msurvey.get_klassen({"schoolkey": school_default})
+            if klassen:
+                klas_choices = [['all', 'Alle']] + [[s, s] for s in klassen]
+                klas_default = klas_choices[0][0]
+        else:
+            school_choices = [['all', 'Alle']] + school_choices
+            school_default = "all"
+        filters.append({'type': 'select', 'name': 'schoolkey', 'label': 'School', 'choices': school_choices, 'default': school_default,})
 
-    filters = [
-        {
-            'type': 'select',
-            'name': 'schoolkey',
-            'label': 'School',
-            'choices': school_choices,
-            'default': school_default,
-        },
-        {
-            'type': 'select',
-            'name': 'schooljaar',
-            'label': 'Schooljaar',
-            'choices': schooljaar_choices,
-            'default': schooljaar_default,
-        },
-        {
-            'type': 'select',
-            'name': 'period',
-            'label': 'Periode',
-            'choices': periode_choices,
-            'default': periode_default,
-        },
-        {
-            'type': 'select',
-            'name': 'targetgroup',
-            'label': 'Doelgroep',
-            'choices': targetgroup_choices,
-            'default': targetgroup_default,
-        },
-    ]
+    schooljaren = msurvey.get_schooljaren()
+    if schooljaren:
+        schooljaar_choices = [[s, s] for s in schooljaren]
+        schooljaar_default = schooljaar_choices[0][0]
+        filters.append({'type': 'select', 'name': 'schooljaar', 'label': 'Schooljaar', 'choices': schooljaar_choices, 'default': schooljaar_default,})
+    periodes = msurvey.get_periodes()
+    if periodes:
+        periode_choices = [[s, s] for s in periodes]
+        periode_default = periode_choices[0][0]
+        filters.append({'type': 'select', 'name': 'period', 'label': 'Periode', 'choices': periode_choices, 'default': periode_default, })
+    targetgroups = msurvey.get_targetgroups()
+    if targetgroups:
+        targetgroup_choices = [[s, s] for s in targetgroups]
+        targetgroup_default = targetgroup_choices[0][0]
+        filters.append({'type': 'select', 'name': 'targetgroup', 'label': 'Doelgroep', 'choices': targetgroup_choices, 'default': targetgroup_default,})
     if klassen:
-        filters.append({
-            'type': 'select',
-            'name': 'klas',
-            'label': 'Klas',
-            'choices': klas_choices,
-            'default': klas_default,
-        })
+        filters.append({'type': 'select', 'name': 'klas', 'label': 'Klas', 'choices': klas_choices, 'default': klas_default,})
     return filters
 
 

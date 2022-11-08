@@ -153,6 +153,7 @@ $(document).ready(function () {
         parse_filter_settings();
         $table.ajax.reload();
     });
+    parse_filter_settings();
 
     function parse_filter_settings() {
         filter_settings = [];

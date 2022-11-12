@@ -1,7 +1,6 @@
-import sys, json
+import sys
 from app import log, db
 from app.data import models as mmodels
-from sqlalchemy import text, func, desc
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.dialects.mysql import MEDIUMTEXT
 
@@ -25,16 +24,6 @@ class Survey(db.Model, SerializerMixin):
     timestamp = db.Column(db.DateTime)
 
 
-class StringCache(db.Model, SerializerMixin):
-    __tablename__ = 'string_cache'
-
-    date_format = '%d/%m/%Y'
-    datetime_format = '%d/%m/%Y %H:%M'
-
-    id = db.Column(db.Integer(), primary_key=True)
-    label = db.Column(db.String(2048), default='')
-
-
 def commit():
     try:
         db.session.commit()
@@ -51,21 +40,6 @@ def get_surveys(data={}, fields=[], order_by=None, first=False, count=False, act
     return mmodels.get_multiple(Survey, data=data, fields=fields, order_by=order_by, first=first, count=count, active=active)
 
 
-def add_string(data={}, commit=True):
-    return mmodels.add_single(StringCache, data, commit)
-
-
-def get_strings(data={}, fields=[], order_by=None, first=False, count=False, active=True):
-    return mmodels.get_multiple(StringCache, data=data, fields=fields, order_by=order_by, first=first, count=count, active=active)
-
-
-def add_default_string():
-    s = get_strings({"label": ''})
-    if not s:
-        add_string({"label": ""})
-
-add_default_string()
-
 ############ survey overview list #########
 def pre_sql_query_opq():
     return db.session.query(Survey)
@@ -73,6 +47,22 @@ def pre_sql_query_opq():
 
 def pre_sql_filter_opq(q, filter):
     for f in filter:
-        if hasattr(Survey, f["name"]) and f["value"] != "all":
-            q = q.filter(getattr(Survey, f["name"]) == f["value"])
+        if f["value"] != "all":
+            if "schoolkey" == f["name"]:
+                attribute = "andereschool" if "basisschool" in f["value"] else "schoolkey"
+                value = f["value"].split("+")[1]
+                q = q.filter(getattr(Survey, attribute) == value)
+            else:
+                if hasattr(Survey, f["name"]):
+                    q = q.filter(getattr(Survey, f["name"]) == f["value"])
     return q
+
+
+def get_filtered_surveys(filters):
+    try:
+        q = pre_sql_query_opq()
+        q = pre_sql_filter_opq(q, filters)
+        surveys = q.all()
+        return surveys
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')

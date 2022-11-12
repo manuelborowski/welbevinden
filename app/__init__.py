@@ -6,7 +6,6 @@ from flask_jsglue import JSGlue
 from werkzeug.routing import IntegerConverter as OrigIntegerConvertor
 import logging.handlers, os, sys
 from functools import wraps
-from flask_socketio import SocketIO
 from flask_apscheduler import APScheduler
 from flask_mail import Mail
 
@@ -38,11 +37,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.15: bugfixes when database is empty
 # V0.16: when no leerlingen are loaded, do not show list of leerlingen for second survey.  Add add_survey api
 # V0.17: apply default filter settings when a page is loaded
+# V0.18: made string_cache an object.  Extended question-types with a type that connects an open question with a previous muliple-choice question.  It is possible to export the overview-per-student
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.17', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.18', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
@@ -88,8 +88,6 @@ log.info(f"start {flask_app.config['SITE_NAME']}")
 jsglue = JSGlue(flask_app)
 db.app = flask_app  #  hack:-(
 db.init_app(flask_app)
-
-socketio = SocketIO(flask_app, async_mode=flask_app.config['SOCKETIO_ASYNC_MODE'], ping_timeout=10, ping_interval=5, cors_allowed_origins=flask_app.config['SOCKETIO_CORS_ALLOWED_ORIGIN'])
 
 
 def create_admin():

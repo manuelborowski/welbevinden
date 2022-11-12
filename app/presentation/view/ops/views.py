@@ -30,10 +30,14 @@ def table_ajax():
 @ops.route('/ops/table_action', methods=['GET', 'POST'])
 @ops.route('/ops/table_action/<string:action>', methods=['GET', 'POST'])
 @ops.route('/ops/table_action/<string:action>/<string:ids>', methods=['GET', 'POST'])
+@ops.route('/ops/table_action/<string:action>/<string:ids>/<string:opaque>', methods=['GET', 'POST'])
 @login_required
-def table_action(action, ids=None):
-    if ids:
-        ids = json.loads(ids)
+def table_action(action, ids=None, opaque=None):
+    if action == "export":
+        filters = json.loads(opaque)
+        ret = msurvey.export_survey(filters)
+        if ret:
+            return ret
     return redirect(url_for('ops.show'))
 
 
@@ -41,7 +45,7 @@ def get_filters():
     filters = []
     scholen = mschool.get_school_info_for_current_user()
     if scholen:
-        school_choices = [[k, s["label"]] for k, s in scholen.items()]
+        school_choices = [[f"{s['type']}+{k}", s["label"]] for k, s in scholen.items()]
         if len(scholen) == 1:
             school_default = school_choices[0][0]
         else:
@@ -96,6 +100,7 @@ class OpsConfig(DatatableConfig):
     enable_column_visible_selector = False
     enable_persistent_filter_settings = False
     default_order = [1, "asc"]
+    buttons = ["export"]
 
 
 ops_table_config = OpsConfig("ops", "Overzicht per leerling")

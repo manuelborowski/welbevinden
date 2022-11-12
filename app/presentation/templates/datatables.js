@@ -86,9 +86,6 @@ function button_pushed(action) {
                 location.href = Flask.url_for(table_config.table_action, {action: 'edit', ids: JSON.stringify([id])})
             }
             break
-        case 'add':
-            location.href = Flask.url_for(table_config.table_action, {action: 'add'})
-            break
         case 'view':
             if (is_exactly_one_checkbox_selected()) {
             }
@@ -99,14 +96,15 @@ function button_pushed(action) {
                 const chbxs = document.querySelectorAll('.chbx_all:checked')
                 chbxs.forEach(chbx => {
                     const id = chbx.value;
-
                     get_form('care.get_form', id);
-
-
-                    // const data = table.row(`#${id}`).data();
-                    // generate_pdf(pdf_template, data);
                 });
             }
+            break
+        case "export":
+            location.href = Flask.url_for(table_config.table_action, {action: action, ids:null, opaque: JSON.stringify(filter_settings)})
+            break
+        default:
+            location.href = Flask.url_for(table_config.table_action, {action: action})
             break
     }
 }
@@ -470,7 +468,7 @@ $(document).ready(function () {
         let s = '<table style="margin-left:50px;">';
         if (data) {
             for (i = 0; i < data.data.length; i++) {
-                s += '<tr style="background: aqua">'
+                s += '<tr style="background: rgba(157,215,15,0.34)">'
                 for (j = 0; j < data.width; j++) {
                     s = s + '<td>' + data.data[i][j] + '</td>';
                 }
@@ -507,7 +505,6 @@ $(document).ready(function () {
     //row_detail in header is clicked
     $("#row-detail-all").click(function () {
         const $tr = $(this).closest('tr');
-        console.log($tr);
         if ($tr.hasClass("details")) {
             $tr.removeClass("details");
             for (let i = 0; i < $table.rows().count(); i++) {

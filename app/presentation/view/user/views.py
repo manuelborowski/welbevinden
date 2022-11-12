@@ -7,7 +7,7 @@ from . import user
 from app.application import user as muser
 from app.presentation.layout.utils import flash_plus
 from app.presentation.view import datatables
-import json
+import json, sys
 from app.data.datatables import DatatableConfig
 import app.data.user
 import app.application.user
@@ -58,7 +58,7 @@ def item_add():
         data['post_data_endpoint'] = 'api.user_add'
         return render_template('user/s_user.html', data=data)
     except Exception as e:
-        log.error(f'Could not add user {e}')
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
         flash_plus(f'Kan gebruiker niet toevoegen: {e}')
     return redirect(url_for('user.show'))
 
@@ -79,7 +79,7 @@ def item_edit(ids=None):
         data.update({"buttons": [("save", "Bewaar", "default"), ("cancel", "Annuleer", "warning")]})
         return render_template('user/s_user.html', data=data)
     except Exception as e:
-        log.error(f'Could not edit user {e}')
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
         flash_plus('Kan gebruiker niet aanpassen', e)
     return redirect(url_for('user.show'))
 
@@ -99,7 +99,7 @@ def right_click():
                 if data['item'] == "edit":
                     return {"redirect": {"url": f"/user/table_action/edit", "ids": data['item_ids']}}
     except Exception as e:
-        log.error(f"Error in get_form: {e}")
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": False, "data": f"get_form: {e}"}
     return {"status": False, "data": "iets is fout gelopen"}
 

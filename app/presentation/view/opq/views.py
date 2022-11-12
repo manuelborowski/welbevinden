@@ -32,8 +32,6 @@ def table_ajax():
 @opq.route('/opq/table_action/<string:action>/<string:ids>', methods=['GET', 'POST'])
 @login_required
 def table_action(action, ids=None):
-    if ids:
-        ids = json.loads(ids)
     return redirect(url_for('opq.show'))
 
 
@@ -42,7 +40,7 @@ def get_filters():
     klassen = []
     scholen = mschool.get_school_info_for_current_user()
     if scholen:
-        school_choices = [[k, s["label"]] for k, s in scholen.items()]
+        school_choices = [[f"{s['type']}+{k}", s["label"]] for k, s in scholen.items()]
         if len(scholen) == 1:
             school_default = school_choices[0][0]
             klassen = msurvey.get_klassen({"schoolkey": school_default})

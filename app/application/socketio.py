@@ -1,6 +1,10 @@
+from app import flask_app
 from flask import request
 from flask_socketio import emit, join_room, leave_room, close_room
-from app import socketio
+from flask_socketio import SocketIO
+
+
+socketio = SocketIO(flask_app, async_mode=flask_app.config['SOCKETIO_ASYNC_MODE'], ping_timeout=10, ping_interval=5, cors_allowed_origins=flask_app.config['SOCKETIO_CORS_ALLOWED_ORIGIN'])
 
 socketio_cbs = {}
 

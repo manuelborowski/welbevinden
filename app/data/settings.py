@@ -170,3 +170,5 @@ def get_list(list_name):
         recepients = recepients.split('\n')
         out = [r.strip() for r in recepients if '#' not in r]
     return out
+
+

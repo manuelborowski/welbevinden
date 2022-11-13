@@ -49,10 +49,12 @@ def get_targetgroups():
 def get_klassen(data={}):
     try:
         surveys = msurvey.get_surveys(data=data)
-        klassen = sorted(list(set([s.klas for s in surveys])))
-        if klassen[0] == "" and len(klassen) <= 1:
-            return []
-        return klassen
+        if surveys:
+            klassen = sorted(list(set([s.klas for s in surveys])))
+            if klassen[0] == "" and len(klassen) <= 1:
+                return []
+            return klassen
+        return []
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
@@ -202,8 +204,8 @@ def save_survey(data):
         [period, targetgroup, schoolcode] = data["targetgroup-schoolcode"].split("+")
         school_info = mschool.get_school_info_for_schoolcode(schoolcode)
         #check if the window is still active
-        survey_start_string = school_info["venster-actief"][f"{targetgroup}-van"].split("+")[0]
-        survey_end_string = school_info["venster-actief"][f"{targetgroup}-tot"].split("+")[0]
+        survey_start_string = (":").join(school_info["venster-actief"][f"{targetgroup}-van"].split("+")[0].split(":")[:2])
+        survey_end_string = (":").join(school_info["venster-actief"][f"{targetgroup}-tot"].split("+")[0].split(":")[:2])
         survey_start = datetime.datetime.strptime(survey_start_string, "%Y-%m-%dT%H:%M:%S")
         survey_end = datetime.datetime.strptime(survey_end_string, "%Y-%m-%dT%H:%M:%S")
         if now < survey_start or now > survey_end:

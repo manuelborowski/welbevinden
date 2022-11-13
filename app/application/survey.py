@@ -198,8 +198,16 @@ def get_question_types_from_form_cb(component, opaque):
 
 def save_survey(data):
     try:
+        now = datetime.datetime.now()
         [period, targetgroup, schoolcode] = data["targetgroup-schoolcode"].split("+")
         school_info = mschool.get_school_info_for_schoolcode(schoolcode)
+        #check if the window is still active
+        survey_start_string = school_info["venster-actief"][f"{targetgroup}-van"].split("+")[0]
+        survey_end_string = school_info["venster-actief"][f"{targetgroup}-tot"].split("+")[0]
+        survey_start = datetime.datetime.strptime(survey_start_string, "%Y-%m-%dT%H:%M:%S")
+        survey_end = datetime.datetime.strptime(survey_end_string, "%Y-%m-%dT%H:%M:%S")
+        if now < survey_start or now > survey_end:
+            return {"status": False, "message": f"Onze excuses, maar de bevraging is geopend van {survey_start.strftime('%d/%m/%Y %H.%M')} tot {survey_end.strftime('%d/%m/%Y %H.%M')}"}
         container_leerlinggegevens = data["container-leerling-gegevens"]
         naam = voornaam = klas = ''
         basisschool = 'not-found'
@@ -231,7 +239,6 @@ def save_survey(data):
         survey = []
         previous_surveys = msurvey.get_surveys({"naam": naam, "voornaam": voornaam, "klas": klas, "schoolkey": school_info["key"], "targetgroup": targetgroup,
                                                "schooljaar": schooljaar}, order_by="-timestamp")
-        now = datetime.datetime.now()
         nbr_prvious_surveys = 0
         if previous_surveys: # check if a survey is sent in, too soon after a previous one.
             minimum_days = msettings.get_configuration_setting("survey-minimum-delta-days")
@@ -240,7 +247,7 @@ def save_survey(data):
                 if delta_date.days < minimum_days:
                     nbr_prvious_surveys += 1
             if nbr_prvious_surveys >= 2 or nbr_prvious_surveys >= 1 and targetgroup == "leerlingen":
-                return {"status": False, "message": f"U heeft al een enquête ingediend, deze enquête wordt genegeerd."}
+                return {"status": False, "message": f"Onze excuses, maar u heeft al een bevraging ingediend, deze bevraging wordt genegeerd."}
         for (key, antwoord)  in data["container-vragen"].items():
             [vraag_type_id, vraag_id] = [int(v) for v in key.split("+")[1:]]
             vraag_type = string_cache.get_label(vraag_type_id)

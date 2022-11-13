@@ -38,11 +38,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.16: when no leerlingen are loaded, do not show list of leerlingen for second survey.  Add add_survey api
 # V0.17: apply default filter settings when a page is loaded
 # V0.18: made string_cache an object.  Extended question-types with a type that connects an open question with a previous muliple-choice question.  It is possible to export the overview-per-student
+# V0.19: update header-image.  Added a survey-active-window
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.18', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.19', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

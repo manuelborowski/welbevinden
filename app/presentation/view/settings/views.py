@@ -84,6 +84,10 @@ def prepare_form(form):
                              {"key": "url-to-sept-leerlingen-survey", "name": "defaultValue", "value": f"{current_url}/survey/start/sept/leerlingen/{info['schoolcode']}"},
                              {"key": "url-to-nov-ouders-survey", "name": "defaultValue", "value": f"{current_url}/survey/start/nov/ouders/{info['schoolcode']}"},
                              {"key": "url-to-nov-leerlingen-survey", "name": "defaultValue", "value": f"{current_url}/survey/start/nov/leerlingen/{info['schoolcode']}"},
+                             {"key": "ouders-van", "name": "defaultValue", "value": info["venster-actief"]["ouders-van"]},
+                             {"key": "ouders-tot", "name": "defaultValue", "value": info["venster-actief"]["ouders-tot"]},
+                             {"key": "leerlingen-van", "name": "defaultValue", "value": info["venster-actief"]["leerlingen-van"]},
+                             {"key": "leerlingen-tot", "name": "defaultValue", "value": info["venster-actief"]["leerlingen-tot"]},
                          ]}
             if info["type"] == "secundaireschool":
                 school_info["properties"].append({"key": "klassen", "name": "defaultValue", "value": ", ".join(info["klassen"])})
@@ -161,204 +165,444 @@ formio_settings = \
                                                         "tableView": false,
                                                         "components": [
                                                             {
-                                                                "label": "Columns",
-                                                                "columns": [
+                                                                "title": "Link naar verschillende bevragingen",
+                                                                "theme": "info",
+                                                                "collapsible": true,
+                                                                "key": "linkNaarVerschillendeBevragingen",
+                                                                "type": "panel",
+                                                                "label": "Panel",
+                                                                "input": false,
+                                                                "tableView": false,
+                                                                "components": [
                                                                     {
-                                                                        "components": [
+                                                                        "label": "Columns",
+                                                                        "columns": [
                                                                             {
-                                                                                "label": "Link naar SEPTEMBER ouders enquête",
-                                                                                "labelPosition": "left-left",
-                                                                                "disabled": true,
-                                                                                "tableView": true,
-                                                                                "defaultValue": "test",
-                                                                                "persistent": false,
-                                                                                "key": "url-to-sept-ouders-survey",
-                                                                                "type": "textfield",
-                                                                                "labelWidth": 25,
-                                                                                "input": true
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "Link naar SEPTEMBER ouders enquête",
+                                                                                        "labelPosition": "left-left",
+                                                                                        "disabled": true,
+                                                                                        "tableView": true,
+                                                                                        "defaultValue": "test",
+                                                                                        "persistent": false,
+                                                                                        "key": "url-to-sept-ouders-survey",
+                                                                                        "type": "textfield",
+                                                                                        "labelWidth": 25,
+                                                                                        "input": true
+                                                                                    }
+                                                                                ],
+                                                                                "width": 8,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 8
+                                                                            },
+                                                                            {
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "Kopieer naar clipboard",
+                                                                                        "action": "event",
+                                                                                        "showValidations": false,
+                                                                                        "tableView": false,
+                                                                                        "key": "copy-sept-ouders-user-link",
+                                                                                        "type": "button",
+                                                                                        "event": "copy-link-to-clipboard",
+                                                                                        "input": true
+                                                                                    }
+                                                                                ],
+                                                                                "width": 2,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 2
                                                                             }
                                                                         ],
-                                                                        "width": 8,
-                                                                        "offset": 0,
-                                                                        "push": 0,
-                                                                        "pull": 0,
-                                                                        "size": "md",
-                                                                        "currentWidth": 8
+                                                                        "key": "columns",
+                                                                        "type": "columns",
+                                                                        "input": false,
+                                                                        "tableView": false
                                                                     },
                                                                     {
-                                                                        "components": [
+                                                                        "label": "Columns",
+                                                                        "columns": [
                                                                             {
-                                                                                "label": "Kopieer naar clipboard",
-                                                                                "action": "event",
-                                                                                "showValidations": false,
-                                                                                "tableView": false,
-                                                                                "key": "copy-sept-ouders-user-link",
-                                                                                "type": "button",
-                                                                                "event": "copy-link-to-clipboard",
-                                                                                "input": true
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "Link naar SEPTEMBER leerlingen enquête",
+                                                                                        "labelPosition": "left-left",
+                                                                                        "disabled": true,
+                                                                                        "tableView": true,
+                                                                                        "key": "url-to-sept-leerlingen-survey",
+                                                                                        "type": "textfield",
+                                                                                        "labelWidth": 25,
+                                                                                        "input": true
+                                                                                    }
+                                                                                ],
+                                                                                "width": 8,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 8
+                                                                            },
+                                                                            {
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "Kopieer naar clipboard",
+                                                                                        "action": "event",
+                                                                                        "showValidations": false,
+                                                                                        "tableView": false,
+                                                                                        "key": "copy-sept-leerlingen-user-link",
+                                                                                        "type": "button",
+                                                                                        "event": "copy-link-to-clipboard",
+                                                                                        "input": true
+                                                                                    }
+                                                                                ],
+                                                                                "width": 2,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 2
                                                                             }
                                                                         ],
-                                                                        "width": 2,
-                                                                        "offset": 0,
-                                                                        "push": 0,
-                                                                        "pull": 0,
-                                                                        "size": "md",
-                                                                        "currentWidth": 2
+                                                                        "key": "columns1",
+                                                                        "type": "columns",
+                                                                        "input": false,
+                                                                        "tableView": false
+                                                                    },
+                                                                    {
+                                                                        "label": "Columns",
+                                                                        "columns": [
+                                                                            {
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "Link naar NOVEMBER ouders enquête",
+                                                                                        "labelPosition": "left-left",
+                                                                                        "disabled": true,
+                                                                                        "tableView": true,
+                                                                                        "defaultValue": "test",
+                                                                                        "persistent": false,
+                                                                                        "key": "url-to-nov-ouders-survey",
+                                                                                        "type": "textfield",
+                                                                                        "labelWidth": 25,
+                                                                                        "input": true
+                                                                                    }
+                                                                                ],
+                                                                                "width": 8,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 8
+                                                                            },
+                                                                            {
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "Kopieer naar clipboard",
+                                                                                        "action": "event",
+                                                                                        "showValidations": false,
+                                                                                        "tableView": false,
+                                                                                        "key": "copy-nov-ouders-user-link",
+                                                                                        "type": "button",
+                                                                                        "event": "copy-link-to-clipboard",
+                                                                                        "input": true
+                                                                                    }
+                                                                                ],
+                                                                                "width": 2,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 2
+                                                                            }
+                                                                        ],
+                                                                        "key": "columns2",
+                                                                        "type": "columns",
+                                                                        "input": false,
+                                                                        "tableView": false
+                                                                    },
+                                                                    {
+                                                                        "label": "Columns",
+                                                                        "columns": [
+                                                                            {
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "Link naar NOVEMBER leerlingen enquête",
+                                                                                        "labelPosition": "left-left",
+                                                                                        "disabled": true,
+                                                                                        "tableView": true,
+                                                                                        "key": "url-to-nov-leerlingen-survey",
+                                                                                        "type": "textfield",
+                                                                                        "labelWidth": 25,
+                                                                                        "input": true
+                                                                                    }
+                                                                                ],
+                                                                                "width": 8,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 8
+                                                                            },
+                                                                            {
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "Kopieer naar clipboard",
+                                                                                        "action": "event",
+                                                                                        "showValidations": false,
+                                                                                        "tableView": false,
+                                                                                        "key": "copy-nov-leerlingen-user-link",
+                                                                                        "type": "button",
+                                                                                        "event": "copy-link-to-clipboard",
+                                                                                        "input": true
+                                                                                    }
+                                                                                ],
+                                                                                "width": 2,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 2
+                                                                            }
+                                                                        ],
+                                                                        "key": "columns3",
+                                                                        "type": "columns",
+                                                                        "input": false,
+                                                                        "tableView": false
                                                                     }
                                                                 ],
-                                                                "key": "columns",
-                                                                "type": "columns",
-                                                                "input": false,
-                                                                "tableView": false
+                                                                "collapsed": true
                                                             },
                                                             {
-                                                                "label": "Columns",
-                                                                "columns": [
+                                                                "title": "Wanneer is de bevraging actief",
+                                                                "theme": "info",
+                                                                "collapsible": true,
+                                                                "key": "wanneerIsDeBevragingActief",
+                                                                "type": "panel",
+                                                                "label": "Panel",
+                                                                "input": false,
+                                                                "tableView": false,
+                                                                "components": [
                                                                     {
-                                                                        "components": [
+                                                                        "label": "Columns",
+                                                                        "columns": [
                                                                             {
-                                                                                "label": "Link naar SEPTEMBER leerlingen enquête",
-                                                                                "labelPosition": "left-left",
-                                                                                "disabled": true,
-                                                                                "tableView": true,
-                                                                                "key": "url-to-sept-leerlingen-survey",
-                                                                                "type": "textfield",
-                                                                                "labelWidth": 25,
-                                                                                "input": true
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "Ouders bevraging, open van",
+                                                                                        "labelPosition": "left-left",
+                                                                                        "displayInTimezone": "utc",
+                                                                                        "allowInput": false,
+                                                                                        "format": "yyyy-MM-dd HH:mm",
+                                                                                        "tableView": false,
+                                                                                        "datePicker": {
+                                                                                            "disableWeekends": false,
+                                                                                            "disableWeekdays": false
+                                                                                        },
+                                                                                        "timePicker": {
+                                                                                            "showMeridian": false
+                                                                                        },
+                                                                                        "enableMinDateInput": false,
+                                                                                        "enableMaxDateInput": false,
+                                                                                        "key": "ouders-van",
+                                                                                        "type": "datetime",
+                                                                                        "input": true,
+                                                                                        "widget": {
+                                                                                            "type": "calendar",
+                                                                                            "displayInTimezone": "utc",
+                                                                                            "locale": "en",
+                                                                                            "useLocaleSettings": false,
+                                                                                            "allowInput": false,
+                                                                                            "mode": "single",
+                                                                                            "enableTime": true,
+                                                                                            "noCalendar": false,
+                                                                                            "format": "yyyy-MM-dd HH:mm",
+                                                                                            "hourIncrement": 1,
+                                                                                            "minuteIncrement": 1,
+                                                                                            "time_24hr": true,
+                                                                                            "minDate": null,
+                                                                                            "disableWeekends": false,
+                                                                                            "disableWeekdays": false,
+                                                                                            "maxDate": null
+                                                                                        },
+                                                                                        "labelWidth": 40
+                                                                                    }
+                                                                                ],
+                                                                                "width": 4,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 4
+                                                                            },
+                                                                            {
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "tot",
+                                                                                        "labelPosition": "left-left",
+                                                                                        "displayInTimezone": "utc",
+                                                                                        "allowInput": false,
+                                                                                        "format": "yyyy-MM-dd HH:mm",
+                                                                                        "tableView": false,
+                                                                                        "datePicker": {
+                                                                                            "disableWeekends": false,
+                                                                                            "disableWeekdays": false
+                                                                                        },
+                                                                                        "timePicker": {
+                                                                                            "showMeridian": false
+                                                                                        },
+                                                                                        "enableMinDateInput": false,
+                                                                                        "enableMaxDateInput": false,
+                                                                                        "key": "ouders-tot",
+                                                                                        "type": "datetime",
+                                                                                        "input": true,
+                                                                                        "widget": {
+                                                                                            "type": "calendar",
+                                                                                            "displayInTimezone": "utc",
+                                                                                            "locale": "en",
+                                                                                            "useLocaleSettings": false,
+                                                                                            "allowInput": false,
+                                                                                            "mode": "single",
+                                                                                            "enableTime": true,
+                                                                                            "noCalendar": false,
+                                                                                            "format": "yyyy-MM-dd HH:mm",
+                                                                                            "hourIncrement": 1,
+                                                                                            "minuteIncrement": 1,
+                                                                                            "time_24hr": true,
+                                                                                            "minDate": null,
+                                                                                            "disableWeekends": false,
+                                                                                            "disableWeekdays": false,
+                                                                                            "maxDate": null
+                                                                                        },
+                                                                                        "labelWidth": 10
+                                                                                    }
+                                                                                ],
+                                                                                "width": 3,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 3
                                                                             }
                                                                         ],
-                                                                        "width": 8,
-                                                                        "offset": 0,
-                                                                        "push": 0,
-                                                                        "pull": 0,
-                                                                        "size": "md",
-                                                                        "currentWidth": 8
+                                                                        "key": "columns",
+                                                                        "type": "columns",
+                                                                        "input": false,
+                                                                        "tableView": false
                                                                     },
                                                                     {
-                                                                        "components": [
+                                                                        "label": "Columns",
+                                                                        "columns": [
                                                                             {
-                                                                                "label": "Kopieer naar clipboard",
-                                                                                "action": "event",
-                                                                                "showValidations": false,
-                                                                                "tableView": false,
-                                                                                "key": "copy-sept-leerlingen-user-link",
-                                                                                "type": "button",
-                                                                                "event": "copy-link-to-clipboard",
-                                                                                "input": true
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "Leerlingen bevraging, open van",
+                                                                                        "labelPosition": "left-left",
+                                                                                        "displayInTimezone": "utc",
+                                                                                        "allowInput": false,
+                                                                                        "format": "yyyy-MM-dd HH:mm",
+                                                                                        "tableView": false,
+                                                                                        "datePicker": {
+                                                                                            "disableWeekends": false,
+                                                                                            "disableWeekdays": false
+                                                                                        },
+                                                                                        "timePicker": {
+                                                                                            "showMeridian": false
+                                                                                        },
+                                                                                        "enableMinDateInput": false,
+                                                                                        "enableMaxDateInput": false,
+                                                                                        "key": "leerlingen-van",
+                                                                                        "type": "datetime",
+                                                                                        "input": true,
+                                                                                        "widget": {
+                                                                                            "type": "calendar",
+                                                                                            "displayInTimezone": "utc",
+                                                                                            "locale": "en",
+                                                                                            "useLocaleSettings": false,
+                                                                                            "allowInput": false,
+                                                                                            "mode": "single",
+                                                                                            "enableTime": true,
+                                                                                            "noCalendar": false,
+                                                                                            "format": "yyyy-MM-dd HH:mm",
+                                                                                            "hourIncrement": 1,
+                                                                                            "minuteIncrement": 1,
+                                                                                            "time_24hr": true,
+                                                                                            "minDate": null,
+                                                                                            "disableWeekends": false,
+                                                                                            "disableWeekdays": false,
+                                                                                            "maxDate": null
+                                                                                        },
+                                                                                        "labelWidth": 40
+                                                                                    }
+                                                                                ],
+                                                                                "width": 4,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 4
+                                                                            },
+                                                                            {
+                                                                                "components": [
+                                                                                    {
+                                                                                        "label": "tot",
+                                                                                        "labelPosition": "left-left",
+                                                                                        "displayInTimezone": "utc",
+                                                                                        "allowInput": false,
+                                                                                        "format": "yyyy-MM-dd HH:mm",
+                                                                                        "tableView": false,
+                                                                                        "datePicker": {
+                                                                                            "disableWeekends": false,
+                                                                                            "disableWeekdays": false
+                                                                                        },
+                                                                                        "timePicker": {
+                                                                                            "showMeridian": false
+                                                                                        },
+                                                                                        "enableMinDateInput": false,
+                                                                                        "enableMaxDateInput": false,
+                                                                                        "key": "leerlingen-tot",
+                                                                                        "type": "datetime",
+                                                                                        "input": true,
+                                                                                        "widget": {
+                                                                                            "type": "calendar",
+                                                                                            "displayInTimezone": "utc",
+                                                                                            "locale": "en",
+                                                                                            "useLocaleSettings": false,
+                                                                                            "allowInput": false,
+                                                                                            "mode": "single",
+                                                                                            "enableTime": true,
+                                                                                            "noCalendar": false,
+                                                                                            "format": "yyyy-MM-dd HH:mm",
+                                                                                            "hourIncrement": 1,
+                                                                                            "minuteIncrement": 1,
+                                                                                            "time_24hr": true,
+                                                                                            "minDate": null,
+                                                                                            "disableWeekends": false,
+                                                                                            "disableWeekdays": false,
+                                                                                            "maxDate": null
+                                                                                        },
+                                                                                        "labelWidth": 10
+                                                                                    }
+                                                                                ],
+                                                                                "width": 3,
+                                                                                "offset": 0,
+                                                                                "push": 0,
+                                                                                "pull": 0,
+                                                                                "size": "md",
+                                                                                "currentWidth": 3
                                                                             }
                                                                         ],
-                                                                        "width": 2,
-                                                                        "offset": 0,
-                                                                        "push": 0,
-                                                                        "pull": 0,
-                                                                        "size": "md",
-                                                                        "currentWidth": 2
+                                                                        "key": "columns1",
+                                                                        "type": "columns",
+                                                                        "input": false,
+                                                                        "tableView": false
                                                                     }
                                                                 ],
-                                                                "key": "columns1",
-                                                                "type": "columns",
-                                                                "input": false,
-                                                                "tableView": false
-                                                            },
-                                                            {
-                                                                "label": "Columns",
-                                                                "columns": [
-                                                                    {
-                                                                        "components": [
-                                                                            {
-                                                                                "label": "Link naar NOVEMBER ouders enquête",
-                                                                                "labelPosition": "left-left",
-                                                                                "disabled": true,
-                                                                                "tableView": true,
-                                                                                "defaultValue": "test",
-                                                                                "persistent": false,
-                                                                                "key": "url-to-nov-ouders-survey",
-                                                                                "type": "textfield",
-                                                                                "labelWidth": 25,
-                                                                                "input": true
-                                                                            }
-                                                                        ],
-                                                                        "width": 8,
-                                                                        "offset": 0,
-                                                                        "push": 0,
-                                                                        "pull": 0,
-                                                                        "size": "md",
-                                                                        "currentWidth": 8
-                                                                    },
-                                                                    {
-                                                                        "components": [
-                                                                            {
-                                                                                "label": "Kopieer naar clipboard",
-                                                                                "action": "event",
-                                                                                "showValidations": false,
-                                                                                "tableView": false,
-                                                                                "key": "copy-nov-ouders-user-link",
-                                                                                "type": "button",
-                                                                                "event": "copy-link-to-clipboard",
-                                                                                "input": true
-                                                                            }
-                                                                        ],
-                                                                        "width": 2,
-                                                                        "offset": 0,
-                                                                        "push": 0,
-                                                                        "pull": 0,
-                                                                        "size": "md",
-                                                                        "currentWidth": 2
-                                                                    }
-                                                                ],
-                                                                "key": "columns2",
-                                                                "type": "columns",
-                                                                "input": false,
-                                                                "tableView": false
-                                                            },
-                                                            {
-                                                                "label": "Columns",
-                                                                "columns": [
-                                                                    {
-                                                                        "components": [
-                                                                            {
-                                                                                "label": "Link naar NOVEMBER leerlingen enquête",
-                                                                                "labelPosition": "left-left",
-                                                                                "disabled": true,
-                                                                                "tableView": true,
-                                                                                "key": "url-to-nov-leerlingen-survey",
-                                                                                "type": "textfield",
-                                                                                "labelWidth": 25,
-                                                                                "input": true
-                                                                            }
-                                                                        ],
-                                                                        "width": 8,
-                                                                        "offset": 0,
-                                                                        "push": 0,
-                                                                        "pull": 0,
-                                                                        "size": "md",
-                                                                        "currentWidth": 8
-                                                                    },
-                                                                    {
-                                                                        "components": [
-                                                                            {
-                                                                                "label": "Kopieer naar clipboard",
-                                                                                "action": "event",
-                                                                                "showValidations": false,
-                                                                                "tableView": false,
-                                                                                "key": "copy-nov-leerlingen-user-link",
-                                                                                "type": "button",
-                                                                                "event": "copy-link-to-clipboard",
-                                                                                "input": true
-                                                                            }
-                                                                        ],
-                                                                        "width": 2,
-                                                                        "offset": 0,
-                                                                        "push": 0,
-                                                                        "pull": 0,
-                                                                        "size": "md",
-                                                                        "currentWidth": 2
-                                                                    }
-                                                                ],
-                                                                "key": "columns3",
-                                                                "type": "columns",
-                                                                "input": false,
-                                                                "tableView": false
+                                                                "collapsed": true
                                                             },
                                                             {
                                                                 "label": "Container secundaire school",
@@ -378,7 +622,7 @@ formio_settings = \
                                                                     {
                                                                         "title": "Leerling gegevens",
                                                                         "theme": "info",
-                                                                        "collapsible": false,
+                                                                        "collapsible": true,
                                                                         "key": "leerlinggegevens",
                                                                         "type": "panel",
                                                                         "label": "Panel",
@@ -531,7 +775,8 @@ formio_settings = \
                                                                                     }
                                                                                 ]
                                                                             }
-                                                                        ]
+                                                                        ],
+                                                                        "collapsed": true
                                                                     }
                                                                 ]
                                                             }

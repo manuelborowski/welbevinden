@@ -206,8 +206,8 @@ def save_survey(data):
         #check if the window is still active
         survey_start_string = (":").join(school_info["venster-actief"][f"{targetgroup}-van"].split("+")[0].split(":")[:2])
         survey_end_string = (":").join(school_info["venster-actief"][f"{targetgroup}-tot"].split("+")[0].split(":")[:2])
-        survey_start = datetime.datetime.strptime(survey_start_string, "%Y-%m-%dT%H:%M:%S")
-        survey_end = datetime.datetime.strptime(survey_end_string, "%Y-%m-%dT%H:%M:%S")
+        survey_start = datetime.datetime.strptime(survey_start_string, "%Y-%m-%dT%H:%M")
+        survey_end = datetime.datetime.strptime(survey_end_string, "%Y-%m-%dT%H:%M")
         if now < survey_start or now > survey_end:
             return {"status": False, "message": f"Onze excuses, maar de bevraging is geopend van {survey_start.strftime('%d/%m/%Y %H.%M')} tot {survey_end.strftime('%d/%m/%Y %H.%M')}"}
         container_leerlinggegevens = data["container-leerling-gegevens"]

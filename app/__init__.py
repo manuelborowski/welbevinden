@@ -40,11 +40,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.18: made string_cache an object.  Extended question-types with a type that connects an open question with a previous muliple-choice question.  It is possible to export the overview-per-student
 # V0.19: update header-image.  Added a survey-active-window
 # V0.20: small bugfix
+# V0.21: small bugfix
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.20', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.21', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

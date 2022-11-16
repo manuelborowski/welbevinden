@@ -42,18 +42,19 @@ flask_app.config.from_pyfile('config.py')
 # V0.20: small bugfix
 # V0.21: small bugfix
 # V0.22: small bugfix
+# V0.23: introduced question-cache to avoid altering the formio-keys
 
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.22', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.23', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging
 log = logging.getLogger(flask_app.config['LOG_HANDLE'])
 
 
-db = SQLAlchemy()
+db = SQLAlchemy( session_options={'expire_on_commit': False})
 login_manager = LoginManager()
 
 

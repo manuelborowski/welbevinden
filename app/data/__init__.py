@@ -14,12 +14,12 @@ def load_user(user_id):
     return user_load_user(user_id)
 
 
-__all__ = ['models', 'settings', 'user', 'utils', 'student', "string_cache"]
+__all__ = ['models', 'settings', 'user', 'utils', 'student', "question"]
 
 
 import app.data.models
 import app.data.settings
-import app.data.string_cache
+import app.data.question
 import app.data.student
 import app.data.utils
 import app.data.survey

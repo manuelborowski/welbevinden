@@ -43,11 +43,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.21: small bugfix
 # V0.22: small bugfix
 # V0.23: introduced question-cache to avoid altering the formio-keys
-
+# V0.24: re-introduced string_cache.  Solved issue with QuestionCache where it was not possible to update a question in the database.
+# Added a setting to add test-surveys.  Bugfixed export: handle a varying number of questions.  To be futuresave, the question and sequence is stored with the answers
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.23', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.24', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

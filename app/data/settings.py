@@ -106,6 +106,8 @@ default_configuration_settings = {
     'api-keys': ([], Settings.SETTING_TYPE.E_JSON),
 
     'school-profile': ({}, Settings.SETTING_TYPE.E_JSON),
+
+    'test-schooljaar': ("", Settings.SETTING_TYPE.E_STRING),
 }
 
 

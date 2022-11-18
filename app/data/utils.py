@@ -1,4 +1,5 @@
 import datetime, sys
+from app.data.settings import get_configuration_setting
 
 from sqlalchemy import desc
 
@@ -32,6 +33,9 @@ def make_list(item_list, seperator=', '):
 
 def get_current_schoolyear():
 	try:
+		test_schooljaar = get_configuration_setting("test-schooljaar")
+		if test_schooljaar != "":
+			return f"TEST-{test_schooljaar}"
 		now = datetime.datetime.now()
 		if now.month <= 8:
 			current_schoolyear = f'{now.year - 1}-{now.year}'
@@ -41,3 +45,8 @@ def get_current_schoolyear():
 	except Exception as e:
 		log.error(f'{sys._getframe().f_code.co_name}: {e}')
 	return False
+
+
+def get_test_bevragingen():
+	test_schooljaar = get_configuration_setting("test-schooljaar")
+	return test_schooljaar != ""

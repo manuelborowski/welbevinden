@@ -3,7 +3,8 @@ from flask import make_response
 from flask_login import current_user
 from app.data import school as mschool
 from app.application.util import deepcopy
-from app.data.utils import get_current_schoolyear
+from app.data.utils import get_current_schoolyear, get_test_bevragingen
+from app.data.string_cache import string_cache
 from app.data.question import question_cache
 from app.data import student as mstudent, settings as msettings, survey as msurvey
 from app.application import formio as mformio
@@ -62,23 +63,34 @@ def get_klassen(data={}):
 def export_survey(filters):
     try:
         surveys = msurvey.get_filtered_surveys(filters)
-        _, _, data_to_export = format_data_ops(surveys)
-        if len(data_to_export) > 0:
+        if len(surveys) > 0:
             header = ["leerling", "klas", "school", "basisschool"]
-            vragen = [v[0] for v in data_to_export[0]["row_detail"]["data"][1::]]
-            header += vragen
             io_string = StringIO()
-            csv_file = csv.DictWriter(io_string, fieldnames=header)
             body = []
-            for student in data_to_export:
+            show_name = current_user.is_at_least_naam_leerling
+            school_cache = msettings.get_configuration_setting('school-profile')
+            header_cache = {}
+            for i, survey in enumerate(surveys):
+                temp = []
                 item = {
-                    "leerling": student["leerling"],
-                    "klas": student["klas"],
-                    "school": student["school"],
-                    "basisschool": student["basisschool"],
+                    "leerling": f"{survey.naam} {survey.voornaam}" if show_name else f"Leerling {i + 1}",
+                    "klas": survey.klas if show_name else "",
+                    "school": school_cache[survey.schoolkey]["label"],
+                    "basisschool": survey.andereschool
                 }
-                item.update({i[0]: i[1] for i in student["row_detail"]["data"][1::]})
+                survey_data = json.loads(survey.survey)
+                for [answer, sequence_nbr, label_id, vraag_type] in survey_data:
+                    label = string_cache.get_label(label_id)
+                    if type(answer) is dict:
+                        answer = (", ").join(answer)
+                    temp.append([sequence_nbr, label, answer])
+                    if sequence_nbr not in header_cache:
+                        header_cache[sequence_nbr] = label
+                item.update({i[1]: i[2] for i in sorted(temp, key=lambda x: x[0])})
                 body.append(item)
+
+            header += [h[1] for h in sorted(header_cache.items())]
+            csv_file = csv.DictWriter(io_string, fieldnames=header)
             csv_file.writeheader()
             csv_file.writerows(body)
             output = make_response(io_string.getvalue())
@@ -148,7 +160,7 @@ def prepare_survey(period, targetgroup, schoolcode):
         extra_basisscholen = {s.andereschool: {"label": s.andereschool} for s in surveys if s.schoolkey not in basisscholen and s.andereschool not in basisscholen}
         basisscholen.update(extra_basisscholen)
         if basisscholen:
-            select_basisschool_data = {"values": [{"value": k, "label": v["label"]} for (k, v) in sorted(basisscholen.items(), key=lambda i: i[0])] + [{"label": "Niet gevonden", "value": "not-found"}]}
+            select_basisschool_data = {"values": [{"value": v["label"], "label": v["label"]} for (k, v) in sorted(basisscholen.items(), key=lambda i: i[0])] + [{"label": "andere basisschool", "value": "not-found"}]}
         else:
             select_basisschool_data = None
 
@@ -166,7 +178,7 @@ def prepare_survey(period, targetgroup, schoolcode):
             },
             "targetgroup": targetgroup,
             "period": period,
-            "sequence_nbr": 0
+            "sequence_nbr": 0,
         }
 
         if select_leerling_data:
@@ -178,7 +190,6 @@ def prepare_survey(period, targetgroup, schoolcode):
             template_update["update-properties"]["select-klas"] = [{"name": "data", "value": select_klas_data}]
         if select_basisschool_data:
             template_update["update-properties"]["select-basisschool"] = [{"name": "data", "value": select_basisschool_data}]
-
 
         mformio.iterate_components_cb(survey_template, update_form_cb, template_update)
         return {'template': survey_template, "default": default}
@@ -202,12 +213,13 @@ def save_survey(data):
         now = datetime.datetime.now()
         [period, targetgroup, schoolcode] = data["targetgroup-schoolcode"].split("+")
         school_info = mschool.get_school_info_for_schoolcode(schoolcode)
+        is_test_survey = get_test_bevragingen()
         #check if the window is still active
         survey_start_string = (":").join(school_info["venster-actief"][f"{targetgroup}-van"].split("+")[0].split(":")[:2])
         survey_end_string = (":").join(school_info["venster-actief"][f"{targetgroup}-tot"].split("+")[0].split(":")[:2])
         survey_start = datetime.datetime.strptime(survey_start_string, "%Y-%m-%dT%H:%M")
         survey_end = datetime.datetime.strptime(survey_end_string, "%Y-%m-%dT%H:%M")
-        if now < survey_start or now > survey_end:
+        if (now < survey_start or now > survey_end) and not is_test_survey:
             return {"status": False, "message": f"Onze excuses, maar de bevraging is geopend van {survey_start.strftime('%d/%m/%Y %H.%M')} tot {survey_end.strftime('%d/%m/%Y %H.%M')}"}
         container_leerlinggegevens = data["container-leerling-gegevens"]
         naam = voornaam = klas = ''
@@ -238,32 +250,32 @@ def save_survey(data):
 
         schooljaar = get_current_schoolyear()
         survey = []
-        previous_surveys = msurvey.get_surveys({"naam": naam, "voornaam": voornaam, "klas": klas, "schoolkey": school_info["key"], "targetgroup": targetgroup,
-                                               "schooljaar": schooljaar}, order_by="-timestamp")
-        nbr_prvious_surveys = 0
-        if previous_surveys: # check if a survey is sent in, too soon after a previous one.
-            minimum_days = msettings.get_configuration_setting("survey-minimum-delta-days")
-            for previous_survey in previous_surveys:
-                delta_date = now - previous_survey.timestamp
-                if delta_date.days < minimum_days:
-                    nbr_prvious_surveys += 1
-            if nbr_prvious_surveys >= 2 or nbr_prvious_surveys >= 1 and targetgroup == "leerlingen":
-                return {"status": False, "message": f"Onze excuses, maar u heeft al een bevraging ingediend, deze bevraging wordt genegeerd."}
+        if not is_test_survey:
+            previous_surveys = msurvey.get_surveys({"naam": naam, "voornaam": voornaam, "klas": klas, "schoolkey": school_info["key"], "targetgroup": targetgroup,
+                                                   "schooljaar": schooljaar}, order_by="-timestamp")
+            nbr_prvious_surveys = 0
+            if previous_surveys and naam != "" and voornaam != "": # check if a survey is sent in, too soon after a previous one.  Ignore if the survey is anonymous
+                minimum_days = msettings.get_configuration_setting("survey-minimum-delta-days")
+                for previous_survey in previous_surveys:
+                    delta_date = now - previous_survey.timestamp
+                    if delta_date.days < minimum_days:
+                        nbr_prvious_surveys += 1
+                if nbr_prvious_surveys >= 2 or nbr_prvious_surveys >= 1 and targetgroup == "leerlingen":
+                    return {"status": False, "message": f"Onze excuses, maar u heeft al een bevraging ingediend, deze bevraging wordt genegeerd."}
         for vraag, antwoord  in data["container-vragen"].items():
             question_obj = question_cache.get_by_key(vraag, period, targetgroup)
-
             vraag_type = question_obj.type
-            question_id = question_obj.id
+            label_id = string_cache.get_id(question_obj.label)
             if vraag_type == "radio":
-                survey.append((question_id, antwoord))
+                survey.append((antwoord, question_obj.seq, label_id, vraag_type))
             elif vraag_type == "selectboxes":
                 selected_true = [k for (k, v) in antwoord.items() if v]
-                survey.append((question_id, selected_true))
+                survey.append((selected_true, question_obj.seq, label_id, vraag_type))
             elif vraag_type == "textarea" or vraag_type == "textarea-hoort-bij-vorige":
-                survey.append((question_id, antwoord))
+                survey.append((antwoord, question_obj.seq, label_id, vraag_type))
         ret = msurvey.add_survey({"naam": naam, "voornaam": voornaam, "klas": klas, "targetgroup": targetgroup, "schoolkey": school_info["key"], "andereschool": basisschool,
                                   "schooljaar": schooljaar, "survey": json.dumps(survey), "timestamp": now, "period": period})
-        data = {"targetgroup": targetgroup, "status": True, "message": ""}
+        data = {"targetgroup": targetgroup, "period": period, "status": True, "message": ""}
         if ret == None:
             data["status"] = False
             data["message"] = "Er is een fout opgetreden en de enquête is niet bewaard.<br>Gelieve contact op te nemen met uw school"
@@ -311,44 +323,41 @@ def format_data_opq(db_list, total_count, filtered_count):
         remember_type_radio_answer = -1
         for item in db_list:
             survey = json.loads(item.survey)
-            for [question_id, answer] in survey:
-                question_obj = question_cache.get_by_id(question_id)
-                question_type = question_obj.type
-                label = question_obj.label
-                question_nbr = question_obj.seq
-                if question_nbr in collect_data:
-                    if question_type == "radio":
-                        if answer in collect_data[question_nbr][2]:
-                            collect_data[question_nbr][2][answer] += 1
+            for [answer, sequence_nbr, label_id, vraag_type] in survey:
+                label = string_cache.get_label(label_id)
+                if sequence_nbr in collect_data:
+                    if vraag_type == "radio":
+                        if answer in collect_data[sequence_nbr][2]:
+                            collect_data[sequence_nbr][2][answer] += 1
                         else:
-                            collect_data[question_nbr][2][answer] = 1
-                        collect_data[question_nbr][3] += 1
+                            collect_data[sequence_nbr][2][answer] = 1
+                        collect_data[sequence_nbr][3] += 1
                         remember_type_radio_answer = answer
-                    elif question_type == "selectboxes":
+                    elif vraag_type == "selectboxes":
                         for a in answer:
-                            if a in collect_data[question_nbr][2]:
-                                collect_data[question_nbr][2][a] += 1
+                            if a in collect_data[sequence_nbr][2]:
+                                collect_data[sequence_nbr][2][a] += 1
                             else:
-                                collect_data[question_nbr][2][a] = 1
-                        collect_data[question_nbr][3] += len(answer)
-                    elif question_type == "textarea":
-                        collect_data[question_nbr][2].append(answer)
-                        collect_data[question_nbr][3] += 1
-                    elif question_type == "textarea-hoort-bij-vorige":
-                        collect_data[question_nbr][2].append([remember_type_radio_answer, answer])
-                        collect_data[question_nbr][3] += 1
+                                collect_data[sequence_nbr][2][a] = 1
+                        collect_data[sequence_nbr][3] += len(answer)
+                    elif vraag_type == "textarea":
+                        collect_data[sequence_nbr][2].append(answer)
+                        collect_data[sequence_nbr][3] += 1
+                    elif vraag_type == "textarea-hoort-bij-vorige":
+                        collect_data[sequence_nbr][2].append([remember_type_radio_answer, answer])
+                        collect_data[sequence_nbr][3] += 1
                 else:
-                    if question_type == "radio":
-                        collect_data[question_nbr] = [label, question_type, {answer: 1}, 1]
+                    if vraag_type == "radio":
+                        collect_data[sequence_nbr] = [label, vraag_type, {answer: 1}, 1]
                         remember_type_radio_answer = answer
-                    elif question_type == "selectboxes":
-                        collect_data[question_nbr] = [label, question_type, {a: 1 for a in answer}, len(answer)]
-                    elif question_type == "textarea":
-                        collect_data[question_nbr] = [label, question_type, [answer], 1]
-                    elif question_type == "textarea-hoort-bij-vorige":
-                        collect_data[question_nbr] = [label, question_type, [[remember_type_radio_answer, answer]], 1]
+                    elif vraag_type == "selectboxes":
+                        collect_data[sequence_nbr] = [label, vraag_type, {a: 1 for a in answer}, len(answer)]
+                    elif vraag_type == "textarea":
+                        collect_data[sequence_nbr] = [label, vraag_type, [answer], 1]
+                    elif vraag_type == "textarea-hoort-bij-vorige":
+                        collect_data[sequence_nbr] = [label, vraag_type, [[remember_type_radio_answer, answer]], 1]
 
-        for question_nbr, info in dict(sorted(collect_data.items())).items():
+        for sequence_nbr, info in dict(sorted(collect_data.items())).items():
             details = {"width": 2, "data": [[f"Totaal: {info[3]} antwoorden", ""]]}
             if info[1] == "radio" or info[1] == "selectboxes":
                 for [item, nbr] in info[2].items():
@@ -361,10 +370,10 @@ def format_data_opq(db_list, total_count, filtered_count):
                 for [radio_answer, answer] in sorted_list:
                     details["data"].append([f"({radio_answer}) {answer}", ""])
             out.append({
-                "nummer": question_nbr,
+                "nummer": sequence_nbr,
                 "vraag": info[0],
                 "row_detail": details,
-                'DT_RowId': question_nbr
+                'DT_RowId': sequence_nbr
             })
         return len(out), len(out), out
     except Exception as e:
@@ -381,24 +390,17 @@ def format_data_ops(db_list, total_count=None, filtered_count=None):
             survey = json.loads(item.survey)
             details = {"width": 2, "data": [["Vraag", "Antwoord"]]}
             temp = []
-            for [question_id, answer] in survey:
-                question_obj = question_cache.get_by_id(question_id)
-                question_type = question_obj.type
-                label = question_obj.label
-                question_nbr = question_obj.seq
-                if question_type == "selectboxes":
-                    answer_text = (", ").join([a for a in answer])
-                elif question_type == "radio":
-                    answer_text = answer
-                else:
-                    answer_text = answer
-                temp.append([question_nbr, label, answer_text])
+            for [answer, sequence_nbr, label_id, vraag_type] in survey:
+                label = string_cache.get_label(label_id)
+                if type(answer) is dict:
+                    answer = (", ").join(answer)
+                temp.append([sequence_nbr, label, answer])
             details["data"] = [[d[1], d[2]] for d in sorted(temp, key=lambda x: x[0])]
             out.append({
                 "leerling": f"{item.naam} {item.voornaam}" if show_name else f"Leerling {i+1}",
                 "klas": item.klas if show_name else "",
                 "school": school_cache[item.schoolkey]["label"],
-                "basisschool": school_cache[item.andereschool]["label"],
+                "basisschool": item.andereschool,
                 "row_detail": details,
                 'DT_RowId': item.id
             })

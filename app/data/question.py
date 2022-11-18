@@ -33,11 +33,23 @@ def get_questions(data={}, fields=[], order_by=None, first=False, count=False, a
     return mmodels.get_multiple(Question, data=data, fields=fields, order_by=order_by, first=first, count=count, active=active)
 
 
+def update_question(obj=None, id=None, data={}):
+    if obj is not None:
+        return mmodels.update_single(Question, obj=obj, data=data)
+    elif id is not None:
+        q = get_questions({"id": id}, first=True)
+        return mmodels.update_single(Question, obj=q, data=data)
+    return None
+
+
+
+
 class QuestionCache:
     def __init__(self):
-        self.__add_cache = {q.key + q.label + q.type: q for q in get_questions()}
-        self.__key_cache = {q.key: q for q in get_questions()}
-        self.__id_cache = {q.id: q for q in get_questions()}
+        __questions = get_questions()
+        self.__add_cache = {q.key + q.label + q.type +str(q.seq): q for q in __questions}
+        self.__key_cache = {q.key: q for q in __questions}
+        self.__id_cache = {q.id: q for q in __questions}
 
 
     def add(self, question, period, targetgroep, label, question_type, seq):
@@ -47,11 +59,7 @@ class QuestionCache:
 
             if question + period + targetgroep in self.__key_cache:  # key already present, but seq, label or type has changed.  Replace
                 oq = self.__key_cache[question + period + targetgroep]
-                del(self.__add_cache[oq.key + oq.label + oq.type])
-                oq.seq = seq
-                oq.label = label
-                oq.type = question_type
-                commit()
+                update_question(id=oq.id, data={"label": label, "type": question_type, "seq": seq})
                 self.__add_cache[oq.key + label + question_type + str(seq)] = oq
                 return oq
 

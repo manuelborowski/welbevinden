@@ -1008,6 +1008,14 @@ formio_settings = \
                                                 "key": "survey-minimum-delta-days",
                                                 "type": "number",
                                                 "input": true
+                                            },
+                                            {
+                                                "label": "TEST: schooljaar",
+                                                "tooltip": "bv. 2021-2022\nLaat leeg voor normaal gebruik.\nBevragingen worden bewaard met dit schooljaar",
+                                                "tableView": true,
+                                                "key": "test-schooljaar",
+                                                "type": "textfield",
+                                                "input": true
                                             }
                                         ],
                                         "collapsed": false

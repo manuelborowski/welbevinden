@@ -1010,6 +1010,19 @@ formio_settings = \
                                                 "input": true
                                             },
                                             {
+                                                "label": "Max aantal login-pogingen",
+                                                "labelPosition": "left-left",
+                                                "mask": false,
+                                                "tableView": false,
+                                                "delimiter": false,
+                                                "requireDecimal": false,
+                                                "inputFormat": "plain",
+                                                "truncateMultipleSpaces": false,
+                                                "key": "user-login-max-tries",
+                                                "type": "number",
+                                                "input": true
+                                            },
+                                            {
                                                 "label": "TEST: schooljaar",
                                                 "tooltip": "bv. 2021-2022\nLaat leeg voor normaal gebruik.\nBevragingen worden bewaard met dit schooljaar",
                                                 "tableView": true,

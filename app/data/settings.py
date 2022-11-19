@@ -92,6 +92,7 @@ def set_setting(name, value, id=-1):
 default_configuration_settings = {
     'user-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),
     'user-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
+    'user-login-max-tries': (5, Settings.SETTING_TYPE.E_INT),
 
     'survey-sept-ouders-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),
     'survey-sept-leerlingen-formio-template': ({}, Settings.SETTING_TYPE.E_JSON),

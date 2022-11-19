@@ -15,18 +15,29 @@ def login():
     form = LoginForm(request.form)
     if form.validate() and request.method == 'POST':
         user = muser.get_first_user ({'username': func.binary(form.username.data)})
-        if user is not None and user.verify_password(form.password.data):
-            login_user(user)
-            log.info(u'user {} logged in'.format(user.username))
-            user = muser.update_user(user, {"last_login": datetime.datetime.now()})
-            if not user:
-                log.error('Could not save timestamp')
-                return redirect(url_for('auth.login'))
-            # Ok, continue
-            return redirect(url_for('opq.show'))
+        if user:
+            max_login_tries = msettings.get_configuration_setting("user-login-max-tries")
+            if user.tries < max_login_tries:
+                if user.verify_password(form.password.data):
+                    login_user(user)
+                    log.info(u'user {} logged in'.format(user.username))
+                    user = muser.update_user(user, {"last_login": datetime.datetime.now(), "tries": 0})
+                    if not user:
+                        log.error(f'Could not save timestamp for {form.username.data}')
+                        return redirect(url_for('auth.login'))
+                    # Ok, continue
+                    return redirect(url_for('opq.show'))
+                else:
+                    muser.update_user(user, {"tries": user.tries + 1})
+                    utils.flash_plus(u'Ongeldig paswoord')
+                    log.error(f"Non valid password for {form.username.data}")
+            else:
+                utils.flash_plus("Teveel aanmeldpogingen, contacteer de ICT verantwoordelijke")
+                log.error(f"Too many login attempts for {form.username.data}")
         else:
-            utils.flash_plus(u'Ongeldige gebruikersnaam of paswoord')
-            log.error(u'Invalid username/password')
+            utils.flash_plus(u'Ongeldige gebruikersnaam')
+            log.error(f'Invalid username: {form.username.data}')
+
     return render_template('auth/login.html', form=form, title='Login')
 
 

@@ -40,6 +40,8 @@ class User(UserMixin, db.Model, SerializerMixin):
     level = db.Column(db.Integer)
     user_type = db.Column(db.String(256))
     last_login = db.Column(db.DateTime())
+    active = db.Column(db.Boolean, default=True)
+    tries = db.Column(db.Integer, default=0)
 
     @property
     def is_local(self):
@@ -106,11 +108,6 @@ class User(UserMixin, db.Model, SerializerMixin):
 
     def log(self):
         return '<User: {}/{}>'.format(self.id, self.username)
-
-    def ret_dict(self):
-        return {'id': self.id, 'DT_RowId': self.id, 'email': self.email, 'username': self.username,
-                'level': User.LEVEL.i2s(self.level), 'user_type': self.user_type, 'last_login': self.last_login,
-                'chbx': ''}
 
 
 def add_user(data = {}):

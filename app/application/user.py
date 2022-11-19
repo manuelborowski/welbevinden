@@ -74,8 +74,9 @@ def prepare_edit_registration_form(id):
 def format_data(db_list, total_count, filtered_count):
     out = []
     for i in db_list:
-        em = i.ret_dict()
+        em = i.to_dict()
         em['row_action'] = f"{i.id}"
+        em['DT_RowId'] = f"{i.id}"
         out.append(em)
     return total_count, filtered_count, out
 

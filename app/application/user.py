@@ -1,8 +1,7 @@
-from flask_login import current_user
 from app import log
-from app.application import formio as mformio
 from app.data import user as muser, settings as msettings
-import sys
+from app.application.settings import subscribe_update_setting
+import sys, json
 
 def add_user(data):
     try:
@@ -81,3 +80,25 @@ def format_data(db_list, total_count, filtered_count):
     return total_count, filtered_count, out
 
 
+def generate_users(setting, value, opaque):
+    try:
+        if setting == "user-generate-users":
+            data = json.loads(value)
+            for nu in data:
+                user = muser.get_first_user({'username': nu['username']})
+                if not user:
+                    user = muser.add_user({"username": nu["username"], "password": nu["password"], "level": nu["level"], "user_type": "local"})
+                    if user:
+                        log.info(f"{sys._getframe().f_code.co_name}, added user {user.username}")
+                    else:
+                        log.error(f"{sys._getframe().f_code.co_name}, could not add user {nu['username']}")
+                else:
+                    log.error(f"{sys._getframe().f_code.co_name}, user {nu['username']} already exists")
+            return False
+        return True
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
+
+
+subscribe_update_setting("user-generate-users", generate_users, None)

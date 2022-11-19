@@ -630,7 +630,7 @@ formio_settings = \
                                                                         "tableView": false,
                                                                         "components": [
                                                                             {
-                                                                                "html": "<p>In theorie zijn er 4 enquêtes per leerling (de leerling vult er één in september en één in december, en idem voor de ouders). &nbsp;Deze enquêtes zijn met elkaar gelinkt via de naam en klas van de leerling.<br>Wanneer de leerlingen en ouders de naam en klas zelf moeten opgeven, dan bestaat de kans dat (door een typfout) de enquête niet gelinkt kan worden.</p><p>Daarom kan de school een lijst van leerlingen uploaden, waaruit de ouders en leerling kunnen kiezen. &nbsp;Het is eventueel mogelijk om een bestaande lijst te verwijderen.</p><p>Als alternatief kan de school een lijst van klassen voorzien, zodat die consequent kan worden ingevoerd. &nbsp;Maak de lijst leeg indien dit niet gewenst wordt.</p><p>Als de leerlingenlijst en de klassenlijst niet gebruikt worden (leeg zijn), dan moeten ouders en leerling zelf naam, voornaam en klas opgeven.</p>",
+                                                                                "html": "<p>Onderaan kan, <strong>indien gewenst</strong>, een lijst met leerlingen worden geüpload zodat het voor ouders en leerlingen gemakkelijker is om de juiste leerling te selecteren. &nbsp;Als geen lijst wordt geüpload, dan kan de naam en voornaam worden getypt.</p><p>Onderaan kan, <strong>indien gewenst</strong>, een lijst met klassen worden ingegeven (alle klassen, gescheiden door een komma). &nbsp;Ouders en leerlingen kunnen dan gemakkelijker de juiste klas selecteren.</p>",
                                                                                 "label": "Content",
                                                                                 "refreshOnChange": false,
                                                                                 "key": "content",
@@ -1108,6 +1108,46 @@ formio_settings = \
                                                 "autoExpand": false,
                                                 "tableView": true,
                                                 "key": "api-keys",
+                                                "type": "textarea",
+                                                "input": true
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "label": "users",
+                                "tableView": false,
+                                "key": "module-users",
+                                "type": "container",
+                                "input": true,
+                                "components": [
+                                    {
+                                        "title": "Genereer gebruikers",
+                                        "theme": "primary",
+                                        "collapsible": true,
+                                        "key": "api",
+                                        "type": "panel",
+                                        "label": "Cardpresso",
+                                        "collapsed": true,
+                                        "input": false,
+                                        "tableView": false,
+                                        "components": [
+                                            {
+                                                "label": "Opslaan ",
+                                                "showValidations": false,
+                                                "theme": "warning",
+                                                "tableView": false,
+                                                "key": "submit",
+                                                "type": "button",
+                                                "input": true
+                                            },
+                                            {
+                                                "label": "Lijst van gebruikers (JSON)",
+                                                "tooltip": "Een lijst van gebruikers\n[{'username': 'abc', 'password': 'def', 'level': 1}, {...}, ...]",
+                                                "autoExpand": false,
+                                                "tableView": true,
+                                                "key": "user-generate-users",
                                                 "type": "textarea",
                                                 "input": true
                                             }

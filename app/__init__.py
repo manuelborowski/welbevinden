@@ -47,10 +47,11 @@ flask_app.config.from_pyfile('config.py')
 # Added a setting to add test-surveys.  Bugfixed export: handle a varying number of questions.  To be futuresave, the question and sequence is stored with the answers
 # V0.25: removed smartschool.  Added max-nbr-login-tries
 # V0.26: update __init__ and label
+# V0.27: make it easier to generate users in batch
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.26', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.27', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

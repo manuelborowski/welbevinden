@@ -160,7 +160,7 @@ def prepare_survey(period, targetgroup, schoolcode):
         extra_basisscholen = {s.andereschool: {"label": s.andereschool} for s in surveys if s.schoolkey not in basisscholen and s.andereschool not in basisscholen}
         basisscholen.update(extra_basisscholen)
         if basisscholen:
-            select_basisschool_data = {"values": [{"value": v["label"], "label": v["label"]} for (k, v) in sorted(basisscholen.items(), key=lambda i: i[0])] + [{"label": "andere basisschool", "value": "not-found"}]}
+            select_basisschool_data = {"values": [{"value": v["label"].replace("(B)", "").strip(), "label": v["label"].replace("(B)", "").strip()} for (k, v) in sorted(basisscholen.items(), key=lambda i: i[0])] + [{"label": "andere basisschool", "value": "not-found"}]}
         else:
             select_basisschool_data = None
 
@@ -246,7 +246,8 @@ def save_survey(data):
                 if basisschool == "not-found":
                     basisschool = container_leerlinggegevens["container-school-gegevens"]["container-secundaireschool"]["ss-andere-basisschool"]
         else:
-            basisschool = school_info["key"]
+            basisschool = school_info["label"]
+            klas = ""
 
         schooljaar = get_current_schoolyear()
         survey = []
@@ -399,7 +400,7 @@ def format_data_ops(db_list, total_count=None, filtered_count=None):
             out.append({
                 "leerling": f"{item.naam} {item.voornaam}" if show_name else f"Leerling {i+1}",
                 "klas": item.klas if show_name else "",
-                "school": school_cache[item.schoolkey]["label"],
+                "school": school_cache[item.schoolkey]["label"] if school_cache[item.schoolkey]["type"] == "secundaireschool" else "",
                 "basisschool": item.andereschool,
                 "row_detail": details,
                 'DT_RowId': item.id

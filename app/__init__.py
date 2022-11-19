@@ -48,10 +48,11 @@ flask_app.config.from_pyfile('config.py')
 # V0.25: removed smartschool.  Added max-nbr-login-tries
 # V0.26: update __init__ and label
 # V0.27: make it easier to generate users in batch
+# V0.28: take the survey-active-window into account when checking if a survey is send multiple times
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.27', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.28', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

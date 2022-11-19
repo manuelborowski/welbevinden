@@ -250,17 +250,17 @@ def save_survey(data):
 
         schooljaar = get_current_schoolyear()
         survey = []
-        if not is_test_survey:
+        if not is_test_survey and naam != "" and voornaam != "": # Ignore if the survey is anonymous
+            survey_start_string = (":").join(school_info["venster-actief"][f"{targetgroup}-van"].split("+")[0].split(":")[:2])
+            survey_start = datetime.datetime.strptime(survey_start_string, "%Y-%m-%dT%H:%M")
             previous_surveys = msurvey.get_surveys({"naam": naam, "voornaam": voornaam, "klas": klas, "schoolkey": school_info["key"], "targetgroup": targetgroup,
                                                    "schooljaar": schooljaar}, order_by="-timestamp")
-            nbr_prvious_surveys = 0
-            if previous_surveys and naam != "" and voornaam != "": # check if a survey is sent in, too soon after a previous one.  Ignore if the survey is anonymous
-                minimum_days = msettings.get_configuration_setting("survey-minimum-delta-days")
+            nbr_previous_surveys = 0
+            if previous_surveys: # check if a survey is sent in, too soon after a previous one.
                 for previous_survey in previous_surveys:
-                    delta_date = now - previous_survey.timestamp
-                    if delta_date.days < minimum_days:
-                        nbr_prvious_surveys += 1
-                if nbr_prvious_surveys >= 2 or nbr_prvious_surveys >= 1 and targetgroup == "leerlingen":
+                    if previous_survey.timestamp > survey_start:
+                        nbr_previous_surveys += 1
+                if nbr_previous_surveys >= 2 or nbr_previous_surveys >= 1 and targetgroup == "leerlingen": # ouders can send in 2 surveys
                     return {"status": False, "message": f"Onze excuses, maar u heeft al een bevraging ingediend, deze bevraging wordt genegeerd."}
         for vraag, antwoord  in data["container-vragen"].items():
             question_obj = question_cache.get_by_key(vraag, period, targetgroup)

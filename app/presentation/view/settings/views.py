@@ -997,19 +997,6 @@ formio_settings = \
                                                 "input": true
                                             },
                                             {
-                                                "label": "Minimum aantal dagen tussen twee enquêtes",
-                                                "labelPosition": "left-left",
-                                                "mask": false,
-                                                "tableView": false,
-                                                "delimiter": false,
-                                                "requireDecimal": false,
-                                                "inputFormat": "plain",
-                                                "truncateMultipleSpaces": false,
-                                                "key": "survey-minimum-delta-days",
-                                                "type": "number",
-                                                "input": true
-                                            },
-                                            {
                                                 "label": "Max aantal login-pogingen",
                                                 "labelPosition": "left-left",
                                                 "mask": false,

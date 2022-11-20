@@ -51,10 +51,12 @@ flask_app.config.from_pyfile('config.py')
 # V0.28: take the survey-active-window into account when checking if a survey is send multiple times
 # V0.29: minor updates
 # V0.30: solved issues with keys and labels
+# V0.31: enabled ordering in user overview
+
 
 @flask_app.context_processor
 def inject_defaults():
-    return dict(version='@ 2022 MB. V0.30', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
+    return dict(version='@ 2022 MB. V0.31', title=flask_app.config['HTML_TITLE'], site_name=flask_app.config['SITE_NAME'])
 
 
 #  enable logging

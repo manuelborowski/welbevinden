@@ -11,6 +11,7 @@ import json, sys
 from app.data.datatables import DatatableConfig
 import app.data.user
 import app.application.user
+from sqlalchemy import or_, desc
 
 @user.route('/user', methods=['GET', 'POST'])
 @admin_required
@@ -110,6 +111,10 @@ class UserConfig(DatatableConfig):
 
     def pre_sql_search(self, search):
         return data.user.pre_sql_search(search)
+
+    def pre_sql_order(self, q, on, direction):
+        q = q.order_by(desc(on)) if direction == 'desc' else q.order_by(on)
+        return q
 
     def get_right_click(self):
         return {

@@ -90,7 +90,6 @@ class OpsConfig(DatatableConfig):
     def post_sql_search(self, l, search, count):
         return app.application.survey.post_sql_search_ops(l, search, count)
 
-
     def post_sql_order(self, l, on, direction):
         return app.application.survey.post_sql_order_ops(l, on, direction)
 

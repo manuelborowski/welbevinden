@@ -45,7 +45,7 @@ class DatatableConfig:
         return l
 
     def post_sql_paginate(self, l, start, length):
-        return l
+        return l[start:length]
 
     def show_info(self):
         return []

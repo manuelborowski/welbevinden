@@ -88,7 +88,7 @@ def prepare_data_for_ajax(table_config, paginate=True):
         if order_on:
             formatted_data = table_config.post_sql_order(formatted_data, order_on, order_direction)
 
-        if paginate_start:
+        if paginate and paginate_length > 0:
             formatted_data = table_config.post_sql_paginate(formatted_data, paginate_start, paginate_start + paginate_length)
 
     except Exception as e:

@@ -1057,6 +1057,16 @@ formio_settings = \
                                                 "key": "school-profile",
                                                 "type": "textarea",
                                                 "input": true
+                                            },
+                                            {
+                                                "label": "Basisscholen: vragen whitelist",
+                                                "tooltip": "In het geval dat een basisschoolprofiel aanmeldt, dan is dit een lijst van de vragen die getoond wordt",
+                                                "applyMaskOn": "change",
+                                                "autoExpand": false,
+                                                "tableView": true,
+                                                "key": "basisscholen-question-whitelist",
+                                                "type": "textarea",
+                                                "input": true
                                             }
                                         ]
                                     }

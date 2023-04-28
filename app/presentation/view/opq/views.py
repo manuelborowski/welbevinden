@@ -1,10 +1,8 @@
 from . import opq
-from app import log
-from flask import redirect, url_for, request, render_template
+from flask import redirect, url_for
 from flask_login import login_required
 from app.presentation.view import datatables
 from app.application import socketio as msocketio, survey as msurvey, school as mschool
-import sys, json, html
 import app.data.survey
 import app.application.survey
 from app.data.datatables import DatatableConfig

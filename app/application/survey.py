@@ -6,7 +6,7 @@ from app.application.util import deepcopy
 from app.data.utils import get_current_schoolyear, get_test_bevragingen
 from app.data.string_cache import string_cache
 from app.data.question import question_cache
-from app.data import student as mstudent, settings as msettings, survey as msurvey
+from app.data import student as mstudent, settings as msettings, survey as msurvey, school as mschool
 from app.application import formio as mformio
 import sys, json, datetime, csv
 from io import StringIO
@@ -319,6 +319,11 @@ def survey_done(data):
 ############ datatables: survey overview list #########
 def format_data_opq(db_list, total_count, filtered_count):
     try:
+        school_info = mschool.get_school_info_for_current_user()
+        if len(school_info) == 1 and list(school_info.values())[0]["type"] == "basisschool":
+            question_whitelist = msettings.get_configuration_setting("basisscholen-question-whitelist")
+        else:
+            question_whitelist = []
         out = []
         collect_data = {}
         remember_type_radio_answer = -1
@@ -326,6 +331,8 @@ def format_data_opq(db_list, total_count, filtered_count):
             survey = json.loads(item.survey)
             for [answer, sequence_nbr, label_id, vraag_type] in survey:
                 label = string_cache.get_label(label_id)
+                if question_whitelist and not label in question_whitelist:
+                    continue
                 if sequence_nbr in collect_data:
                     if vraag_type == "radio":
                         if answer in collect_data[sequence_nbr][2]:
@@ -384,6 +391,11 @@ def format_data_opq(db_list, total_count, filtered_count):
 
 def format_data_ops(db_list, total_count=None, filtered_count=None):
     try:
+        school_info = mschool.get_school_info_for_current_user()
+        if len(school_info) == 1 and list(school_info.values())[0]["type"] == "basisschool":
+            question_whitelist = msettings.get_configuration_setting("basisscholen-question-whitelist")
+        else:
+            question_whitelist = []
         out = []
         show_name = current_user.is_at_least_naam_leerling
         school_cache = msettings.get_configuration_setting('school-profile')
@@ -393,6 +405,8 @@ def format_data_ops(db_list, total_count=None, filtered_count=None):
             temp = []
             for [answer, sequence_nbr, label_id, vraag_type] in survey:
                 label = string_cache.get_label(label_id)
+                if question_whitelist and not label in question_whitelist:
+                    continue
                 if type(answer) is dict:
                     answer = (", ").join(answer)
                 temp.append([sequence_nbr, label, answer])
